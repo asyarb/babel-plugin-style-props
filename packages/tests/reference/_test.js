@@ -2,8 +2,8 @@ import test from 'ava'
 import { transformSync } from '@babel/core'
 import jsxSyntax from '@babel/plugin-syntax-jsx'
 import emotionPreset from '@emotion/babel-preset-css-prop'
-import system from '../babel-plugin/index'
-import css from '../babel-plugin/css'
+import system from '../../babel-plugin/index'
+import css from '../../babel-plugin/css'
 
 const plugins = [jsxSyntax, system]
 

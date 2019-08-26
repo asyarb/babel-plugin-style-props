@@ -1,10 +1,9 @@
 {
   "name": "@styled-system/babel-plugin",
   "version": "0.0.20",
-  "description": "",
+  "description": "Use styled-system props on any JSX element.",
   "main": "index.js",
   "scripts": {
-    "prepare": "babel src -d dist",
     "test": "jest"
   },
   "keywords": [],
