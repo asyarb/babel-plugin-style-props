@@ -109,12 +109,8 @@ export const css = styles => theme => {
   for (const key in styles) {
     const value = styles[key]
 
-    if (value && typeof value === 'object') {
-      result[key] = css(value)(theme)
-      continue
-    }
-
-    result[key] = getScaleValue(theme[keys[key]] ?? {}, value)
+    if (value && typeof value === 'object') result[key] = css(value)(theme)
+    else result[key] = getScaleValue(theme[keys[key]] ?? {}, value)
   }
 
   return result
