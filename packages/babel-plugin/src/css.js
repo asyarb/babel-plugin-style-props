@@ -104,6 +104,7 @@ const getScaleValue = (scale, value) => {
 }
 
 export const css = styles => theme => {
+  console.log(styles)
   const result = {}
 
   for (const key in styles) {
@@ -116,6 +117,8 @@ export const css = styles => theme => {
 
     result[key] = getScaleValue(theme[keys[key]] ?? {}, value)
   }
+
+  console.log(result)
 
   return result
 }
