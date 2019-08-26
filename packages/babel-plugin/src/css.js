@@ -1,19 +1,15 @@
 import get from 'lodash.get'
 
-const keys = {
-  fontSize: 'fontSizes',
-  fontFamily: 'fonts',
-  fontWeight: 'fontWeights',
-  letterSpacing: 'letterSpacings',
-}
-const setKeys = (key, props) => {
+const keys = {}
+
+const setKeys = (key, props) =>
   props.forEach(prop => {
     keys[prop] = key
   })
-}
 
-setKeys('colors', ['color', 'backgroundColor', 'borderColor'])
+// The order of these keys should generally match the keys found on the styled-system reference table. You can view the reference table at: https://styled-system.com/table/
 
+// SPACE
 setKeys('space', [
   'margin',
   'marginTop',
@@ -45,6 +41,17 @@ setKeys('space', [
   'py',
 ])
 
+// COLOR
+setKeys('colors', ['color', 'backgroundColor', 'borderColor'])
+
+// TYPOGRAPHY
+setKeys('fonts', ['fontFamily'])
+setKeys('fontSizes', ['fontSize'])
+setKeys('fontWeights', ['fontWeight'])
+setKeys('lineHeights', ['lineHeight'])
+setKeys('letterSpacing', ['letterSpacing'])
+
+// LAYOUT
 setKeys('sizes', [
   'width',
   'height',
@@ -54,6 +61,21 @@ setKeys('sizes', [
   'maxHeight',
 ])
 
+// FLEXBOX -- needs no theme keys
+
+// GRID LAYOUT
+setKeys('space', [
+  'gridGap',
+  'gridRowGap',
+  'gridColumnGap',
+  'rowGap',
+  'columnGap',
+  'gap',
+])
+
+// BACKGROUND -- needs no theme keys
+
+// BORDER
 setKeys('borders', [
   'border',
   'borderTop',
@@ -64,25 +86,39 @@ setKeys('borders', [
 setKeys('borderWidths', ['borderWidth'])
 setKeys('borderStyles', ['borderStyle'])
 setKeys('radii', ['borderRadius'])
+
+// POSITION
 setKeys('zIndices', ['zIndex'])
+setKeys('space', ['top', 'right', 'bottom', 'left'])
+
+// SHADOW
+setKeys('shadows', ['boxShadow', 'textShadow'])
+
+// Have a way to specify variants? - TODO
 
 const getScaleValue = (scale, x) => {
   if (typeof x !== 'number' || x >= 0) return get(scale, x, x)
+
   const abs = Math.abs(x)
   const n = get(scale, abs, abs)
+
   return n * -1
 }
 
 export const css = styles => theme => {
   const result = {}
+
   for (const key in styles) {
     const value = styles[key]
+
     if (value && typeof value === 'object') {
       result[key] = css(value)(theme)
       continue
     }
+
     result[key] = getScaleValue(get(theme, keys[key], {}), value)
   }
+
   return result
 }
 

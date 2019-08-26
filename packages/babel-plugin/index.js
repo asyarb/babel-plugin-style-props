@@ -12,15 +12,17 @@ const cssProperties = allCSSProperties
   .filter(prop => !isPropValid(prop))
 
 const defaultOptions = {
-  breakpoints: [ '40em', '52em', '64em' ]
+  breakpoints: ['40em', '52em', '64em'],
 }
 
 const propNames = [
-  ...cssProperties,
   // props included in isPropValid
+  ...cssProperties,
+
+  // Missing props from cssProperties
   'color',
-  // todo: handle img, etc
   'width',
+  'height',
   'fontFamily',
   'fontSize',
   'fontWeight',
@@ -31,7 +33,9 @@ const propNames = [
   'textDecoration',
   'transform',
   'cursor',
-  // system props
+  'filter',
+
+  // system specific props
   'bg',
   'm',
   'mt',
@@ -53,10 +57,13 @@ const propNames = [
   'paddingY',
 ]
 
-const props = propNames.reduce((acc, key) => ({
-  ...acc,
-  [key]: true
-}), {})
+const props = propNames.reduce(
+  (acc, key) => ({
+    ...acc,
+    [key]: true,
+  }),
+  {},
+)
 
 const aliases = {
   bg: 'backgroundColor',
@@ -70,15 +77,16 @@ const aliases = {
   pr: 'paddingRight',
   pb: 'paddingBottom',
   pl: 'paddingLeft',
+
   // shorthands
-  marginX: [ 'marginLeft', 'marginRight' ],
-  marginY: [ 'marginTop', 'marginBottom' ],
-  paddingX: [ 'paddingLeft', 'paddingRight' ],
-  paddingY: [ 'paddingTop', 'paddingBottom' ],
-  mx: [ 'marginLeft', 'marginRight' ],
-  my: [ 'marginTop', 'marginBottom' ],
-  px: [ 'paddingLeft', 'paddingRight' ],
-  py: [ 'paddingTop', 'paddingBottom' ],
+  marginX: ['marginLeft', 'marginRight'],
+  marginY: ['marginTop', 'marginBottom'],
+  paddingX: ['paddingLeft', 'paddingRight'],
+  paddingY: ['paddingTop', 'paddingBottom'],
+  mx: ['marginLeft', 'marginRight'],
+  my: ['marginTop', 'marginBottom'],
+  px: ['paddingLeft', 'paddingRight'],
+  py: ['paddingTop', 'paddingBottom'],
 }
 
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
@@ -87,10 +95,10 @@ module.exports = function(babel, opts) {
   const { types: t } = babel
   const options = Object.assign({}, defaultOptions, opts)
   const mediaQueries = options.breakpoints.map(createMediaQuery)
-  const breakpoints = [ null, ...mediaQueries ]
+  const breakpoints = [null, ...mediaQueries]
 
   const visitSystemProps = {
-    JSXAttribute (path, state) {
+    JSXAttribute(path, state) {
       const name = path.node.name.name
       if (!props[name]) return
       if (name === 'css') return
@@ -115,11 +123,11 @@ module.exports = function(babel, opts) {
       }
 
       path.remove()
-    }
+    },
   }
 
   // convert system props to CSS object
-  const createStyles = (props) => {
+  const createStyles = props => {
     const styles = []
     const responsiveStyles = []
     props.forEach(({ key, value }) => {
@@ -130,10 +138,7 @@ module.exports = function(babel, opts) {
         val.forEach((node, i) => {
           if (i >= breakpoints.length) return
           const media = breakpoints[i]
-          let style = t.objectProperty(
-            id,
-            node
-          )
+          let style = t.objectProperty(id, node)
           if (!media) {
             return styles.push(style)
           }
@@ -145,7 +150,7 @@ module.exports = function(babel, opts) {
           if (breakpointIndex < 0) {
             style = t.objectProperty(
               t.stringLiteral(media),
-              t.objectExpression([style])
+              t.objectExpression([style]),
             )
             responsiveStyles.push(style)
           } else {
@@ -153,10 +158,7 @@ module.exports = function(babel, opts) {
           }
         })
       } else {
-        const style = t.objectProperty(
-          id,
-          value
-        )
+        const style = t.objectProperty(id, value)
         styles.push(style)
       }
     })
@@ -164,11 +166,11 @@ module.exports = function(babel, opts) {
   }
 
   const visitCSSProp = {
-    ObjectExpression (path, state) {
+    ObjectExpression(path, state) {
       path.node.properties.unshift(...state.styles)
       path.stop()
     },
-    CallExpression (path, state) {
+    CallExpression(path, state) {
       path.get('arguments.0').traverse(visitCSSProp, state)
     },
   }
@@ -179,55 +181,46 @@ module.exports = function(babel, opts) {
     // get or create css prop
     const cssIndex = path.node.attributes
       .filter(attr => t.isJSXAttribute(attr))
-      .findIndex(
-        attr => attr.name && attr.name.name === 'css'
-      )
+      .findIndex(attr => attr.name && attr.name.name === 'css')
     if (cssIndex < 0) {
       const cssAttribute = t.jSXAttribute(
         t.jSXIdentifier('css'),
-        t.jSXExpressionContainer(
-          t.objectExpression(styles)
-        )
+        t.jSXExpressionContainer(t.objectExpression(styles)),
       )
       path.node.attributes.push(cssAttribute)
     } else {
-      path.get(`attributes.${cssIndex}.value`).traverse(visitCSSProp, { styles })
+      path
+        .get(`attributes.${cssIndex}.value`)
+        .traverse(visitCSSProp, { styles })
     }
   }
 
   const wrapCSSProp = {
-    JSXAttribute (path, state) {
+    JSXAttribute(path, state) {
       if (path.node.name.name !== 'css') return
       const value = path.get('value.expression')
       if (!value.isObjectExpression()) return
-      const call = t.callExpression(
-        t.identifier(CSS_ID),
-        [ value.node ]
-      )
+      const call = t.callExpression(t.identifier(CSS_ID), [value.node])
       value.replaceWith(call)
-    }
+    },
   }
 
   return {
     name: 'styled-system',
     visitor: {
       Program: {
-        exit (path, state) {
+        exit(path, state) {
           if (!state.get('isJSX')) return
-          path.unshiftContainer('body',
+          path.unshiftContainer(
+            'body',
             t.importDeclaration(
-              [
-                t.importSpecifier(
-                  t.identifier(CSS_ID),
-                  t.identifier('css')
-                )
-              ],
-              t.stringLiteral(pkg.name + '/css')
-            )
+              [t.importSpecifier(t.identifier(CSS_ID), t.identifier('css'))],
+              t.stringLiteral(pkg.name + '/css'),
+            ),
           )
-        }
+        },
       },
-      JSXOpeningElement (path, state) {
+      JSXOpeningElement(path, state) {
         const name = path.node.name.name
         if (svgTags.includes(name)) return
         state.elementName = name
@@ -236,7 +229,7 @@ module.exports = function(babel, opts) {
         applyCSSProp(path, state)
         path.traverse(wrapCSSProp, state)
         state.set('isJSX', true)
-      }
-    }
+      },
+    },
   }
 }

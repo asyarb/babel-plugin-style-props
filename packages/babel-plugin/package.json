@@ -4,7 +4,7 @@
   "description": "Use styled-system props on any JSX element.",
   "main": "index.js",
   "scripts": {
-    "prepare": "babel src -d dist",
+    "build": "babel src -d dist",
     "test": "jest"
   },
   "keywords": [],

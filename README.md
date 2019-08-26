@@ -1,6 +1,6 @@
-# @styled-system/babel-plugin
+# Babel plugin for Styled-System
 
-Use Styled System props on any JSX element
+Use Styled System props on any JSX element.
 
 ```sh
 npm i -D @styled-system/babel-plugin
@@ -12,11 +12,11 @@ npm i -D @styled-system/babel-plugin
 </h1>
 ```
 
-- Use Styled System props on **any** JSX element
-- Support for **all** CSS properties
-- Picks up values from theme context
-- Use arrays for responsive styles
-- Removes props from rendered HTML
+- Use Styled System props on **any** JSX element.
+- Support for **all** CSS properties.
+- Picks up values from theme providers.
+- Use arrays for responsive styles.
+- Removes props from rendered HTML.
 
 ## Getting Started
 
@@ -93,14 +93,14 @@ export default {
 ### Caveats
 
 - Breakpoints can _only_ be configured in the Babel plugin options (this is an
-  intentional performance enhancement)
+  intentional performance enhancement).
 - Theme values with _not_ work when a custom function is used in the `css` prop
-- Does not parse props on SVG elements
+- Does not parse props on SVG elements.
 - This does not use the core `styled-system` package under the hood and is an
   alternative implementation. This is **not** intended to be used with
   components built with `styled-system` and may work differently than exppected.
-- Does not transform fractional width values
-- Does not include default scales for `space` or `fontSizes`
+- Does not transform fractional width values.
+- Does not include default scales for `space` or `fontSizes`.
 
 To configure custom breakpoint values, set the `breakpoints` option in your
 Babel config file.
