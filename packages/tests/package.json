@@ -1,0 +1,24 @@
+{
+  "name": "babel-tests",
+  "version": "0.0.20",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "babel src -d dist",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Anthony Yarbrough <asyarb@hawaii.edu>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@emotion/babel-preset-css-prop": "^10.0.14",
+    "@testing-library/jest-dom": "^4.1.0",
+    "@testing-library/react": "^9.1.3",
+    "jest": "^24.9.0",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0"
+  }
+}

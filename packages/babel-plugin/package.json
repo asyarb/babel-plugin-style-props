@@ -1,0 +1,26 @@
+{
+  "name": "@styled-system/babel-plugin",
+  "version": "0.0.20",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "babel src -d dist",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Anthony Yarbrough <asyarb@hawaii.edu>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "jest": "^24.9.0"
+  },
+  "dependencies": {
+    "@emotion/is-prop-valid": "^0.8.2",
+    "known-css-properties": "^0.15.0",
+    "lodash.camelcase": "^4.3.0",
+    "lodash.get": "^4.4.2",
+    "svg-tags": "^1.0.0"
+  }
+}
