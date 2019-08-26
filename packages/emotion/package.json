@@ -1,8 +1,7 @@
 {
-  "name": "plugin-tests",
+  "name": "emotion-tests",
   "version": "0.0.20",
-  "description": "Tests in a dedicated package for the babel-plugin.",
-  "main": "index.js",
+  "description": "Dedicated package for testing the babel plugin with emotion.",
   "scripts": {
     "test": "jest"
   },

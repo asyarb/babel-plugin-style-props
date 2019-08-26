@@ -21,7 +21,7 @@ const customRender = Comp => {
   return { container, props, result: container.firstChild, ...rest }
 }
 
-describe('babel-plugin', () => {
+describe('emotion integration', () => {
   it('parses style props', () => {
     const { result } = customRender(<div color="tomato" bg="#fff" />)
 
