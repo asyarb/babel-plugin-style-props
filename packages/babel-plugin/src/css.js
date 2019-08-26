@@ -94,13 +94,11 @@ setKeys('space', ['top', 'right', 'bottom', 'left'])
 // SHADOW
 setKeys('shadows', ['boxShadow', 'textShadow'])
 
-// Have a way to specify variants? - TODO
+const getScaleValue = (scale, value) => {
+  if (typeof value !== 'number' || value >= 0) return get(scale, value, value)
 
-const getScaleValue = (scale, x) => {
-  if (typeof x !== 'number' || x >= 0) return get(scale, x, x)
-
-  const abs = Math.abs(x)
-  const n = get(scale, abs, abs)
+  const abs = Math.abs(value)
+  const n = scale[abs] ?? abs
 
   return n * -1
 }
@@ -116,7 +114,7 @@ export const css = styles => theme => {
       continue
     }
 
-    result[key] = getScaleValue(get(theme, keys[key], {}), value)
+    result[key] = getScaleValue(theme[keys[key]] ?? {}, value)
   }
 
   return result

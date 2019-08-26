@@ -3,6 +3,7 @@ import { render } from '@testing-library/react'
 import { matchers } from 'jest-emotion'
 import '@testing-library/jest-dom/extend-expect'
 import { ThemeProvider } from 'emotion-theming'
+
 import { theme } from '../theme'
 
 expect.extend(matchers)

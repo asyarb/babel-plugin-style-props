@@ -8,14 +8,16 @@ better suit my personal style.
 
 - Added all missing properties from the `styled-system` reference table. Have
   their theme keys appropriately associated.
-- Refactored testing to be more integration oriented. We check against the final
-  styles instead through snapshots.
+- Refactored testing to be more integration oriented. Tests now check against
+  the final styles instead of comparing snapshots.
 
-**Todos:**
+**In progress now:**
 
+- Test and integrate support for styled-components.
 - Add in the ability to specifiy variants and their respctive keys (babel
   options?)
-- Test and integrate support for styled-components
+
+---
 
 ```jsx
 <h1 mt={0} mb={4} color="primary">

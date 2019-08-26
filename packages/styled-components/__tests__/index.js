@@ -1,8 +1,9 @@
 import React from 'react'
 import { render } from '@testing-library/react'
+import { ThemeProvider } from 'styled-components'
 import 'jest-styled-components'
 import '@testing-library/jest-dom/extend-expect'
-import { ThemeProvider } from 'styled-components'
+
 import { theme } from '../theme'
 
 const Providers = ({ children }) => (
