@@ -4,14 +4,14 @@ Use Styled System props on any JSX element. This is a fork of the
 `@styled-system/babel-plugin` but with the testing framework reimplemented to
 better suit my personal style.
 
-Progress so far:
+**Progress so far:**
 
 - Added all missing properties from the `styled-system` reference table. Have
   their theme keys appropriately associated.
 - Refactored testing to be more integration oriented. We check against the final
   styles instead through snapshots.
 
-Todos:
+**Todos:**
 
 - Add in the ability to specifiy variants and their respctive keys (babel
   options?)
