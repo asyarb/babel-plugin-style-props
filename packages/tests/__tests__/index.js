@@ -1,6 +1,9 @@
 import React from 'react'
 import { render } from '@testing-library/react'
+import { matchers } from 'jest-emotion'
 import '@testing-library/jest-dom/extend-expect'
+
+expect.extend(matchers)
 
 const renderWithProps = Comp => {
   const { container, ...rest } = render(Comp)
@@ -12,18 +15,25 @@ const renderWithProps = Comp => {
 }
 
 describe('renderWithProps', () => {
-  it('renders and returns the props provided', () => {
-    const { props, getByText } = renderWithProps(
+  it('renders', () => {
+    const { container, getByText } = renderWithProps(
       <div width="100%" height="100%">
         Hello, world!
       </div>,
     )
 
     expect(getByText('Hello, world!')).toBeInTheDocument()
-    expect(props).toEqual({
-      width: '100%',
-      height: '100%',
-      children: 'Hello, world!',
-    })
+  })
+})
+
+describe('babel-plugin', () => {
+  it('renders with the correct styles', () => {
+    const { container } = renderWithProps(
+      <div width="100%" height="100%">
+        Hello, world!
+      </div>,
+    )
+
+    expect(container.firstChild).toHaveStyleRule('width', '100%')
   })
 })
