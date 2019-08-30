@@ -50,12 +50,13 @@ export default (_, opts) => {
 
     props.forEach(({ key, value }) => {
       const id = t.identifier(key)
-      const val = value
 
-      // This prop is a responsive prop, so we need
-      // to create the appropriate media queries.
-      if (Array.isArray(val)) {
-        val.forEach((node, i) => {
+      if (t.isCallExpression(value) || t.isIdentifier(value)) {
+        const style = t.objectProperty(id, value)
+
+        styles.push(style)
+      } else if (Array.isArray(value)) {
+        value.forEach((node, i) => {
           if (i >= breakpoints.length) return
 
           const media = breakpoints[i]

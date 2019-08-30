@@ -26,10 +26,12 @@ Use Styled System props on any JSX element.
       `styled-components`, `emotion` and _any_ `css` prop that supports object
       syntax.
 - [x] Transform responsive array values to `theme.SPACE_KEY.value` identifiers.
+- [x] Drop expressions and identifiers in system-props as is
 
 ### In progress now
 
 - [] Add in the ability to specifiy variants.
+- [] Support negative values
 
 ---
 

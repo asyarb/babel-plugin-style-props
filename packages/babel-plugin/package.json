@@ -25,6 +25,7 @@
     "@emotion/is-prop-valid": "^0.8.2",
     "known-css-properties": "^0.15.0",
     "lodash.camelcase": "^4.3.0",
+    "lodash.isfunction": "^3.0.9",
     "svg-tags": "^1.0.0"
   }
 }

@@ -195,7 +195,4 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('display', 'grid')
     expect(result).toHaveStyleRule('row-gap', theme.space[5])
   })
-
-  it.todo('handles array props with expressions')
-  it.todo('handles array props with multiple keys')
 })
