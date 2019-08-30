@@ -105,17 +105,17 @@ export default {
 <div width={['100%', '50%', '25%']} />
 ```
 
-### Caveats
+### Gotchas
 
-- Breakpoints can _only_ be configured in the Babel plugin options (this is an
+- Breakpoints can **only** be configured in the Babel plugin options (this is an
   intentional performance enhancement).
-- Theme values will _not_ work when a custom function is used in the `css` prop
+- Expressions are dropped in to the css prop as is, and have access to `theme`.
 - Does not parse props on SVG elements.
 - This does not use the core `styled-system` package under the hood and is an
-  alternative implementation. This is **not** intended to be used with
-  components built with `styled-system` and may work differently than expected.
+  alternative implementation. This **cannot** be used with components built with
+  `styled-system`.
 - Does not transform fractional width values.
-- Does not include default scales for `space` or `fontSizes`.
+- Does not include default scales.
 
 To configure custom breakpoint values, set the `breakpoints` option in your
 Babel config file.
