@@ -1,14 +1,5 @@
 # Babel plugin for Styled-System <!-- omit in toc -->
 
-- [Differences from official experiment](#differences-from-official-experiment)
-  - [In progress now](#in-progress-now)
-- [Getting Started](#getting-started)
-- [What it does](#what-it-does)
-- [Use values from your theme](#use-values-from-your-theme)
-- [Use arrays for responsive styles](#use-arrays-for-responsive-styles)
-  - [Caveats](#caveats)
-- [License](#license)
-
 Use Styled System props on any JSX element.
 
 ```jsx
@@ -25,19 +16,20 @@ Use Styled System props on any JSX element.
 
 ## Differences from official experiment
 
-- Added all missing properties from the `styled-system` reference table. Have
-  their theme keys appropriately associated.
-- Refactored testing to be more integration oriented. Tests now check against
-  the final styles instead of comparing snapshots.
-- CSS prop no longer utilizes a `css()` function to iterate over style keys.
-  Instead, we just generate the inline arrow function callback that receives the
-  theme like normal `css` prop usage. This ensures compatability with
-  `styled-components` and `emotion` and _any_ object syntax support `css` prop.
+- [x] Added all missing properties from the `styled-system` reference table.
+      Have their theme keys appropriately associated.
+- [x] Refactored testing to be more integration oriented. Tests now check
+      against the final styles instead of comparing snapshots.
+- [x] No longer utilizes a `css()` function to recursively iterate over style
+      keys. Instead, this version uses an inline arrow function that receives
+      the theme like normal `css` prop usage. This ensures compatability with
+      `styled-components`, `emotion` and _any_ `css` prop that supports object
+      syntax.
 
 ### In progress now
 
-- Add in the ability to specifiy variants
-- Transform responsive array values to `theme.SPACE_KEY.value` identifiers
+- [] Add in the ability to specifiy variants.
+- [] Transform responsive array values to `theme.SPACE_KEY.value` identifiers.
 
 ---
 
