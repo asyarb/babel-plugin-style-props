@@ -106,9 +106,6 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('margin', '3rem', {
       media: 'screen and (min-width: 40em)',
     })
-    expect(result).toHaveStyleRule('margin', '6rem', {
-      media: 'screen and (min-width: 52em)',
-    })
   })
 
   it('handles responsive directional props', () => {
@@ -125,12 +122,18 @@ describe('emotion integration', () => {
     })
   })
 
-  it('handles starting a responsive scale with null', () => {
-    const { result } = customRender(<div m={[null, '2rem']} />)
+  it('handles responsive scales with null throughout', () => {
+    const { result } = customRender(<div m={[null, '2rem', null, '4rem']} />)
 
     expect(result).not.toHaveStyleRule('margin', '0')
     expect(result).toHaveStyleRule('margin', '2rem', {
       media: 'screen and (min-width: 40em)',
+    })
+    expect(result).not.toHaveStyleRule('margin', '0', {
+      media: 'screen and (min-width: 52em)',
+    })
+    expect(result).toHaveStyleRule('margin', '4rem', {
+      media: 'screen and (min-width: 64em)',
     })
   })
 
