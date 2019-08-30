@@ -6,6 +6,7 @@ import { types as t } from '@babel/core'
 import { getThemeKey } from './system'
 import { defaultOptions, props, aliases } from './constants'
 
+const enumberableThemeKeys = ['lineHeights']
 const cssUnitThemeKeys = [
   'space',
   'fontSizes',
@@ -36,17 +37,17 @@ const checkCSSColors = value =>
 //
 // If there is a better way to do this without knowing the theme upfront,
 // someone tell me please.
-const validateThemeValue = (themeKey, value) => {
+const checkThemeableValue = (themeKey, value) => {
+  const safeValue = value.toString()
+
   if (!themeKey) return false
-  else if (cssUnitThemeKeys.includes(themeKey) && checkCSSUnits(value))
+  else if (typeof value === 'number' && enumberableThemeKeys.includes(themeKey))
     return false
-  else if (colorThemeKeys.includes(themeKey) && checkCSSColors(value))
+  else if (cssUnitThemeKeys.includes(themeKey) && checkCSSUnits(safeValue))
     return false
-  else if (
-    themeKey === 'lineHeights' &&
-    (typeof value === 'number' || checkCSSUnits(value))
-  )
+  else if (colorThemeKeys.includes(themeKey) && checkCSSColors(safeValue))
     return false
+  else if (themeKey === 'lineHeights' && checkCSSUnits(safeValue)) return false
 
   return true
 }
@@ -55,7 +56,7 @@ const getSystemAst = (key, node) => {
   const themeKey = getThemeKey(key)
   const value = node.value
 
-  if (!validateThemeValue(themeKey, value)) return node
+  if (!checkThemeableValue(themeKey, value)) return node
 
   // There is a scale, and the value is nested. eg. `gray.40` => theme.colors.gray['40']
   if (typeof value === 'string' && value.includes('.')) {
@@ -67,6 +68,13 @@ const getSystemAst = (key, node) => {
         t.identifier(values[0]),
       ),
       t.stringLiteral(values[1]),
+      true,
+    )
+  } else if (typeof value === 'number') {
+    // value is an enumerable direct `theme.property[4]` access
+    return t.memberExpression(
+      t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
+      t.numericLiteral(value),
       true,
     )
   } else {
@@ -132,6 +140,8 @@ module.exports = (_, opts) => {
 
           const media = breakpoints[i]
           let style = t.objectProperty(id, node)
+
+          // console.log(style)
 
           if (!media) return styles.push(style)
 
