@@ -4,7 +4,7 @@ import template from 'babel-template'
 import { types as t } from '@babel/core'
 
 import { getSystemAst, getNegativeSystemAst } from './system'
-import { DEFAULT_OPTIONS, PROPS, ALIASES } from './constants'
+import { DEFAULT_OPTIONS, PROPS, ALIASES, THEME_ID } from './constants'
 
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
 
@@ -164,7 +164,7 @@ export default (_, opts) => {
       if (!value.isObjectExpression()) return
 
       const themeCallTemplate = template(`
-        theme => CSS_OBJECT
+        ${THEME_ID} => CSS_OBJECT
       `)
       const ast = themeCallTemplate({
         CSS_OBJECT: value.node,

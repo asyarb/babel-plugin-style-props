@@ -1,5 +1,6 @@
 import { types as t } from '@babel/core'
-import template from 'babel-template'
+
+import { THEME_ID } from './constants'
 
 const keys = {
   // SPACE
@@ -152,7 +153,7 @@ export const getSystemAst = (key, node) => {
 
     return t.memberExpression(
       t.memberExpression(
-        t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
+        t.memberExpression(t.identifier(THEME_ID), t.identifier(themeKey)),
         t.identifier(values[0]),
       ),
       t.stringLiteral(values[1]),
@@ -161,14 +162,14 @@ export const getSystemAst = (key, node) => {
   } else if (typeof value === 'number') {
     // value is an enumerable direct `theme.property[4]` access
     return t.memberExpression(
-      t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
+      t.memberExpression(t.identifier(THEME_ID), t.identifier(themeKey)),
       t.numericLiteral(value),
       true,
     )
   } else {
     // value is a direct `theme.scale.property` access
     return t.memberExpression(
-      t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
+      t.memberExpression(t.identifier(THEME_ID), t.identifier(themeKey)),
       t.identifier(value),
     )
   }
