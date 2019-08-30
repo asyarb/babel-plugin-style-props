@@ -223,15 +223,6 @@ module.exports = function(babel, opts) {
       Program: {
         exit(path, state) {
           if (!state.get('isJSX')) return
-
-          // Imports the css function into code... why?
-          path.unshiftContainer(
-            'body',
-            t.importDeclaration(
-              [t.importSpecifier(t.identifier(CSS_ID), t.identifier('css'))],
-              t.stringLiteral(pkg.name + '/css'),
-            ),
-          )
         },
       },
       JSXOpeningElement(path, state) {
