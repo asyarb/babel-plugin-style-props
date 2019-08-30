@@ -2,7 +2,7 @@ import camelCase from 'lodash.camelcase'
 import cssProps from 'known-css-properties'
 import isPropValid from '@emotion/is-prop-valid'
 
-export const defaultOptions = {
+export const DEFAULT_OPTIONS = {
   breakpoints: ['40em', '52em', '64em'],
 }
 
@@ -54,7 +54,7 @@ const propNames = [
   'paddingY',
 ]
 
-export const props = propNames.reduce(
+export const PROPS = propNames.reduce(
   (acc, key) => ({
     ...acc,
     [key]: true,
@@ -62,7 +62,7 @@ export const props = propNames.reduce(
   {},
 )
 
-export const aliases = {
+export const ALIASES = {
   bg: 'backgroundColor',
   m: 'margin',
   mt: 'marginTop',

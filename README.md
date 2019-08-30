@@ -109,7 +109,7 @@ export default {
 
 - Breakpoints can _only_ be configured in the Babel plugin options (this is an
   intentional performance enhancement).
-- Theme values with _not_ work when a custom function is used in the `css` prop
+- Theme values will _not_ work when a custom function is used in the `css` prop
 - Does not parse props on SVG elements.
 - This does not use the core `styled-system` package under the hood and is an
   alternative implementation. This is **not** intended to be used with

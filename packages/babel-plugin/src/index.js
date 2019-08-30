@@ -4,7 +4,7 @@ import template from 'babel-template'
 import { types as t } from '@babel/core'
 
 import { getThemeKey } from './system'
-import { defaultOptions, props, aliases } from './constants'
+import { DEFAULT_OPTIONS, PROPS, ALIASES } from './constants'
 
 const enumberableThemeKeys = ['lineHeights']
 const cssUnitThemeKeys = [
@@ -89,7 +89,7 @@ const getSystemAst = (key, node) => {
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
 
 export default (_, opts) => {
-  const options = Object.assign({}, defaultOptions, opts)
+  const options = Object.assign({}, DEFAULT_OPTIONS, opts)
   const mediaQueries = options.breakpoints.map(createMediaQuery)
   const breakpoints = [null, ...mediaQueries]
 
@@ -100,10 +100,10 @@ export default (_, opts) => {
 
       // If this prop isn't one of our known props or is the
       // `css` prop, let's not do anything.
-      if (!props[name]) return
+      if (!PROPS[name]) return
       if (name === 'css') return
 
-      const key = aliases[name] || name
+      const key = ALIASES[name] || name
       let value = path.node.value
 
       if (t.isJSXExpressionContainer(path.node.value)) {
