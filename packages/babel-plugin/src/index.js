@@ -8,10 +8,21 @@ import { defaultOptions, props, aliases } from './constants'
 
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
 
+const checkCSSUnits = value =>
+  value.match(
+    /(\d*\.?\d+)\s?(px|em|ex|%|in|cn|mm|pt|pc|vh|vw|vmax|vmin|ch|rem+)/gim,
+  )
+
 const getSystemAst = (key, node) => {
   const themeKey = getThemeKey(key)
   const value = node.value
 
+  // There is no corresponding theme scale for this, so just return the node.
+  if (!themeKey) return node
+  // There is a value with a unit, so they likely want an explicit, non-theme value.
+  if (checkCSSUnits(value)) return node
+
+  // There is a scale, and the value is nested. eg. theme.scale.property['something']
   if (value.includes('.')) {
     const values = value.split('.')
 
@@ -24,6 +35,7 @@ const getSystemAst = (key, node) => {
       true,
     )
   } else {
+    // There is a scale, and the value is a direct theme.scale.property access
     return t.memberExpression(
       t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
       t.identifier(value),
