@@ -9,7 +9,7 @@ Use Styled System props on any JSX element.
 ```
 
 - Support for **all** CSS properties.
-- Reads values from your `<ThemeProviders>`.
+- Reads values from your `<ThemeProvider>`.
 - Use arrays for responsive styles.
 - Removes props from rendered HTML (if using `emotion`).
 - Performant! Removes the additional runtime overhead of `styled-system`.
@@ -27,11 +27,12 @@ Use Styled System props on any JSX element.
       syntax.
 - [x] Transform responsive array values to `theme.SPACE_KEY.value` identifiers.
 - [x] Drop expressions and identifiers in system-props as is
+- [x] Support negative values
 
 ### In progress now
 
 - [ ] Add in the ability to specifiy variants through plugin options
-- [ ] Support negative values
+- [ ] Support responsive negative values
 
 ## Getting Started
 
@@ -105,7 +106,7 @@ export default {
 <div width={['100%', '50%', '25%']} />
 ```
 
-### Gotchas
+## Gotchas
 
 - Breakpoints can **only** be configured in the Babel plugin options (this is an
   intentional performance enhancement).

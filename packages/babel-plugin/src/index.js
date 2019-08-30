@@ -3,7 +3,7 @@ import template from 'babel-template'
 
 import { types as t } from '@babel/core'
 
-import { getSystemAst } from './system'
+import { getSystemAst, getNegativeSystemAst } from './system'
 import { DEFAULT_OPTIONS, PROPS, ALIASES } from './constants'
 
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
@@ -51,11 +51,26 @@ export default (_, opts) => {
     props.forEach(({ key, value }) => {
       const id = t.identifier(key)
 
-      if (t.isCallExpression(value) || t.isIdentifier(value)) {
+      // Numerical Negative eg <div mx={-1} />
+      if (t.isUnaryExpression(value) && value.operator === '-') {
+        const ast = getNegativeSystemAst(key, value.argument)
+        const style = t.objectProperty(id, ast)
+
+        styles.push(style)
+      } else if (t.isStringLiteral(value) && value.value[0] === '-') {
+        // String negative of key eg <div mx={-large} />
+        const nonNegativeValue = value.value.substring(1)
+        const ast = getNegativeSystemAst(key, t.stringLiteral(nonNegativeValue))
+        const style = t.objectProperty(id, ast)
+
+        styles.push(style)
+      } else if (t.isCallExpression(value) || t.isIdentifier(value)) {
+        // Function call or plain variable eg <div m={varName} p={negate(5)} />
         const style = t.objectProperty(id, value)
 
         styles.push(style)
       } else if (Array.isArray(value)) {
+        // Responsive array eg <div m={[1, 2, 3]} />
         value.forEach((node, i) => {
           if (i >= breakpoints.length) return
 
@@ -94,7 +109,7 @@ export default (_, opts) => {
           }
         })
       } else {
-        // Convert this value to a theme value, e.g. 'gray.40' => theme.colors.gray['40']
+        // Just plain string eg => <div color='primary' />
         const ast = getSystemAst(key, value)
         const style = t.objectProperty(id, ast)
 

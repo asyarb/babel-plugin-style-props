@@ -1,4 +1,5 @@
 import { types as t } from '@babel/core'
+import template from 'babel-template'
 
 const keys = {
   // SPACE
@@ -124,7 +125,7 @@ const checkCSSColors = value =>
 // If there is a better way to do this without knowing the theme upfront,
 // someone tell me please.
 const checkThemeableValue = (themeKey, value) => {
-  if (!themeKey || !value) return false
+  if (!themeKey || value === null || typeof value === 'undefined') return false
 
   const safeValue = value.toString()
 
@@ -171,4 +172,10 @@ export const getSystemAst = (key, node) => {
       t.identifier(value),
     )
   }
+}
+
+export const getNegativeSystemAst = (key, node) => {
+  const ast = getSystemAst(key, node)
+
+  return t.binaryExpression('+', t.stringLiteral('-'), ast)
 }
