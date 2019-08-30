@@ -10,12 +10,14 @@ better suit my personal style.
   their theme keys appropriately associated.
 - Refactored testing to be more integration oriented. Tests now check against
   the final styles instead of comparing snapshots.
+- CSS prop no longer utilizes a `css()` function to iterate over style keys.
+  Instead, we just generate the inline arrow function callback that receives the
+  theme like normal `css` prop usage. This ensures compatability with
+  `styled-components` and `emotion` and _any_ object syntax support `css` prop.
 
 **In progress now:**
 
-- Test and integrate support for styled-components.
-- Add in the ability to specifiy variants and their respctive keys (babel
-  options?)
+- Add in the ability to specifiy variants
 
 ---
 

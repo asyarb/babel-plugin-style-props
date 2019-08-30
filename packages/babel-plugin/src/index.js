@@ -41,13 +41,13 @@ const checkThemeableValue = (themeKey, value) => {
   const safeValue = value.toString()
 
   if (!themeKey) return false
-  else if (typeof value === 'number' && enumberableThemeKeys.includes(themeKey))
+  if (typeof value === 'number' && enumberableThemeKeys.includes(themeKey))
     return false
-  else if (cssUnitThemeKeys.includes(themeKey) && checkCSSUnits(safeValue))
+  if (cssUnitThemeKeys.includes(themeKey) && checkCSSUnits(safeValue))
     return false
-  else if (colorThemeKeys.includes(themeKey) && checkCSSColors(safeValue))
+  if (colorThemeKeys.includes(themeKey) && checkCSSColors(safeValue))
     return false
-  else if (themeKey === 'lineHeights' && checkCSSUnits(safeValue)) return false
+  if (themeKey === 'lineHeights' && checkCSSUnits(safeValue)) return false
 
   return true
 }
@@ -88,7 +88,7 @@ const getSystemAst = (key, node) => {
 
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
 
-module.exports = (_, opts) => {
+export default (_, opts) => {
   const options = Object.assign({}, defaultOptions, opts)
   const mediaQueries = options.breakpoints.map(createMediaQuery)
   const breakpoints = [null, ...mediaQueries]
