@@ -178,3 +178,5 @@ export const theme = {
     return acc
   }, {}),
 }
+
+theme.space.large = theme.space[8]

@@ -41,6 +41,14 @@ describe('emotion integration', () => {
     expect(result.firstChild).toHaveStyleRule('color', theme.colors.red[40])
   })
 
+  it('does not parse non-system props', () => {
+    const { props } = customRender(<div style={{ color: 'blue' }} />)
+
+    expect(props.hasOwnProperty('style')).toBe(true)
+    expect(props.hasOwnProperty('className')).toBe(false)
+    expect(props.style.color).toBe('blue')
+  })
+
   it('merges styles with existing css prop', () => {
     const { result } = customRender(
       <div
@@ -91,14 +99,6 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('color', 'tomato')
   })
 
-  it('does not parse non-system props', () => {
-    const { props } = customRender(<div style={{ color: 'blue' }} />)
-
-    expect(props.hasOwnProperty('style')).toBe(true)
-    expect(props.hasOwnProperty('className')).toBe(false)
-    expect(props.style.color).toBe('blue')
-  })
-
   it('parses array props', () => {
     const { result } = customRender(<div m={[0, '3rem', '6rem']} />)
 
@@ -135,6 +135,13 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('margin', '4rem', {
       media: 'screen and (min-width: 64em)',
     })
+  })
+
+  it('parses negative values', () => {
+    const { result } = customRender(<div mr="-large" ml={-4} />)
+
+    expect(result).toHaveStyleRule('margin-right', '-2rem')
+    expect(result).toHaveStyleRule('margin-left', '-.75rem')
   })
 
   it('handles a large number of props (kitchen sink)', () => {
