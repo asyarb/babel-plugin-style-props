@@ -10,6 +10,6 @@ export const Hello = () => (
     lineHeight={1.5}
     border="1px solid"
     borderColor="red.40"
-    fontSize="large"
+    fontSize={['large', 'medium', '3rem', 4, 8]}
   />
 )

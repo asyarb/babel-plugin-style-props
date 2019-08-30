@@ -3,88 +3,8 @@ import template from 'babel-template'
 
 import { types as t } from '@babel/core'
 
-import { getThemeKey } from './system'
+import { getSystemAst } from './system'
 import { DEFAULT_OPTIONS, PROPS, ALIASES } from './constants'
-
-const enumberableThemeKeys = ['lineHeights']
-const cssUnitThemeKeys = [
-  'space',
-  'fontSizes',
-  'sizes',
-  'shadows',
-  'letterSpacing',
-  'borders',
-  'borderWidths',
-  'radii',
-]
-const colorThemeKeys = ['colors', 'shadows']
-
-// Checks if the provided value has a CSS unit.
-const checkCSSUnits = value =>
-  value.match(
-    /(\d*\.?\d+)\s?(px|em|ex|%|in|cn|mm|pt|pc|vh|vw|vmax|vmin|ch|rem+)/gim,
-  )
-
-// Checks if the provided value is a CSS color string.
-const checkCSSColors = value =>
-  value.match(
-    /^(#[0-9a-f]{3}|#(?:[0-9a-f]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$/g,
-  )
-
-// This is kind of naive, but this logic checks for values that are likely to not be
-// themed values, like when a explicit CSS unit is given or a color string
-// is provided.
-//
-// If there is a better way to do this without knowing the theme upfront,
-// someone tell me please.
-const checkThemeableValue = (themeKey, value) => {
-  const safeValue = value.toString()
-
-  if (!themeKey) return false
-  if (typeof value === 'number' && enumberableThemeKeys.includes(themeKey))
-    return false
-  if (cssUnitThemeKeys.includes(themeKey) && checkCSSUnits(safeValue))
-    return false
-  if (colorThemeKeys.includes(themeKey) && checkCSSColors(safeValue))
-    return false
-  if (themeKey === 'lineHeights' && checkCSSUnits(safeValue)) return false
-
-  return true
-}
-
-const getSystemAst = (key, node) => {
-  const themeKey = getThemeKey(key)
-  const value = node.value
-
-  if (!checkThemeableValue(themeKey, value)) return node
-
-  // There is a scale, and the value is nested. eg. `gray.40` => theme.colors.gray['40']
-  if (typeof value === 'string' && value.includes('.')) {
-    const values = value.split('.')
-
-    return t.memberExpression(
-      t.memberExpression(
-        t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
-        t.identifier(values[0]),
-      ),
-      t.stringLiteral(values[1]),
-      true,
-    )
-  } else if (typeof value === 'number') {
-    // value is an enumerable direct `theme.property[4]` access
-    return t.memberExpression(
-      t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
-      t.numericLiteral(value),
-      true,
-    )
-  } else {
-    // value is a direct `theme.scale.property` access
-    return t.memberExpression(
-      t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
-      t.identifier(value),
-    )
-  }
-}
 
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
 
@@ -139,32 +59,39 @@ export default (_, opts) => {
           if (i >= breakpoints.length) return
 
           const media = breakpoints[i]
-          let style = t.objectProperty(id, node)
+          const baseStyle = t.objectProperty(id, node)
 
-          // console.log(style)
+          // We're dealing with the mobile breakpoint.
+          if (!media) {
+            const ast = getSystemAst(baseStyle.key.name, baseStyle.value)
+            const style = t.objectProperty(id, ast)
 
-          if (!media) return styles.push(style)
+            return styles.push(style)
+          }
 
           const breakpointIndex = responsiveStyles.findIndex(
             style => style.key.value === media,
           )
 
           if (breakpointIndex < 0) {
-            style = t.objectProperty(
+            const ast = getSystemAst(baseStyle.key.name, baseStyle.value)
+            const responsiveStyle = t.objectProperty(id, ast)
+
+            const style = t.objectProperty(
               t.stringLiteral(media),
-              t.objectExpression([style]),
+              t.objectExpression([responsiveStyle]),
             )
+
             responsiveStyles.push(style)
           } else {
-            responsiveStyles[breakpointIndex].value.properties.push(style)
+            responsiveStyles[breakpointIndex].value.properties.push(baseStyle)
           }
         })
       } else {
         // Convert this value to a theme value, e.g. 'gray.40' => theme.colors.gray['40']
         const ast = getSystemAst(key, value)
-
-        // This is a plain prop, just create it.
         const style = t.objectProperty(id, ast)
+
         styles.push(style)
       }
     })
@@ -240,12 +167,10 @@ export default (_, opts) => {
         state.elementName = name
         state.props = []
 
-        // Find all of our system props
         path.traverse(visitSystemProps, state)
-
         applyCSSProp(path, state)
-
         path.traverse(wrapCSSProp)
+
         state.set('isJSX', true)
       },
     },
