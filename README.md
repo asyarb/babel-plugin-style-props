@@ -9,9 +9,19 @@
   - [Caveats](#caveats)
 - [License](#license)
 
-Use Styled System props on any JSX element. This is a fork of the
-`@styled-system/babel-plugin` but with the testing framework reimplemented to
-better suit my personal style.
+Use Styled System props on any JSX element.
+
+```jsx
+<h1 mt={0} mb={4} color="primary">
+  Hello
+</h1>
+```
+
+- Support for **all** CSS properties.
+- Reads values from your `<ThemeProviders>`.
+- Use arrays for responsive styles.
+- Removes props from rendered HTML (if using `emotion`).
+- Performant! Removes the additional runtime overhead of `styled-system`.
 
 ## Differences from official experiment
 
@@ -30,18 +40,6 @@ better suit my personal style.
 - Transform responsive array values to `theme.SPACE_KEY.value` identifiers
 
 ---
-
-```jsx
-<h1 mt={0} mb={4} color="primary">
-  Hello
-</h1>
-```
-
-- Use Styled System props on **any** JSX element.
-- Support for **all** CSS properties.
-- Picks up values from theme providers.
-- Use arrays for responsive styles.
-- Removes props from rendered HTML.
 
 ## Getting Started
 
