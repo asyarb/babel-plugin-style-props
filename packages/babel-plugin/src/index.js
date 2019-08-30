@@ -84,7 +84,12 @@ export default (_, opts) => {
 
             responsiveStyles.push(style)
           } else {
-            responsiveStyles[breakpointIndex].value.properties.push(baseStyle)
+            const ast = getSystemAst(baseStyle.key.name, baseStyle.value)
+            const responsiveStyle = t.objectProperty(id, ast)
+
+            responsiveStyles[breakpointIndex].value.properties.push(
+              responsiveStyle,
+            )
           }
         })
       } else {
