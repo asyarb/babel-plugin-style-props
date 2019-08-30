@@ -92,7 +92,7 @@ describe('emotion integration', () => {
   })
 
   it('does not parse non-system props', () => {
-    const { result, props } = customRender(<div style={{ color: 'blue' }} />)
+    const { props } = customRender(<div style={{ color: 'blue' }} />)
 
     expect(props.hasOwnProperty('style')).toBe(true)
     expect(props.hasOwnProperty('className')).toBe(false)
@@ -121,6 +121,15 @@ describe('emotion integration', () => {
       media: 'screen and (min-width: 40em)',
     })
     expect(result).toHaveStyleRule('padding-right', '2rem', {
+      media: 'screen and (min-width: 40em)',
+    })
+  })
+
+  it('handles starting a responsive scale with null', () => {
+    const { result } = customRender(<div m={[null, '2rem']} />)
+
+    expect(result).not.toHaveStyleRule('margin', '0')
+    expect(result).toHaveStyleRule('margin', '2rem', {
       media: 'screen and (min-width: 40em)',
     })
   })
