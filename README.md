@@ -30,10 +30,8 @@ Use Styled System props on any JSX element.
 
 ### In progress now
 
-- [] Add in the ability to specifiy variants through plugin options
-- [] Support negative values
-
----
+- [ ] Add in the ability to specifiy variants through plugin options
+- [ ] Support negative values
 
 ## Getting Started
 
