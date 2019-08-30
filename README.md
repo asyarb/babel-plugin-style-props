@@ -25,11 +25,11 @@ Use Styled System props on any JSX element.
       the theme like normal `css` prop usage. This ensures compatability with
       `styled-components`, `emotion` and _any_ `css` prop that supports object
       syntax.
+- [x] Transform responsive array values to `theme.SPACE_KEY.value` identifiers.
 
 ### In progress now
 
 - [] Add in the ability to specifiy variants.
-- [] Transform responsive array values to `theme.SPACE_KEY.value` identifiers.
 
 ---
 
