@@ -1,10 +1,19 @@
-# Babel plugin for Styled-System
+# Babel plugin for Styled-System <!-- omit in toc -->
+
+- [Differences from official experiment](#differences-from-official-experiment)
+  - [In progress now](#in-progress-now)
+- [Getting Started](#getting-started)
+- [What it does](#what-it-does)
+- [Use values from your theme](#use-values-from-your-theme)
+- [Use arrays for responsive styles](#use-arrays-for-responsive-styles)
+  - [Caveats](#caveats)
+- [License](#license)
 
 Use Styled System props on any JSX element. This is a fork of the
 `@styled-system/babel-plugin` but with the testing framework reimplemented to
 better suit my personal style.
 
-**Progress so far:**
+## Differences from official experiment
 
 - Added all missing properties from the `styled-system` reference table. Have
   their theme keys appropriately associated.
@@ -15,9 +24,10 @@ better suit my personal style.
   theme like normal `css` prop usage. This ensures compatability with
   `styled-components` and `emotion` and _any_ object syntax support `css` prop.
 
-**In progress now:**
+### In progress now
 
 - Add in the ability to specifiy variants
+- Transform responsive array values to `theme.SPACE_KEY.value` identifiers
 
 ---
 
@@ -68,22 +78,22 @@ allowing libraries like Emotion to parse the styles into CSS.
 
 ```jsx
 // in
-<div color='tomato' px={32} />
+<div color='red' px={5} />
 
-// out (before Emotion's Babel plugin)
+// out (before Emotion or SC Babel plugin)
 <div
-  css={{
-    color: 'tomato',
-    paddingLeft: 32,
-    paddingRight: 32,
-  }}
+  css={theme => ({
+    color: theme.colors.red,
+    paddingLeft: theme.space[5],
+    paddingRight: theme.space[5],
+  })}
 />
 ```
 
 ## Use values from your theme
 
 When colors, fonts, font sizes, a spacing scale, or other values are definied in
-an Emotion theme context, the values can be referenced by key in the props.
+an `<ThemeProvider>` context, the values can be referenced by key in the props.
 
 ```js
 // example theme
@@ -113,7 +123,7 @@ export default {
 - Does not parse props on SVG elements.
 - This does not use the core `styled-system` package under the hood and is an
   alternative implementation. This is **not** intended to be used with
-  components built with `styled-system` and may work differently than exppected.
+  components built with `styled-system` and may work differently than expected.
 - Does not transform fractional width values.
 - Does not include default scales for `space` or `fontSizes`.
 
@@ -139,4 +149,6 @@ module.exports = {
 }
 ```
 
-MIT License
+## License
+
+MIT.
