@@ -1,4 +1,4 @@
 {
-  "presets": ["@babel/preset-react", "@emotion/babel-preset-css-prop"],
+  "presets": ["@babel/preset-react"],
   "plugins": ["@styled-system/babel-plugin"]
 }
