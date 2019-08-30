@@ -1,9 +1,35 @@
 import svgTags from 'svg-tags'
+import template from 'babel-template'
+
 import { types as t } from '@babel/core'
 
-import { defaultOptions, props, aliases, CSS_ID } from './constants'
+import { getThemeKey } from './system'
+import { defaultOptions, props, aliases } from './constants'
 
 const createMediaQuery = n => `@media screen and (min-width: ${n})`
+
+const getSystemAst = (key, node) => {
+  const themeKey = getThemeKey(key)
+  const value = node.value
+
+  if (value.includes('.')) {
+    const values = value.split('.')
+
+    return t.memberExpression(
+      t.memberExpression(
+        t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
+        t.identifier(values[0]),
+      ),
+      t.stringLiteral(values[1]),
+      true,
+    )
+  } else {
+    return t.memberExpression(
+      t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
+      t.identifier(value),
+    )
+  }
+}
 
 module.exports = (_, opts) => {
   const options = Object.assign({}, defaultOptions, opts)
@@ -30,7 +56,7 @@ module.exports = (_, opts) => {
       }
 
       if (Array.isArray(key)) {
-        // handle mx, my, px, py, etc
+        // Handle mx, my, px, py, etc
         key.forEach(k => state.props.push({ key: k, value }))
       } else {
         state.props.push({ key, value })
@@ -47,7 +73,7 @@ module.exports = (_, opts) => {
 
     props.forEach(({ key, value }) => {
       const id = t.identifier(key)
-      let val = value
+      const val = value
 
       // This prop is a responsive prop, so we need
       // to create the appropriate media queries.
@@ -75,8 +101,11 @@ module.exports = (_, opts) => {
           }
         })
       } else {
+        // Convert this value to a theme value, e.g. 'gray.40' => theme.colors.gray['40']
+        const ast = getSystemAst(key, value)
+
         // This is a plain prop, just create it.
-        const style = t.objectProperty(id, value)
+        const style = t.objectProperty(id, ast)
         styles.push(style)
       }
     })
@@ -118,12 +147,22 @@ module.exports = (_, opts) => {
     }
   }
 
+  // Wraps the CSS prop with a function that receives the theme from context as an argument.
   const wrapCSSProp = {
     JSXAttribute(path, state) {
       if (path.node.name.name !== 'css') return
 
       const value = path.get('value.expression')
       if (!value.isObjectExpression()) return
+
+      const themeCallTemplate = template(`
+        theme => CSS_OBJECT
+      `)
+      const ast = themeCallTemplate({
+        CSS_OBJECT: value.node,
+      })
+
+      value.replaceWith(ast)
     },
   }
 
@@ -146,6 +185,7 @@ module.exports = (_, opts) => {
         path.traverse(visitSystemProps, state)
 
         applyCSSProp(path, state)
+
         path.traverse(wrapCSSProp, state)
         state.set('isJSX', true)
       },

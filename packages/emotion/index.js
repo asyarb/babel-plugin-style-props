@@ -1,3 +1,3 @@
 import React from 'react'
 
-export const Hello = () => <div color="tomato" p="3rem" />
+export const Hello = () => <div color="gray.40" p={[5, 6, 7]} />
