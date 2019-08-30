@@ -6,24 +6,59 @@ import { types as t } from '@babel/core'
 import { getThemeKey } from './system'
 import { defaultOptions, props, aliases } from './constants'
 
-const createMediaQuery = n => `@media screen and (min-width: ${n})`
+const cssUnitThemeKeys = [
+  'space',
+  'fontSizes',
+  'sizes',
+  'shadows',
+  'letterSpacing',
+  'borders',
+  'borderWidths',
+  'radii',
+]
+const colorThemeKeys = ['colors', 'shadows']
 
+// Checks if the provided value has a CSS unit.
 const checkCSSUnits = value =>
   value.match(
     /(\d*\.?\d+)\s?(px|em|ex|%|in|cn|mm|pt|pc|vh|vw|vmax|vmin|ch|rem+)/gim,
   )
 
+// Checks if the provided value is a CSS color string.
+const checkCSSColors = value =>
+  value.match(
+    /^(#[0-9a-f]{3}|#(?:[0-9a-f]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$/g,
+  )
+
+// This is kind of naive, but this logic checks for values that are likely to not be
+// themed values, like when a explicit CSS unit is given or a color string
+// is provided.
+//
+// If there is a better way to do this without knowing the theme upfront,
+// someone tell me please.
+const validateThemeValue = (themeKey, value) => {
+  if (!themeKey) return false
+  else if (cssUnitThemeKeys.includes(themeKey) && checkCSSUnits(value))
+    return false
+  else if (colorThemeKeys.includes(themeKey) && checkCSSColors(value))
+    return false
+  else if (
+    themeKey === 'lineHeights' &&
+    (typeof value === 'number' || checkCSSUnits(value))
+  )
+    return false
+
+  return true
+}
+
 const getSystemAst = (key, node) => {
   const themeKey = getThemeKey(key)
   const value = node.value
 
-  // There is no corresponding theme scale for this, so just return the node.
-  if (!themeKey) return node
-  // There is a value with a unit, so they likely want an explicit, non-theme value.
-  if (checkCSSUnits(value)) return node
+  if (!validateThemeValue(themeKey, value)) return node
 
-  // There is a scale, and the value is nested. eg. theme.scale.property['something']
-  if (value.includes('.')) {
+  // There is a scale, and the value is nested. eg. `gray.40` => theme.colors.gray['40']
+  if (typeof value === 'string' && value.includes('.')) {
     const values = value.split('.')
 
     return t.memberExpression(
@@ -35,7 +70,7 @@ const getSystemAst = (key, node) => {
       true,
     )
   } else {
-    // There is a scale, and the value is a direct theme.scale.property access
+    // value is a direct `theme.scale.property` access
     return t.memberExpression(
       t.memberExpression(t.identifier('theme'), t.identifier(themeKey)),
       t.identifier(value),
@@ -43,12 +78,14 @@ const getSystemAst = (key, node) => {
   }
 }
 
+const createMediaQuery = n => `@media screen and (min-width: ${n})`
+
 module.exports = (_, opts) => {
   const options = Object.assign({}, defaultOptions, opts)
   const mediaQueries = options.breakpoints.map(createMediaQuery)
   const breakpoints = [null, ...mediaQueries]
 
-  // Build up Babel's state with all of key value system props.
+  // Build up our state with all key-value pairs of system props.
   const visitSystemProps = {
     JSXAttribute(path, state) {
       const name = path.node.name.name
@@ -161,7 +198,7 @@ module.exports = (_, opts) => {
 
   // Wraps the CSS prop with a function that receives the theme from context as an argument.
   const wrapCSSProp = {
-    JSXAttribute(path, state) {
+    JSXAttribute(path) {
       if (path.node.name.name !== 'css') return
 
       const value = path.get('value.expression')
@@ -198,7 +235,7 @@ module.exports = (_, opts) => {
 
         applyCSSProp(path, state)
 
-        path.traverse(wrapCSSProp, state)
+        path.traverse(wrapCSSProp)
         state.set('isJSX', true)
       },
     },

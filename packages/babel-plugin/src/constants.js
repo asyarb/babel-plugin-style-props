@@ -30,6 +30,7 @@ const propNames = [
   'transform',
   'cursor',
   'filter',
+  'letterSpacing',
 
   // system specific props
   'bg',

@@ -69,7 +69,11 @@ const keys = {
   borderBottom: 'borders',
   borderLeft: 'borders',
   borderWidth: 'borderWidths',
-  borderStyle: 'borderStyles',
+  borderColor: 'colors',
+  borderTopColor: 'colors',
+  borderRightColor: 'colors',
+  borderBottomColor: 'colors',
+  borderLeftColor: 'colors',
   borderRadius: 'radii',
 
   // POSITION

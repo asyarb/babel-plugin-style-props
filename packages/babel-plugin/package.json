@@ -5,6 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "babel src -d dist",
     "test": "jest"
   },
@@ -18,9 +19,9 @@
     "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/preset-env": "^7.5.5",
     "@types/babel__core": "^7.1.2",
-    "babel-generator": "^6.26.1",
     "babel-template": "^6.26.0",
-    "jest": "^24.9.0"
+    "jest": "^24.9.0",
+    "rimraf": "^3.0.0"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^0.8.2",
