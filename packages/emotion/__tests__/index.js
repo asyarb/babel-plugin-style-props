@@ -24,21 +24,21 @@ const customRender = Comp => {
 
 describe('emotion integration', () => {
   it('parses style props', () => {
-    const { result } = customRender(<div color="tomato" bg="#fff" />)
+    const { result } = customRender(<div color="gray.40" bg="white" />)
 
-    expect(result).toHaveStyleRule('color', 'tomato')
-    expect(result).toHaveStyleRule('background-color', '#fff')
+    expect(result).toHaveStyleRule('color', theme.colors.gray[40])
+    expect(result).toHaveStyleRule('background-color', theme.colors.white)
   })
 
   it('parses multiple elements', () => {
     const { result } = customRender(
       <div p="3rem">
-        <h1 color="tomato">Hello</h1>
+        <h1 color="red.40">Hello</h1>
       </div>,
     )
 
     expect(result).toHaveStyleRule('padding', '3rem')
-    expect(result.firstChild).toHaveStyleRule('color', 'tomato')
+    expect(result.firstChild).toHaveStyleRule('color', theme.colors.red[40])
   })
 
   it('merges styles with existing css prop', () => {
@@ -51,27 +51,27 @@ describe('emotion integration', () => {
           fontFamily: 'system-ui',
         }}
       >
-        <h1 color="tomato">Hello</h1>
+        <h1 color="green.20">Hello</h1>
       </div>,
     )
 
     expect(result).toHaveStyleRule('color', '#000')
     expect(result).toHaveStyleRule('border', '2px solid')
     expect(result).toHaveStyleRule('font-family', 'system-ui')
-    expect(result.firstChild).toHaveStyleRule('color', 'tomato')
+    expect(result.firstChild).toHaveStyleRule('color', theme.colors.green[20])
   })
 
   it('merges styles to existing css prop inline functions', () => {
     const { result } = customRender(
       <div
-        p="3rem"
-        css={theme => ({
+        p={5}
+        css={() => ({
           color: 'tomato',
         })}
       />,
     )
 
-    expect(result).toHaveStyleRule('padding', '3rem')
+    expect(result).toHaveStyleRule('padding', theme.space[5])
     expect(result).toHaveStyleRule('color', 'tomato')
   })
 
@@ -79,7 +79,7 @@ describe('emotion integration', () => {
     const { result } = customRender(
       <div
         p="3rem"
-        css={theme => {
+        css={() => {
           return {
             color: 'tomato',
           }
@@ -100,7 +100,7 @@ describe('emotion integration', () => {
   })
 
   it('parses array props', () => {
-    const { result } = customRender(<div m={['0', '3rem', '6rem']} />)
+    const { result } = customRender(<div m={[0, '3rem', '6rem']} />)
 
     expect(result).toHaveStyleRule('margin', '0')
     expect(result).toHaveStyleRule('margin', '3rem', {
@@ -128,11 +128,11 @@ describe('emotion integration', () => {
   it('handles a large number of props (kitchen sink)', () => {
     const { result } = customRender(
       <div
-        m={['0', '1rem', '2rem']}
+        m={[null, '1rem', '2rem']}
         p="3rem"
         py={['4rem', '5rem']}
         marginBottom="3rem"
-        bg="tomato"
+        bg="#f0f"
         color="#fff"
         css={{
           border: '2px solid gold',
@@ -140,7 +140,6 @@ describe('emotion integration', () => {
       />,
     )
 
-    expect(result).toHaveStyleRule('margin', '0')
     expect(result).toHaveStyleRule('margin', '1rem', {
       media: 'screen and (min-width: 40em)',
     })
@@ -157,7 +156,7 @@ describe('emotion integration', () => {
       media: 'screen and (min-width: 40em)',
     })
     expect(result).toHaveStyleRule('margin-bottom', '3rem')
-    expect(result).toHaveStyleRule('background-color', 'tomato')
+    expect(result).toHaveStyleRule('background-color', '#f0f')
     expect(result).toHaveStyleRule('color', '#fff')
     expect(result).toHaveStyleRule('border', '2px solid gold')
   })

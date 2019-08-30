@@ -124,9 +124,10 @@ const checkCSSColors = value =>
 // If there is a better way to do this without knowing the theme upfront,
 // someone tell me please.
 const checkThemeableValue = (themeKey, value) => {
+  if (!themeKey || !value) return false
+
   const safeValue = value.toString()
 
-  if (!themeKey) return false
   if (typeof value === 'number' && enumberableThemeKeys.includes(themeKey))
     return false
   if (cssUnitThemeKeys.includes(themeKey) && checkCSSUnits(safeValue))

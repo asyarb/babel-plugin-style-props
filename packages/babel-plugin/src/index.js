@@ -44,7 +44,7 @@ export default (_, opts) => {
   }
 
   // Convert our system props to a CSS object.
-  const createStyles = props => {
+  const createStyleObject = props => {
     const styles = []
     const responsiveStyles = []
 
@@ -101,6 +101,7 @@ export default (_, opts) => {
         styles.push(style)
       }
     })
+
     return [...styles, ...responsiveStyles]
   }
 
@@ -117,7 +118,7 @@ export default (_, opts) => {
   // Creates or merges our styles into the CSS prop.
   const applyCSSProp = (path, state) => {
     // Read our props from state from visitSystemProps() and create our css object.
-    const styles = createStyles(state.props)
+    const styles = createStyleObject(state.props)
     if (!styles.length) return
 
     const cssIndex = path.node.attributes

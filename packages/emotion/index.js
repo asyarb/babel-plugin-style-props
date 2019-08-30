@@ -9,7 +9,7 @@ export const Hello = () => {
     <div
       color="gray.40"
       p={1}
-      m={[2, 3, 4]}
+      m={negateScale([0, 3, 4])}
       bg="#fff"
       letterSpacing=".02em"
       lineHeight="solid"
