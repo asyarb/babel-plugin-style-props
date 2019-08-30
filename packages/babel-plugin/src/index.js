@@ -1,5 +1,5 @@
 import svgTags from 'svg-tags'
-import * as t from 'babel-types'
+import { types as t } from '@babel/core'
 
 import { defaultOptions, props, aliases, CSS_ID } from './constants'
 
@@ -124,9 +124,6 @@ module.exports = (_, opts) => {
 
       const value = path.get('value.expression')
       if (!value.isObjectExpression()) return
-
-      /* const call = t.callExpression(t.identifier(CSS_ID), [value.node])
-      value.replaceWith(call) */
     },
   }
 

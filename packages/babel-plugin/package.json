@@ -3,6 +3,7 @@
   "version": "0.0.20",
   "description": "Use styled-system props on any JSX element.",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "babel src -d dist",
     "test": "jest"
@@ -16,11 +17,11 @@
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.4.4",
     "@babel/plugin-proposal-optional-chaining": "^7.2.0",
     "@babel/preset-env": "^7.5.5",
+    "@types/babel__core": "^7.1.2",
     "jest": "^24.9.0"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^0.8.2",
-    "babel-types": "^6.26.0",
     "known-css-properties": "^0.15.0",
     "lodash.camelcase": "^4.3.0",
     "lodash.get": "^4.4.2",
