@@ -29,10 +29,8 @@ Use Styled System props on any JSX element.
 - [x] Drop expressions and identifiers in system-props as is
 - [x] Support negative values
 - [x] Support responsive negative values
-
-### In progress now
-
-- [ ] Add in the ability to specifiy variants through plugin options
+- [x] Eliminate runtime of iterating over style props & keys.
+- [ ] Ability to specifiy variants through plugin options
 
 ## Getting Started
 
@@ -65,7 +63,8 @@ Use Styled System props or CSS properties as React props on any JSX element.
 ## What it does
 
 `@styled-system/babel-plugin` converts style props to objects in a `css` prop,
-allowing libraries like Emotion to parse the styles into CSS.
+allowing libraries like `styled-components` or `emotion` to parse the styles
+into CSS.
 
 ```jsx
 // in
@@ -121,9 +120,8 @@ Just like with `styled-system`, you can use arrays to specify responsive styles.
 
 - Breakpoints can **only** be configured in the Babel plugin options (this is an
   intentional performance enhancement).
-- Expressions are dropped in to the css prop as is.
+- Expressions are dropped into the `css` prop as is.
 - Incompatible with components built with `styled-system`.
-- Can only consume one theme.
 
 ## Limitations compared to `styled-system`
 
