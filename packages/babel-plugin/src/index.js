@@ -109,6 +109,7 @@ export default (_, opts) => {
     const paramNode = path.node.params[0]
 
     if (t.isObjectPattern(paramNode)) {
+      // Has desctructured identifier properties
       const destructuredProps = paramNode.properties
       const cssObjNode = path.node.body
 
@@ -133,9 +134,11 @@ export default (_, opts) => {
 
       path.node.params[0] = t.identifier(THEME_ID)
     } else if (t.isIdentifier(paramNode)) {
+      // Has a named param identifier
       const currParamName = paramNode.name
       path.traverse(updateCSSPropParams, { currParamName })
     } else {
+      // Just add the constant theme identifier
       path.node.params[0] = t.identifier(THEME_ID)
     }
   }
