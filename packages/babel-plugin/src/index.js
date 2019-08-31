@@ -107,40 +107,45 @@ export default (_, opts) => {
   // existing CSS prop function to match our known properties.
   const visitCSSPropFunction = path => {
     const paramNode = path.node.params[0]
-
-    if (t.isObjectPattern(paramNode)) {
-      // Has desctructured identifier properties
-      const destructuredProps = paramNode.properties
-      const cssObjNode = path.node.body
-
-      const declarations = destructuredProps.map(prop =>
-        t.variableDeclaration('const', [
-          t.variableDeclarator(
-            t.assignmentPattern(
+    const nodeBody = path.node.body
+    const destructuredProps = paramNode?.properties ?? []
+    const declarations = destructuredProps.map(prop =>
+      t.variableDeclaration('const', [
+        t.variableDeclarator(
+          t.assignmentPattern(
+            t.identifier(prop.key.name),
+            t.memberExpression(
+              t.identifier(THEME_ID),
               t.identifier(prop.key.name),
-              t.memberExpression(
-                t.identifier(THEME_ID),
-                t.identifier(prop.key.name),
-              ),
             ),
           ),
-        ]),
-      )
+        ),
+      ]),
+    )
 
-      path.node.body = t.blockStatement([
-        ...declarations,
-        t.returnStatement(cssObjNode),
-      ])
+    // Has desctructured identifier properties
+    if (t.isObjectPattern(paramNode)) {
+      if (t.isBlockStatement(nodeBody)) {
+        path.node.body = t.blockStatement([...declarations, ...nodeBody.body])
+      } else if (t.isObjectExpression(nodeBody)) {
+        // Has implicit return
+        const cssObjNode = path.node.body
+
+        path.node.body = t.blockStatement([
+          ...declarations,
+          t.returnStatement(cssObjNode),
+        ])
+      }
 
       path.node.params[0] = t.identifier(THEME_ID)
     } else if (t.isIdentifier(paramNode)) {
       // Has a named param identifier
       const currParamName = paramNode.name
       path.traverse(updateCSSPropParams, { currParamName })
-    } else {
-      // Just add the constant theme identifier
-      path.node.params[0] = t.identifier(THEME_ID)
     }
+
+    // Just add the constant theme identifier
+    path.node.params[0] = t.identifier(THEME_ID)
   }
 
   // Visit an existing CSS prop to merge our existing styles we built.

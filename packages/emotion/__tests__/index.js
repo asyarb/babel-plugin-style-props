@@ -14,12 +14,12 @@ const Providers = ({ children }) => (
 
 // react-testing-library's render function with wrapped providers and addition return values.
 const customRender = Comp => {
-  const { container, ...rest } = render(Comp, { wrapper: Providers })
+  const { container, debug, ...rest } = render(Comp, { wrapper: Providers })
   const key = Object.keys(container.firstChild)[0]
   const FiberNode = container.firstChild[key]
   const props = FiberNode.pendingProps
 
-  return { container, props, result: container.firstChild, ...rest }
+  return { container, props, result: container.firstChild, debug, ...rest }
 }
 
 describe('emotion integration', () => {
@@ -99,7 +99,21 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('color', '#fff')
   })
 
-  it('merges styles to existing css prop arrow functions that use the theme param', () => {
+  it('merges styles to existing css prop arrow function that use theme param', () => {
+    const { result } = customRender(
+      <div
+        p={5}
+        css={a => ({
+          color: a.colors.red[40],
+        })}
+      />,
+    )
+
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', theme.colors.red[40])
+  })
+
+  it('merges styles to existing css prop arrow functions that use the theme param with a return statement', () => {
     const { result } = customRender(
       <div
         p={5}
@@ -115,7 +129,41 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('color', theme.colors.red[40])
   })
 
-  it('merges styles to existing css prop function declarations', () => {
+  it('handles property destructuring in css prop arrow functions', () => {
+    const { result } = customRender(
+      <div
+        p={5}
+        css={({ colors, space }) => ({
+          color: colors.red[40],
+          margin: space[4],
+        })}
+      />,
+    )
+
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', theme.colors.red[40])
+    expect(result).toHaveStyleRule('margin', theme.space[4])
+  })
+
+  it('handles property destructuring in css prop arrow functions with a return statement', () => {
+    const { result } = customRender(
+      <div
+        p={5}
+        css={({ colors, space }) => {
+          return {
+            color: colors.red[40],
+            margin: space[4],
+          }
+        }}
+      />,
+    )
+
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', theme.colors.red[40])
+    expect(result).toHaveStyleRule('margin', theme.space[4])
+  })
+
+  it('merges styles to existing css prop function expressions', () => {
     const { result } = customRender(
       <div
         p={5}
@@ -131,7 +179,7 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('color', '#fff')
   })
 
-  it('merges styles to existing css prop function declarations that use the theme param', () => {
+  it('merges styles to existing css prop function expressions that use the theme param', () => {
     const { result } = customRender(
       <div
         p={5}
@@ -145,6 +193,24 @@ describe('emotion integration', () => {
 
     expect(result).toHaveStyleRule('padding', theme.space[5])
     expect(result).toHaveStyleRule('color', theme.colors.red[40])
+  })
+
+  it('merges styles to existing css prop function expressions that use destructuring', () => {
+    const { result } = customRender(
+      <div
+        p={5}
+        css={function({ colors, space }) {
+          return {
+            color: colors.red[40],
+            margin: space[4],
+          }
+        }}
+      />,
+    )
+
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', theme.colors.red[40])
+    expect(result).toHaveStyleRule('margin', theme.space[4])
   })
 
   it('parses array props', () => {
