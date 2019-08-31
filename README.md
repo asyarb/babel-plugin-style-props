@@ -11,8 +11,9 @@ Use Styled System props on any JSX element.
 - Support for **all** CSS properties.
 - Reads values from your `<ThemeProvider>`.
 - Use arrays for responsive styles.
+- Performant. No additional runtime overhead of `styled-system`. Equivalent perf
+  to using `styled-components` or `emotion` directly.
 - Removes props from rendered HTML (if using `emotion`).
-- Performant! Removes the additional runtime overhead of `styled-system`.
 
 ## Differences from official experiment
 
@@ -58,8 +59,8 @@ Use Styled System props or CSS properties as React props on any JSX element.
 
 ## What it does
 
-`@styled-system/babel-plugin` converts style props to objects in a `css` prop,
-allowing libraries like `styled-components` or `emotion` to parse the styles
+`@styled-system/babel-plugin` converts style props to objects in a `css` prop.
+This allows libraries like `styled-components` or `emotion` to parse the styles
 into CSS.
 
 ```jsx
@@ -116,13 +117,13 @@ Just like with `styled-system`, you can use arrays to specify responsive styles.
 
 - Breakpoints can **only** be configured in the Babel plugin options (this is an
   intentional performance enhancement).
-- Expressions are dropped into the `css` prop as is.
+- Function expressions and plain variables are dropped into the `css` prop as is
+  under the appropriate key.
 - Incompatible with components built with `styled-system`.
 
 ## Limitations compared to `styled-system`
 
-- Cannot use or specify variants. This is a work in progress.
-- Cannot use `theme` keys that begin with `-`. This plugin relies on the `-`
+- Cannot specify `theme` keys that begin with `-`. This plugin relies on the `-`
   preceeding a theme key to determine the negation of a scale.
 - Does not transform fractional width values.
 - Does not include a default theme.
