@@ -105,11 +105,39 @@ export default (_, opts) => {
 
   // Recursively renames existing CSS prop parameters from an
   // existing CSS prop function to match our known properties.
-  const replaceFunctionParams = path => {
-    const currParamName = path.node.params[0]?.name
+  const visitCSSPropFunction = path => {
+    const paramNode = path.node.params[0]
 
-    if (currParamName) path.traverse(updateCSSPropParams, { currParamName })
-    else path.node.params[0] = t.identifier(THEME_ID)
+    if (t.isObjectPattern(paramNode)) {
+      const destructuredProps = paramNode.properties
+      const cssObjNode = path.node.body
+
+      const declarations = destructuredProps.map(prop =>
+        t.variableDeclaration('const', [
+          t.variableDeclarator(
+            t.assignmentPattern(
+              t.identifier(prop.key.name),
+              t.memberExpression(
+                t.identifier(THEME_ID),
+                t.identifier(prop.key.name),
+              ),
+            ),
+          ),
+        ]),
+      )
+
+      path.node.body = t.blockStatement([
+        ...declarations,
+        t.returnStatement(cssObjNode),
+      ])
+
+      path.node.params[0] = t.identifier(THEME_ID)
+    } else if (t.isIdentifier(paramNode)) {
+      const currParamName = paramNode.name
+      path.traverse(updateCSSPropParams, { currParamName })
+    } else {
+      path.node.params[0] = t.identifier(THEME_ID)
+    }
   }
 
   // Visit an existing CSS prop to merge our existing styles we built.
@@ -119,10 +147,10 @@ export default (_, opts) => {
       path.stop()
     },
     FunctionExpression(path) {
-      replaceFunctionParams(path)
+      visitCSSPropFunction(path)
     },
     ArrowFunctionExpression(path) {
-      replaceFunctionParams(path)
+      visitCSSPropFunction(path)
     },
   }
 

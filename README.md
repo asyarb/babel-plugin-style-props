@@ -31,8 +31,8 @@ Use Styled System props on any JSX element.
 - [x] Support responsive negative values
 - [x] Eliminate runtime of iterating over style props & keys.
 - [x] Ability to use responsive ternary operators.
+- [x] Ability to use css prop with destructuring.
 - [ ] Ability to specifiy variants through plugin options
-- [ ] Ability to use css prop with destructuring.
 
 ## Getting Started
 

@@ -7,7 +7,7 @@ export const Hello = () => {
     <div
       m={[bool ? 1 : 2, -2, 'large', '-large']}
       p={[1]}
-      css={({ colors }) => ({
+      css={({ colors, space }) => ({
         color: colors.red,
       })}
     />
