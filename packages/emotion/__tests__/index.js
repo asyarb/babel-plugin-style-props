@@ -282,9 +282,10 @@ describe('emotion integration', () => {
         marginBottom="3rem"
         bg="#f0f"
         color="#fff"
-        css={{
-          border: '2px solid gold',
-        }}
+        css={a => ({
+          border: '2px solid',
+          borderColor: a.colors.green[40],
+        })}
       />,
     )
 
@@ -306,7 +307,8 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('margin-bottom', '3rem')
     expect(result).toHaveStyleRule('background-color', '#f0f')
     expect(result).toHaveStyleRule('color', '#fff')
-    expect(result).toHaveStyleRule('border', '2px solid gold')
+    expect(result).toHaveStyleRule('border', '2px solid')
+    expect(result).toHaveStyleRule('border-color', theme.colors.green[40])
   })
 
   it('uses values from a provided theme', () => {
