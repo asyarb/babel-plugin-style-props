@@ -3,10 +3,15 @@ import template from 'babel-template'
 
 import { types as t } from '@babel/core'
 
-import { getSystemAst, getNegativeSystemAst } from './system'
+import {
+  getSystemAst,
+  getNegativeSystemAst,
+  getResponsiveSystemAst,
+  isNegativeExpression,
+  isNegativeStringExpression,
+  createMediaQuery,
+} from './system'
 import { DEFAULT_OPTIONS, PROPS, ALIASES, THEME_ID } from './constants'
-
-const createMediaQuery = n => `@media screen and (min-width: ${n})`
 
 export default (_, opts) => {
   const options = Object.assign({}, DEFAULT_OPTIONS, opts)
@@ -52,12 +57,12 @@ export default (_, opts) => {
       const id = t.identifier(key)
 
       // Numerical Negative eg <div mx={-1} />
-      if (t.isUnaryExpression(value) && value.operator === '-') {
+      if (isNegativeExpression(value)) {
         const ast = getNegativeSystemAst(key, value.argument)
         const style = t.objectProperty(id, ast)
 
         styles.push(style)
-      } else if (t.isStringLiteral(value) && value.value[0] === '-') {
+      } else if (isNegativeStringExpression(value)) {
         // String negative of key eg <div mx={-large} />
         const nonNegativeValue = value.value.substring(1)
         const ast = getNegativeSystemAst(key, t.stringLiteral(nonNegativeValue))
@@ -77,9 +82,9 @@ export default (_, opts) => {
           const media = breakpoints[i]
           const baseStyle = t.objectProperty(id, node)
 
-          // We're dealing with the mobile breakpoint.
+          // We're dealing with the first breakpoint.
           if (!media) {
-            const ast = getSystemAst(baseStyle.key.name, baseStyle.value)
+            const ast = getResponsiveSystemAst(baseStyle)
             const style = t.objectProperty(id, ast)
 
             return styles.push(style)
@@ -90,9 +95,9 @@ export default (_, opts) => {
           )
 
           if (breakpointIndex < 0) {
-            const ast = getSystemAst(baseStyle.key.name, baseStyle.value)
-            const responsiveStyle = t.objectProperty(id, ast)
+            const ast = getResponsiveSystemAst(baseStyle)
 
+            const responsiveStyle = t.objectProperty(id, ast)
             const style = t.objectProperty(
               t.stringLiteral(media),
               t.objectExpression([responsiveStyle]),
@@ -100,9 +105,9 @@ export default (_, opts) => {
 
             responsiveStyles.push(style)
           } else {
-            const ast = getSystemAst(baseStyle.key.name, baseStyle.value)
-            const responsiveStyle = t.objectProperty(id, ast)
+            const ast = getResponsiveSystemAst(baseStyle)
 
+            const responsiveStyle = t.objectProperty(id, ast)
             responsiveStyles[breakpointIndex].value.properties.push(
               responsiveStyle,
             )

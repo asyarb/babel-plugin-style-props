@@ -141,6 +141,16 @@ const checkThemeableValue = (themeKey, value) => {
   return true
 }
 
+export const createMediaQuery = n => `@media screen and (min-width: ${n})`
+
+// Checks if a provided expression is a negative number eg -2
+export const isNegativeExpression = value =>
+  t.isUnaryExpression(value) && value.operator === '-'
+
+// Checks if a provided expression is a negated string eg '-large'
+export const isNegativeStringExpression = value =>
+  t.isStringLiteral(value) && value.value[0] === '-'
+
 export const getSystemAst = (key, node) => {
   const themeKey = getThemeKey(key)
   const value = node.value
@@ -179,4 +189,22 @@ export const getNegativeSystemAst = (key, node) => {
   const ast = getSystemAst(key, node)
 
   return t.binaryExpression('+', t.stringLiteral('-'), ast)
+}
+
+export const getResponsiveSystemAst = baseStyle => {
+  let ast
+
+  if (isNegativeExpression(baseStyle.value)) {
+    ast = getNegativeSystemAst(baseStyle.key.name, baseStyle.value.argument)
+  } else if (isNegativeStringExpression(baseStyle.value)) {
+    const nonNegativeBaseStyle = baseStyle.value.value.substring(1)
+    ast = getNegativeSystemAst(
+      baseStyle.key.name,
+      t.stringLiteral(nonNegativeBaseStyle),
+    )
+  } else {
+    ast = getSystemAst(baseStyle.key.name, baseStyle.value)
+  }
+
+  return ast
 }

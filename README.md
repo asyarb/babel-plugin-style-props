@@ -71,7 +71,16 @@ allowing libraries like Emotion to parse the styles into CSS.
 // in
 <div color='red' px={5} />
 
-// out (before Emotion or SC Babel plugin)
+// out (SC, before their babel plugin)
+<div
+  css={p.theme => ({
+    color: p.theme.colors.red,
+    paddingLeft: p.theme.space[5],
+    paddingRight: p.theme.space[5],
+  })}
+/>
+
+// out (emotion, before their babel plugin)
 <div
   css={theme => ({
     color: theme.colors.red,
@@ -102,6 +111,8 @@ export default {
 
 ## Use arrays for responsive styles
 
+Just like with `styled-system`, you can use arrays to specify responsive styles.
+
 ```jsx
 <div width={['100%', '50%', '25%']} />
 ```
@@ -110,13 +121,14 @@ export default {
 
 - Breakpoints can **only** be configured in the Babel plugin options (this is an
   intentional performance enhancement).
-- Expressions are dropped in to the css prop as is, and have access to `theme`.
-- Does not parse props on SVG elements.
-- This does not use the core `styled-system` package under the hood and is an
-  alternative implementation. This **cannot** be used with components built with
-  `styled-system`.
+- Expressions are dropped in to the css prop as is.
+- Incompatible with components built with `styled-system`.
+
+## Limitations compared to `styled-system`
+
 - Does not transform fractional width values.
-- Does not include default scales.
+- Does not include a default theme.
+- Does not parse props on SVG elements.
 
 To configure custom breakpoint values, set the `breakpoints` option in your
 Babel config file.
