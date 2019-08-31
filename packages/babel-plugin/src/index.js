@@ -1,5 +1,4 @@
 import svgTags from 'svg-tags'
-import template from 'babel-template'
 
 import { types as t } from '@babel/core'
 
@@ -181,12 +180,10 @@ export default (_, opts) => {
       const value = path.get('value.expression')
       if (!value.isObjectExpression()) return
 
-      const themeCallTemplate = template(`
-        ${THEME_ID} => CSS_OBJECT
-      `)
-      const ast = themeCallTemplate({
-        CSS_OBJECT: value.node,
-      })
+      const ast = t.arrowFunctionExpression(
+        [t.identifier(THEME_ID)],
+        value.node,
+      )
 
       value.replaceWith(ast)
     },

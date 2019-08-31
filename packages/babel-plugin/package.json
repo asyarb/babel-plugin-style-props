@@ -17,7 +17,6 @@
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@types/babel__core": "^7.1.2",
-    "babel-template": "^6.26.0",
     "jest": "^24.9.0",
     "rimraf": "^3.0.0",
     "@babel/plugin-proposal-optional-chaining": "^7.2.0"
