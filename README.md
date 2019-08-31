@@ -24,9 +24,11 @@ Use Styled System props on any JSX element.
 - [x] Transform keyable values to `theme.SPACE_KEY.value` object member
       expressions.
 - [x] Drop-in expressions and identifiers in system-props into `css` prop as is.
-- [x] Support responsive negative values with no runtime.
+- [x] Merges style props with existing `css` prop expressions and objects if
+      already defined.
+  - [x] Support and merge css prop function expressions with destructuring.
+- [x] Support responsive negative values and theme keys.
 - [x] Support responsive ternary operators with theme keys.
-- [x] Support css prop function expressions with destructuring.
 - [ ] Ability to specifiy custom variants through plugin options.
 
 ## Getting Started
