@@ -1,16 +1,7 @@
 import svgTags from 'svg-tags'
-
 import { types as t } from '@babel/core'
 
-import {
-  getSystemAst,
-  getNegativeSystemAst,
-  getResponsiveSystemAst,
-  getTernarySystemAst,
-  isNegativeExpression,
-  isNegativeStringExpression,
-  createMediaQuery,
-} from './system'
+import { getSystemAst, createMediaQuery } from './system'
 import { DEFAULT_OPTIONS, PROPS, ALIASES, THEME_ID } from './constants'
 
 export default (_, opts) => {
@@ -48,9 +39,6 @@ export default (_, opts) => {
     },
   }
 
-  // TODO: Non responsive props could probably be refactored to
-  // reusable function that responsive version uses for each breakpoint.
-
   // Convert our system props to a CSS object.
   const createStyleObject = props => {
     const styles = []
@@ -59,39 +47,9 @@ export default (_, opts) => {
     props.forEach(({ key, value }) => {
       const id = t.identifier(key)
 
-      // Numerical Negative eg <div mx={-1} />
-      if (isNegativeExpression(value)) {
-        const ast = getNegativeSystemAst(key, value.argument)
-        const style = t.objectProperty(id, ast)
-
-        styles.push(style)
-      } else if (isNegativeStringExpression(value)) {
-        // String negative of key eg <div mx={-large} />
-        const nonNegativeValue = value.value.substring(1)
-        const ast = getNegativeSystemAst(key, t.stringLiteral(nonNegativeValue))
-        const style = t.objectProperty(id, ast)
-
-        styles.push(style)
-      } else if (t.isConditionalExpression(value)) {
-        // Ternary operator eg <div mx={bool ? 3 : '-large'}
-        const consequentAst = getTernarySystemAst(key, value.consequent)
-        const alternateAst = getTernarySystemAst(key, value.alternate)
-
-        const ast = t.conditionalExpression(
-          t.identifier(value.test.name),
-          consequentAst,
-          alternateAst,
-        )
-        const style = t.objectProperty(id, ast)
-
-        styles.push(style)
-      } else if (t.isCallExpression(value) || t.isIdentifier(value)) {
-        // Function call or plain variable eg <div m={varName} p={negate(5)} />
-        const style = t.objectProperty(id, value)
-
-        styles.push(style)
+      if (t.isCallExpression(value) || t.isIdentifier(value)) {
+        styles.push(t.objectProperty(id, value))
       } else if (Array.isArray(value)) {
-        // Responsive array eg <div m={[1, 2, 3]} />
         value.forEach((node, i) => {
           if (i >= breakpoints.length) return
 
@@ -99,7 +57,7 @@ export default (_, opts) => {
 
           // We're dealing with the first breakpoint.
           if (!media) {
-            const ast = getResponsiveSystemAst(key, node)
+            const ast = getSystemAst(key, node)
             const style = t.objectProperty(id, ast)
 
             return styles.push(style)
@@ -110,7 +68,7 @@ export default (_, opts) => {
           )
 
           if (breakpointIndex < 0) {
-            const ast = getResponsiveSystemAst(key, node)
+            const ast = getSystemAst(key, node)
 
             const responsiveStyle = t.objectProperty(id, ast)
             const style = t.objectProperty(
@@ -120,7 +78,7 @@ export default (_, opts) => {
 
             responsiveStyles.push(style)
           } else {
-            const ast = getResponsiveSystemAst(key, node)
+            const ast = getSystemAst(key, node)
 
             const responsiveStyle = t.objectProperty(id, ast)
             responsiveStyles[breakpointIndex].value.properties.push(
@@ -129,11 +87,8 @@ export default (_, opts) => {
           }
         })
       } else {
-        // Just plain string eg => <div color='primary' />
         const ast = getSystemAst(key, value)
-        const style = t.objectProperty(id, ast)
-
-        styles.push(style)
+        styles.push(t.objectProperty(id, ast))
       }
     })
 
@@ -153,9 +108,6 @@ export default (_, opts) => {
     ObjectExpression(path, state) {
       path.node.properties.unshift(...state.styles)
       path.stop()
-    },
-    CallExpression(path, state) {
-      path.get('arguments.0').traverse(visitCSSProp, state)
     },
     FunctionExpression(path) {
       const currParamName = path.node.params[0]?.name
