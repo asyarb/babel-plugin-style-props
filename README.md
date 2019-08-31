@@ -16,23 +16,17 @@ Use Styled System props on any JSX element.
 
 ## Differences from official experiment
 
-- [x] Added all missing properties from the `styled-system` reference table.
+- [x] Supports all missing properties from the `styled-system` reference table.
       Have their theme keys appropriately associated.
-- [x] Refactored testing to be more integration oriented. Tests now check
-      against the final styles instead of comparing snapshots.
-- [x] No longer utilizes a `css()` function to recursively iterate over style
-      keys. Instead, this version uses an inline arrow function that receives
-      the theme like normal `css` prop usage. This ensures compatability with
-      `styled-components`, `emotion` and _any_ `css` prop that supports object
-      syntax.
-- [x] Transform responsive array values to `theme.SPACE_KEY.value` identifiers.
-- [x] Drop expressions and identifiers in system-props as is
-- [x] Support negative values
-- [x] Support responsive negative values
-- [x] Eliminate runtime of iterating over style props & keys.
-- [x] Ability to use responsive ternary operators.
-- [x] Ability to use css prop with destructuring.
-- [ ] Ability to specifiy variants through plugin options
+- [x] Refactored testing to be more integration oriented.
+- [x] Eliminate `styled-system` runtime of iterating over style props & keys.
+- [x] Transform keyable values to `theme.SPACE_KEY.value` object member
+      expressions.
+- [x] Drop-in expressions and identifiers in system-props into `css` prop as is.
+- [x] Support responsive negative values with no runtime.
+- [x] Support responsive ternary operators with theme keys.
+- [x] Support css prop function expressions with destructuring.
+- [ ] Ability to specifiy custom variants through plugin options.
 
 ## Getting Started
 
