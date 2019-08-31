@@ -253,6 +253,7 @@ describe('emotion integration', () => {
         boxShadow="card"
         lineHeight="copy"
         display="grid"
+        bg="green.40"
         rowGap={5}
       />,
     )
@@ -274,6 +275,7 @@ describe('emotion integration', () => {
       theme.lineHeights.copy.toString(),
     )
     expect(result).toHaveStyleRule('display', 'grid')
+    expect(result).toHaveStyleRule('background-color', theme.colors.green[40])
     expect(result).toHaveStyleRule('row-gap', theme.space[5])
   })
 })
