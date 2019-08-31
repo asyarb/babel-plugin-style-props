@@ -95,12 +95,21 @@ export default (_, opts) => {
     return [...styles, ...responsiveStyles]
   }
 
-  // Recursively renames existing CSS prop parameters from an existing CSS prop function to match
-  // our known properties.
+  // Visitor that renames identifiers to our constant theme
+  // identifier.
   const updateCSSPropParams = {
     Identifier(path, state) {
       if (path.node.name === state.currParamName) path.node.name = THEME_ID
     },
+  }
+
+  // Recursively renames existing CSS prop parameters from an
+  // existing CSS prop function to match our known properties.
+  const replaceFunctionParams = path => {
+    const currParamName = path.node.params[0]?.name
+
+    if (currParamName) path.traverse(updateCSSPropParams, { currParamName })
+    else path.node.params[0] = t.identifier(THEME_ID)
   }
 
   // Visit an existing CSS prop to merge our existing styles we built.
@@ -110,16 +119,10 @@ export default (_, opts) => {
       path.stop()
     },
     FunctionExpression(path) {
-      const currParamName = path.node.params[0]?.name
-
-      if (currParamName) path.traverse(updateCSSPropParams, { currParamName })
-      else path.node.params[0] = t.identifier(THEME_ID)
+      replaceFunctionParams(path)
     },
     ArrowFunctionExpression(path) {
-      const currParamName = path.node.params[0]?.name
-
-      if (currParamName) path.traverse(updateCSSPropParams, { currParamName })
-      else path.node.params[0] = t.identifier(THEME_ID)
+      replaceFunctionParams(path)
     },
   }
 
