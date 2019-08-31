@@ -123,10 +123,10 @@ export default (_, opts) => {
       ]),
     )
 
-    // Has desctructured identifier properties
     if (t.isObjectPattern(paramNode)) {
+      // Has desctructured identifier properties
       if (t.isBlockStatement(nodeBody)) {
-        // Explicit return statement, so just prepend our declarations.
+        // Has explicit return statement, so just prepend our declarations.
         path.node.body = t.blockStatement([...declarations, ...nodeBody.body])
       } else if (t.isObjectExpression(nodeBody)) {
         // Has implicit return
@@ -137,8 +137,6 @@ export default (_, opts) => {
           t.returnStatement(cssObjNode),
         ])
       }
-
-      path.node.params[0] = t.identifier(THEME_ID)
     } else if (t.isIdentifier(paramNode)) {
       // Has a named param identifier
       const currParamName = paramNode.name
