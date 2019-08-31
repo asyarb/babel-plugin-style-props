@@ -124,12 +124,15 @@ export default (_, opts) => {
     return [...styles, ...responsiveStyles]
   }
 
+  // Recursively renames existing CSS prop parameters from an existing CSS prop function to match
+  // our known properties.
   const updateCSSPropParams = {
     Identifier(path, state) {
       if (path.node.name === state.currParamName) path.node.name = THEME_ID
     },
   }
 
+  // Visit an existing CSS prop to merge our existing styles we built.
   const visitCSSProp = {
     ObjectExpression(path, state) {
       path.node.properties.unshift(...state.styles)
@@ -138,16 +141,21 @@ export default (_, opts) => {
     CallExpression(path, state) {
       path.get('arguments.0').traverse(visitCSSProp, state)
     },
+    FunctionExpression(path) {
+      const currParamName = path.node.params[0]?.name
+
+      if (currParamName) path.traverse(updateCSSPropParams, { currParamName })
+      else path.node.params[0] = t.identifier(THEME_ID)
+    },
     ArrowFunctionExpression(path) {
       const currParamName = path.node.params[0]?.name
 
-      // If there is a param, we need to rename it to our known param name.
       if (currParamName) path.traverse(updateCSSPropParams, { currParamName })
       else path.node.params[0] = t.identifier(THEME_ID)
     },
   }
 
-  // Creates or merges our styles into the CSS prop.
+  // Creates the final CSS prop.
   const applyCSSProp = (path, state) => {
     // Read our props from state from visitSystemProps() and create our css object.
     const styles = createStyleObject(state.props)
