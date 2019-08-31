@@ -115,6 +115,38 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('color', theme.colors.red[40])
   })
 
+  it('merges styles to existing css prop function declarations', () => {
+    const { result } = customRender(
+      <div
+        p={5}
+        css={function() {
+          return {
+            color: '#fff',
+          }
+        }}
+      />,
+    )
+
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', '#fff')
+  })
+
+  it('merges styles to existing css prop function declarations that use the theme param', () => {
+    const { result } = customRender(
+      <div
+        p={5}
+        css={function(a) {
+          return {
+            color: a.colors.red[40],
+          }
+        }}
+      />,
+    )
+
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', theme.colors.red[40])
+  })
+
   it('parses array props', () => {
     const { result } = customRender(<div m={[0, '3rem', '6rem']} />)
 
