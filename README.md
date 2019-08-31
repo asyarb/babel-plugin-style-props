@@ -20,10 +20,11 @@ Use Styled System props on any JSX element.
 - [x] Supports all missing properties from the `styled-system` reference table.
       Have their theme keys appropriately associated.
 - [x] Refactored testing to be more integration oriented.
-- [x] Eliminate `styled-system` runtime of iterating over style props & keys.
+- [x] Eliminates `styled-system` runtime of iterating over style props & keys.
 - [x] Transform keyable values to `theme.SPACE_KEY.value` object member
       expressions.
-- [x] Drop-in expressions and identifiers in system-props into `css` prop as is.
+- [x] Drops in function expressions and identifiers used in system-props into
+      the `css` prop as is.
 - [x] Merges style props with existing `css` prop expressions and objects if
       already defined.
   - [x] Support and merge css prop function expressions with destructuring.

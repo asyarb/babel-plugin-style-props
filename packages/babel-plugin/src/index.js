@@ -126,6 +126,7 @@ export default (_, opts) => {
     // Has desctructured identifier properties
     if (t.isObjectPattern(paramNode)) {
       if (t.isBlockStatement(nodeBody)) {
+        // Explicit return statement, so just prepend our declarations.
         path.node.body = t.blockStatement([...declarations, ...nodeBody.body])
       } else if (t.isObjectExpression(nodeBody)) {
         // Has implicit return
@@ -144,7 +145,7 @@ export default (_, opts) => {
       path.traverse(updateCSSPropParams, { currParamName })
     }
 
-    // Just add the constant theme identifier
+    // Always replace params with the constant theme identifier.
     path.node.params[0] = t.identifier(THEME_ID)
   }
 
