@@ -193,19 +193,34 @@ export const getNegativeSystemAst = (key, node) => {
   return t.binaryExpression('+', t.stringLiteral('-'), ast)
 }
 
+export const getTernarySystemAst = (key, node) => {
+  const ast = isNegativeExpression(node)
+    ? getNegativeSystemAst(key, node.argument)
+    : isNegativeStringExpression(node)
+    ? getNegativeSystemAst(key, t.stringLiteral(node.value.substring(1)))
+    : getSystemAst(key, node)
+
+  return ast
+}
+
 // Returns the the appropriate negative or non-negative system AST for a responsive ast node.
-export const getResponsiveSystemAst = baseStyle => {
+export const getResponsiveSystemAst = (key, node) => {
   let ast
 
-  if (isNegativeExpression(baseStyle.value))
-    ast = getNegativeSystemAst(baseStyle.key.name, baseStyle.value.argument)
-  else if (isNegativeStringExpression(baseStyle.value)) {
-    const nonNegativeBaseStyle = baseStyle.value.value.substring(1)
-    ast = getNegativeSystemAst(
-      baseStyle.key.name,
-      t.stringLiteral(nonNegativeBaseStyle),
+  if (isNegativeExpression(node)) ast = getNegativeSystemAst(key, node.argument)
+  else if (isNegativeStringExpression(node)) {
+    const nonNegativeBaseStyle = node.value.substring(1)
+    ast = getNegativeSystemAst(key, t.stringLiteral(nonNegativeBaseStyle))
+  } else if (t.isConditionalExpression(node)) {
+    const consequentAst = getTernarySystemAst(key, node.consequent)
+    const alternateAst = getTernarySystemAst(key, node.alternate)
+
+    ast = t.conditionalExpression(
+      t.identifier(node.test.name),
+      consequentAst,
+      alternateAst,
     )
-  } else ast = getSystemAst(baseStyle.key.name, baseStyle.value)
+  } else ast = getSystemAst(key, node)
 
   return ast
 }

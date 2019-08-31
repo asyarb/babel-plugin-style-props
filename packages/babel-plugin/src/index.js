@@ -6,6 +6,7 @@ import {
   getSystemAst,
   getNegativeSystemAst,
   getResponsiveSystemAst,
+  getTernarySystemAst,
   isNegativeExpression,
   isNegativeStringExpression,
   createMediaQuery,
@@ -47,6 +48,9 @@ export default (_, opts) => {
     },
   }
 
+  // TODO: Non responsive props could probably be refactored to
+  // reusable function that responsive version uses for each breakpoint.
+
   // Convert our system props to a CSS object.
   const createStyleObject = props => {
     const styles = []
@@ -68,6 +72,19 @@ export default (_, opts) => {
         const style = t.objectProperty(id, ast)
 
         styles.push(style)
+      } else if (t.isConditionalExpression(value)) {
+        // Ternary operator eg <div mx={bool ? 3 : '-large'}
+        const consequentAst = getTernarySystemAst(key, value.consequent)
+        const alternateAst = getTernarySystemAst(key, value.alternate)
+
+        const ast = t.conditionalExpression(
+          t.identifier(value.test.name),
+          consequentAst,
+          alternateAst,
+        )
+        const style = t.objectProperty(id, ast)
+
+        styles.push(style)
       } else if (t.isCallExpression(value) || t.isIdentifier(value)) {
         // Function call or plain variable eg <div m={varName} p={negate(5)} />
         const style = t.objectProperty(id, value)
@@ -79,11 +96,10 @@ export default (_, opts) => {
           if (i >= breakpoints.length) return
 
           const media = breakpoints[i]
-          const baseStyle = t.objectProperty(id, node)
 
           // We're dealing with the first breakpoint.
           if (!media) {
-            const ast = getResponsiveSystemAst(baseStyle)
+            const ast = getResponsiveSystemAst(key, node)
             const style = t.objectProperty(id, ast)
 
             return styles.push(style)
@@ -94,7 +110,7 @@ export default (_, opts) => {
           )
 
           if (breakpointIndex < 0) {
-            const ast = getResponsiveSystemAst(baseStyle)
+            const ast = getResponsiveSystemAst(key, node)
 
             const responsiveStyle = t.objectProperty(id, ast)
             const style = t.objectProperty(
@@ -104,7 +120,7 @@ export default (_, opts) => {
 
             responsiveStyles.push(style)
           } else {
-            const ast = getResponsiveSystemAst(baseStyle)
+            const ast = getResponsiveSystemAst(key, node)
 
             const responsiveStyle = t.objectProperty(id, ast)
             responsiveStyles[breakpointIndex].value.properties.push(
