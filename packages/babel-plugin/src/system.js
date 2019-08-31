@@ -151,6 +151,7 @@ export const isNegativeExpression = value =>
 export const isNegativeStringExpression = value =>
   t.isStringLiteral(value) && value.value[0] === '-'
 
+// Returns the system-equivalent AST for a given key and ast node pair.
 export const getSystemAst = (key, node) => {
   const themeKey = getThemeKey(key)
   const value = node.value
@@ -185,26 +186,26 @@ export const getSystemAst = (key, node) => {
   }
 }
 
+// Returns the negative system-equivalent AST for a given key and ast node pair.
 export const getNegativeSystemAst = (key, node) => {
   const ast = getSystemAst(key, node)
 
   return t.binaryExpression('+', t.stringLiteral('-'), ast)
 }
 
+// Returns the the appropriate negative or non-negative system AST for a responsive ast node.
 export const getResponsiveSystemAst = baseStyle => {
   let ast
 
-  if (isNegativeExpression(baseStyle.value)) {
+  if (isNegativeExpression(baseStyle.value))
     ast = getNegativeSystemAst(baseStyle.key.name, baseStyle.value.argument)
-  } else if (isNegativeStringExpression(baseStyle.value)) {
+  else if (isNegativeStringExpression(baseStyle.value)) {
     const nonNegativeBaseStyle = baseStyle.value.value.substring(1)
     ast = getNegativeSystemAst(
       baseStyle.key.name,
       t.stringLiteral(nonNegativeBaseStyle),
     )
-  } else {
-    ast = getSystemAst(baseStyle.key.name, baseStyle.value)
-  }
+  } else ast = getSystemAst(baseStyle.key.name, baseStyle.value)
 
   return ast
 }
