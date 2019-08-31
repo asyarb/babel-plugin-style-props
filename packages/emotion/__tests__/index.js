@@ -23,7 +23,7 @@ const customRender = Comp => {
 }
 
 describe('emotion integration', () => {
-  it('parses style props', () => {
+  it('handles system props', () => {
     const { result } = customRender(<div color="gray.40" bg="white" />)
 
     expect(result).toHaveStyleRule('color', theme.colors.gray[40])
@@ -69,34 +69,50 @@ describe('emotion integration', () => {
     expect(result.firstChild).toHaveStyleRule('color', theme.colors.green[20])
   })
 
-  it('merges styles to existing css prop inline functions', () => {
+  it('merges styles to existing css prop arrow functions', () => {
     const { result } = customRender(
       <div
         p={5}
         css={() => ({
-          color: 'tomato',
+          color: '#fff',
         })}
       />,
     )
 
     expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', 'tomato')
+    expect(result).toHaveStyleRule('color', '#fff')
   })
 
-  it('merges styles to existing css prop inline functions with return statement', () => {
+  it('merges styles to existing css prop arrow functions with return statement', () => {
     const { result } = customRender(
       <div
-        p="3rem"
+        p={5}
         css={() => {
           return {
-            color: 'tomato',
+            color: '#fff',
           }
         }}
       />,
     )
 
-    expect(result).toHaveStyleRule('padding', '3rem')
-    expect(result).toHaveStyleRule('color', 'tomato')
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', '#fff')
+  })
+
+  it('merges styles to existing css prop arrow functions that use the theme param', () => {
+    const { result } = customRender(
+      <div
+        p={5}
+        css={a => {
+          return {
+            color: a.colors.red[40],
+          }
+        }}
+      />,
+    )
+
+    expect(result).toHaveStyleRule('padding', theme.space[5])
+    expect(result).toHaveStyleRule('color', theme.colors.red[40])
   })
 
   it('parses array props', () => {
@@ -137,17 +153,32 @@ describe('emotion integration', () => {
     })
   })
 
-  it('parses negative values', () => {
+  it('handles negative values', () => {
     const { result } = customRender(<div mr="-large" ml={-4} />)
 
     expect(result).toHaveStyleRule('margin-right', '-2rem')
     expect(result).toHaveStyleRule('margin-left', '-.75rem')
   })
 
+  it('handles responsive negative values', () => {
+    const { result } = customRender(<div m={['-large', 'large', 4, -4]} />)
+
+    expect(result).toHaveStyleRule('margin', '-2rem')
+    expect(result).toHaveStyleRule('margin', '2rem', {
+      media: 'screen and (min-width: 40em)',
+    })
+    expect(result).toHaveStyleRule('margin', '.75rem', {
+      media: 'screen and (min-width: 52em)',
+    })
+    expect(result).toHaveStyleRule('margin', '-.75rem', {
+      media: 'screen and (min-width: 64em)',
+    })
+  })
+
   it('handles a large number of props (kitchen sink)', () => {
     const { result } = customRender(
       <div
-        m={[null, '1rem', '2rem']}
+        m={[null, '1rem', -4]}
         p="3rem"
         py={['4rem', '5rem']}
         marginBottom="3rem"
@@ -162,7 +193,7 @@ describe('emotion integration', () => {
     expect(result).toHaveStyleRule('margin', '1rem', {
       media: 'screen and (min-width: 40em)',
     })
-    expect(result).toHaveStyleRule('margin', '2rem', {
+    expect(result).toHaveStyleRule('margin', '-.75rem', {
       media: 'screen and (min-width: 52em)',
     })
     expect(result).toHaveStyleRule('padding', '3rem')
@@ -201,7 +232,7 @@ describe('emotion integration', () => {
       theme.fontWeights.bold.toString(),
     )
     expect(result).toHaveStyleRule('margin', theme.space[5])
-    // explictly defined here beacuse we trim white space.
+    // explictly defined here beacuse css prop trims white space.
     expect(result).toHaveStyleRule(
       'box-shadow',
       'rgba(0,0,0,0.15) 0px 20px 40px',

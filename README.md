@@ -123,6 +123,7 @@ Just like with `styled-system`, you can use arrays to specify responsive styles.
   intentional performance enhancement).
 - Expressions are dropped in to the css prop as is.
 - Incompatible with components built with `styled-system`.
+- Can only consume one theme.
 
 ## Limitations compared to `styled-system`
 

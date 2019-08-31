@@ -125,6 +125,12 @@ export default (_, opts) => {
     return [...styles, ...responsiveStyles]
   }
 
+  const updateCSSPropParams = {
+    Identifier(path, state) {
+      if (path.node.name === state.currParamName) path.node.name = THEME_ID
+    },
+  }
+
   const visitCSSProp = {
     ObjectExpression(path, state) {
       path.node.properties.unshift(...state.styles)
@@ -132,6 +138,13 @@ export default (_, opts) => {
     },
     CallExpression(path, state) {
       path.get('arguments.0').traverse(visitCSSProp, state)
+    },
+    ArrowFunctionExpression(path) {
+      const currParamName = path.node.params[0]?.name
+
+      // If there is a param, we need to rename it to our known param name.
+      if (currParamName) path.traverse(updateCSSPropParams, { currParamName })
+      else path.node.params[0] = t.identifier(THEME_ID)
     },
   }
 
