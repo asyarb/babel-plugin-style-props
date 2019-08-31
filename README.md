@@ -15,7 +15,7 @@ Use Styled System props on any JSX element.
   to using `styled-components` or `emotion` directly.
 - Removes props from rendered HTML (if using `emotion`).
 
-## Differences from official experiment
+## Additional features from official experiment
 
 - [x] Supports all missing properties from the `styled-system` reference table.
       Have their theme keys appropriately associated.
