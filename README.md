@@ -28,11 +28,11 @@ Use Styled System props on any JSX element.
 - [x] Transform responsive array values to `theme.SPACE_KEY.value` identifiers.
 - [x] Drop expressions and identifiers in system-props as is
 - [x] Support negative values
+- [x] Support responsive negative values
 
 ### In progress now
 
 - [ ] Add in the ability to specifiy variants through plugin options
-- [ ] Support responsive negative values
 
 ## Getting Started
 
@@ -126,6 +126,9 @@ Just like with `styled-system`, you can use arrays to specify responsive styles.
 
 ## Limitations compared to `styled-system`
 
+- Cannot use or specify variants. This is a work in progress.
+- Cannot use `theme` keys that begin with `-`. This plugin relies on the `-`
+  preceeding a theme key to determine the negation of a scale.
 - Does not transform fractional width values.
 - Does not include a default theme.
 - Does not parse props on SVG elements.
