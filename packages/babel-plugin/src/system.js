@@ -152,7 +152,7 @@ const isNegativeStringExpression = value =>
   t.isStringLiteral(value) && value.value[0] === '-'
 
 // Returns the system-equivalent AST for a given key and ast node pair.
-const getPlainSystemAst = (key, node) => {
+const getPlainSystemAst = (key, node, solution) => {
   const themeKey = getThemeKey(key)
   const value = node.value
 
@@ -164,7 +164,10 @@ const getPlainSystemAst = (key, node) => {
 
     return t.memberExpression(
       t.memberExpression(
-        t.memberExpression(t.identifier(EMOTION_ID), t.identifier(themeKey)),
+        t.memberExpression(
+          getCSSInJSIdentifierAst(solution),
+          t.identifier(themeKey),
+        ),
         t.identifier(values[0]),
       ),
       t.stringLiteral(values[1]),
@@ -173,48 +176,68 @@ const getPlainSystemAst = (key, node) => {
   } else if (typeof value === 'number') {
     // value is an enumerable direct `theme.property[4]` access
     return t.memberExpression(
-      t.memberExpression(t.identifier(EMOTION_ID), t.identifier(themeKey)),
+      t.memberExpression(
+        getCSSInJSIdentifierAst(solution),
+        t.identifier(themeKey),
+      ),
       t.numericLiteral(value),
       true,
     )
   } else {
     // value is a direct `theme.scale.property` access
     return t.memberExpression(
-      t.memberExpression(t.identifier(EMOTION_ID), t.identifier(themeKey)),
+      t.memberExpression(
+        getCSSInJSIdentifierAst(solution),
+        t.identifier(themeKey),
+      ),
       t.identifier(value),
     )
   }
 }
 
 // Returns the negative system-equivalent AST for a given key and ast node pair.
-const getNegativeSystemAst = (key, node) => {
-  const ast = getPlainSystemAst(key, node)
+const getNegativeSystemAst = (key, node, solution) => {
+  const ast = getPlainSystemAst(key, node, solution)
 
   return t.binaryExpression('+', t.stringLiteral('-'), ast)
 }
 
-export const getTernarySystemAst = (key, node) => {
+const getTernarySystemAst = (key, node, solution) => {
   const ast = isNegativeExpression(node)
-    ? getNegativeSystemAst(key, node.argument)
+    ? getNegativeSystemAst(key, node.argument, solution)
     : isNegativeStringExpression(node)
-    ? getNegativeSystemAst(key, t.stringLiteral(node.value.substring(1)))
-    : getPlainSystemAst(key, node)
+    ? getNegativeSystemAst(
+        key,
+        t.stringLiteral(node.value.substring(1)),
+        solution,
+      )
+    : getPlainSystemAst(key, node, solution)
 
   return ast
 }
 
+export const getCSSInJSIdentifierAst = solution => {
+  if (solution === 'emotion') return t.identifier(EMOTION_ID)
+  else if (solution === 'styled-components')
+    return t.identifier(STYLED_COMPONENTS_ID)
+}
+
 // Returns the the appropriate system ast node for a given node. Takes into account negative numbers, strings, and conditional ternaries
-export const getSystemAst = (key, node) => {
+export const getSystemAst = (key, node, solution) => {
   let ast
 
   if (isNegativeExpression(node)) {
-    ast = getNegativeSystemAst(key, node.argument)
+    ast = getNegativeSystemAst(key, node.argument, solution)
   } else if (isNegativeStringExpression(node)) {
     const nonNegativeBaseStyle = node.value.substring(1)
-    ast = getNegativeSystemAst(key, t.stringLiteral(nonNegativeBaseStyle))
+    ast = getNegativeSystemAst(
+      key,
+      t.stringLiteral(nonNegativeBaseStyle),
+      solution,
+    )
   } else if (t.isConditionalExpression(node)) {
-    const consequentAst = getTernarySystemAst(key, node.consequent)
-    const alternateAst = getTernarySystemAst(key, node.alternate)
+    const consequentAst = getTernarySystemAst(key, node.consequent, solution)
+    const alternateAst = getTernarySystemAst(key, node.alternate, solution)
 
     ast = t.conditionalExpression(
       t.identifier(node.test.name),
@@ -222,7 +245,7 @@ export const getSystemAst = (key, node) => {
       alternateAst,
     )
   } else {
-    ast = getPlainSystemAst(key, node)
+    ast = getPlainSystemAst(key, node, solution)
   }
 
   return ast
