@@ -2,12 +2,20 @@ import svgTags from 'svg-tags'
 import { types as t } from '@babel/core'
 
 import { getSystemAst, createMediaQuery } from './system'
-import { DEFAULT_OPTIONS, PROPS, ALIASES, THEME_ID } from './constants'
+import { DEFAULT_OPTIONS, PROPS, ALIASES, EMOTION_ID } from './constants'
 
 export default (_, opts) => {
   const options = Object.assign({}, DEFAULT_OPTIONS, opts)
   const mediaQueries = options.breakpoints.map(createMediaQuery)
   const breakpoints = [null, ...mediaQueries]
+
+  const isEmotion = options.emotion
+  const isStyledComponents = options['styled-components']
+
+  if ((!isEmotion && !isStyledComponents) || (isEmotion && isStyledComponents))
+    throw new Error(
+      'Please specify one of "emotion" or "styled-components" in your babel config."',
+    )
 
   // Build up our state with all key-value pairs of system props.
   const visitSystemProps = {
@@ -99,7 +107,7 @@ export default (_, opts) => {
   // identifier.
   const updateCSSPropParams = {
     Identifier(path, state) {
-      if (path.node.name === state.currParamName) path.node.name = THEME_ID
+      if (path.node.name === state.currParamName) path.node.name = EMOTION_ID
     },
   }
 
@@ -115,7 +123,7 @@ export default (_, opts) => {
           t.assignmentPattern(
             t.identifier(prop.key.name),
             t.memberExpression(
-              t.identifier(THEME_ID),
+              t.identifier(EMOTION_ID),
               t.identifier(prop.key.name),
             ),
           ),
@@ -144,7 +152,7 @@ export default (_, opts) => {
     }
 
     // Always replace params with the constant theme identifier.
-    path.node.params[0] = t.identifier(THEME_ID)
+    path.node.params[0] = t.identifier(EMOTION_ID)
   }
 
   // Visit an existing CSS prop to merge our existing styles we built.
@@ -195,7 +203,7 @@ export default (_, opts) => {
       if (!value.isObjectExpression()) return
 
       const ast = t.arrowFunctionExpression(
-        [t.identifier(THEME_ID)],
+        [t.identifier(EMOTION_ID)],
         value.node,
       )
 

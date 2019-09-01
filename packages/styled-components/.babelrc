@@ -8,5 +8,13 @@
     ],
     "@babel/preset-react"
   ],
-  "plugins": ["babel-plugin-styled-components", "@styled-system/babel-plugin"]
+  "plugins": [
+    [
+      "@styled-system/babel-plugin",
+      {
+        "styled-components": true
+      }
+    ],
+    "babel-plugin-styled-components"
+  ]
 }
