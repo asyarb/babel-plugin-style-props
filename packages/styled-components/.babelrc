@@ -1,0 +1,12 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": "> 3%, not dead"
+      }
+    ],
+    "@babel/preset-react"
+  ],
+  "plugins": ["babel-plugin-styled-components", "@styled-system/babel-plugin"]
+}
