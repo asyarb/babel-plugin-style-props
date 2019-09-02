@@ -1,12 +1,8 @@
 import svgTags from 'svg-tags'
 import { types as t } from '@babel/core'
 
-import {
-  getSystemAst,
-  getCSSInJSIdentifierAst,
-  createMediaQuery,
-} from './system'
-import { DEFAULT_OPTIONS, PROPS, ALIASES, EMOTION_ID } from './constants'
+import { getSystemAst, createMediaQuery } from './system'
+import { DEFAULT_OPTIONS, PROPS, ALIASES, IDENTIFIERS } from './constants'
 
 export default (_, opts) => {
   const options = Object.assign({}, DEFAULT_OPTIONS, opts)
@@ -21,7 +17,9 @@ export default (_, opts) => {
       'Please provide either "emotion" or "styled-components" in your babel config.',
     )
 
-  const solution = options.emotion ? 'emotion' : 'styled-components'
+  const themeId = options.emotion
+    ? IDENTIFIERS.emotion
+    : IDENTIFIERS.styledComponents
 
   // Build up our state with all key-value pairs of system props.
   const visitSystemProps = {
@@ -71,7 +69,7 @@ export default (_, opts) => {
 
           // We're dealing with the first breakpoint.
           if (!media) {
-            const ast = getSystemAst(key, node, solution)
+            const ast = getSystemAst(key, node, themeId)
             const style = t.objectProperty(id, ast)
 
             return styles.push(style)
@@ -82,7 +80,7 @@ export default (_, opts) => {
           )
 
           if (breakpointIndex < 0) {
-            const ast = getSystemAst(key, node, solution)
+            const ast = getSystemAst(key, node, themeId)
 
             const responsiveStyle = t.objectProperty(id, ast)
             const style = t.objectProperty(
@@ -92,7 +90,7 @@ export default (_, opts) => {
 
             responsiveStyles.push(style)
           } else {
-            const ast = getSystemAst(key, node, solution)
+            const ast = getSystemAst(key, node, themeId)
 
             const responsiveStyle = t.objectProperty(id, ast)
             responsiveStyles[breakpointIndex].value.properties.push(
@@ -101,7 +99,7 @@ export default (_, opts) => {
           }
         })
       } else {
-        const ast = getSystemAst(key, value, solution)
+        const ast = getSystemAst(key, value, themeId)
         styles.push(t.objectProperty(id, ast))
       }
     })
@@ -113,7 +111,7 @@ export default (_, opts) => {
   // identifier.
   const updateCSSPropParams = {
     Identifier(path, state) {
-      if (path.node.name === state.currParamName) path.node.name = EMOTION_ID // TODO: support SC
+      if (path.node.name === state.currParamName) path.node.name = themeId
     },
   }
 
@@ -129,7 +127,7 @@ export default (_, opts) => {
           t.assignmentPattern(
             t.identifier(prop.key.name),
             t.memberExpression(
-              getCSSInJSIdentifierAst(solution),
+              t.identifier(themeId),
               t.identifier(prop.key.name),
             ),
           ),
@@ -158,7 +156,7 @@ export default (_, opts) => {
     }
 
     // Always replace params with the constant theme identifier.
-    path.node.params[0] = getCSSInJSIdentifierAst(solution)
+    path.node.params[0] = t.identifier(themeId)
   }
 
   // Visit an existing CSS prop to merge our existing styles we built.
@@ -208,10 +206,7 @@ export default (_, opts) => {
       const value = path.get('value.expression')
       if (!value.isObjectExpression()) return
 
-      const ast = t.arrowFunctionExpression(
-        [getCSSInJSIdentifierAst(solution)],
-        value.node,
-      )
+      const ast = t.arrowFunctionExpression([t.identifier(themeId)], value.node)
 
       value.replaceWith(ast)
     },

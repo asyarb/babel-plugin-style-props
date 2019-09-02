@@ -2,8 +2,13 @@ import camelCase from 'lodash.camelcase'
 import cssProps from 'known-css-properties'
 import isPropValid from '@emotion/is-prop-valid'
 
+export const IDENTIFIERS = {
+  emotion: '__theme',
+  styledComponents: 'p',
+}
+
 export const EMOTION_ID = '__theme__'
-export const STYLED_COMPONENTS_ID = 'p.theme'
+export const STYLED_COMPONENTS_ID = 'p'
 
 export const DEFAULT_OPTIONS = {
   breakpoints: ['40em', '52em', '64em'],
