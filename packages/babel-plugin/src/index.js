@@ -215,23 +215,25 @@ export default (_, opts) => {
   return {
     name: 'styled-system',
     visitor: {
-      Program: {
-        exit(path, state) {
-          if (!state.get('isJSX')) return
-        },
-      },
-      JSXOpeningElement(path, state) {
-        const name = path.node.name.name
-        if (svgTags.includes(name)) return
+      Program(path, state) {
+        path.traverse(
+          {
+            JSXOpeningElement(path, state) {
+              const name = path.node.name.name
+              if (svgTags.includes(name)) return
 
-        state.elementName = name
-        state.props = []
+              state.elementName = name
+              state.props = []
 
-        path.traverse(visitSystemProps, state)
-        applyCSSProp(path, state)
-        path.traverse(wrapCSSProp)
+              path.traverse(visitSystemProps, state)
+              applyCSSProp(path, state)
+              path.traverse(wrapCSSProp)
 
-        state.set('isJSX', true)
+              state.set('isJSX', true)
+            },
+          },
+          state,
+        )
       },
     },
   }

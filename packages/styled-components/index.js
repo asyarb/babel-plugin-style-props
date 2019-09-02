@@ -4,9 +4,9 @@ export const Hello = () => {
   return (
     <div
       bg="white"
-      css={{
-        color: 'red',
-      }}
+      css={p => ({
+        color: p.theme.colors.white,
+      })}
     />
   )
 }
