@@ -14,12 +14,12 @@ const Providers = ({ children }) => (
 
 // react-testing-library's render function with wrapped providers and addition return values.
 const customRender = Comp => {
-  const { container, debug, ...rest } = render(Comp, { wrapper: Providers })
+  const { container, debug } = render(Comp, { wrapper: Providers })
   const key = Object.keys(container.firstChild)[0]
   const FiberNode = container.firstChild[key]
   const props = FiberNode.pendingProps
 
-  return { container, props, result: container.firstChild, debug, ...rest }
+  return { container, props, result: container.firstChild, debug }
 }
 
 describe('emotion integration', () => {
