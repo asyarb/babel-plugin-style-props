@@ -21,9 +21,8 @@
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
     "@styled-system/babel-plugin": "0.0.20",
-    "@testing-library/jest-dom": "^4.1.0",
-    "@testing-library/react": "^9.1.3",
     "jest": "^24.9.0",
-    "jest-emotion": "^10.0.14"
+    "jest-emotion": "^10.0.14",
+    "react-test-renderer": "^16.9.0"
   }
 }

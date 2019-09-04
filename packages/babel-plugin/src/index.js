@@ -1,240 +1,187 @@
 import svgTags from 'svg-tags'
 import { types as t } from '@babel/core'
 
-import { getSystemAst, createMediaQuery } from './system'
-import { DEFAULT_OPTIONS, PROPS, ALIASES, IDENTIFIERS } from './constants'
+import { createMediaQuery } from './system'
+import {
+  SYSTEM_PROPS,
+  SYSTEM_ALIASES,
+  DEFAULT_OPTIONS,
+  SCALES_MAP,
+} from './constants'
 
-export default (_, opts) => {
-  const options = Object.assign({}, DEFAULT_OPTIONS, opts)
-  const mediaQueries = options.breakpoints.map(createMediaQuery)
-  const breakpoints = [null, ...mediaQueries]
+const castArray = x => (Array.isArray(x) ? x : [x])
 
-  if (
-    (!options.emotion && !options['styled-components']) ||
-    (options.emotion && options['styled-components'])
+const onlySystemProps = attrs =>
+  attrs?.filter(attr => Boolean(SYSTEM_PROPS[(attr?.name?.name)]))
+
+const notSystemProps = attrs =>
+  attrs.filter(attr => !Boolean(SYSTEM_PROPS[(attr?.name?.name)]))
+
+const buildUndefinedConditionalFallback = (value, fallbackValue) =>
+  t.conditionalExpression(
+    t.binaryExpression('!==', value, t.identifier('undefined')),
+    value,
+    fallbackValue,
   )
-    throw new Error(
-      'Please provide either "emotion" or "styled-components" in your babel config.',
+
+const stripNegativeFromAttrValue = attrValue => {
+  const isNegative =
+    (t.isUnaryExpression(attrValue) && attrValue.operator === '-') ||
+    (t.isStringLiteral(attrValue) && attrValue.value[0] === '-')
+
+  let baseAttrValue = attrValue
+
+  if (isNegative && t.isUnaryExpression(attrValue))
+    baseAttrValue = attrValue?.argument
+  if (isNegative && t.isStringLiteral(attrValue))
+    baseAttrValue = t.stringLiteral(attrValue?.value?.substring(1))
+
+  return [baseAttrValue, isNegative]
+}
+
+const attrToThemeExpression = (propName, attrValue) => {
+  const scaleName = SCALES_MAP[propName]
+
+  if (!scaleName) return attrValue
+
+  const [attrBaseValue, isNegative] = stripNegativeFromAttrValue(attrValue)
+
+  let themeExpression = buildUndefinedConditionalFallback(
+    t.memberExpression(
+      t.memberExpression(
+        t.identifier('__theme__'),
+        t.stringLiteral(scaleName),
+        true,
+      ),
+      attrBaseValue,
+      true,
+    ),
+    attrBaseValue,
+  )
+
+  if (isNegative)
+    themeExpression = t.binaryExpression(
+      '+',
+      t.stringLiteral('-'),
+      t.parenthesizedExpression(themeExpression),
     )
 
-  const themeId = options.emotion
-    ? IDENTIFIERS.emotion
-    : IDENTIFIERS.styledComponents
+  return themeExpression
+}
 
-  // Build up our state with all key-value pairs of system props.
-  const visitSystemProps = {
-    JSXAttribute(path, state) {
-      const name = path.node.name.name
+const buildCssObjectProperty = (propName, attrValue) =>
+  t.objectProperty(
+    t.identifier(propName),
+    attrToThemeExpression(propName, attrValue),
+  )
 
-      // If this prop isn't one of our known props or is the
-      // `css` prop, let's not do anything.
-      if (!PROPS[name]) return
-      if (name === 'css') return
+const buildCssObjectProperties = (attrNodes, breakpoints) => {
+  const baseResult = []
+  const responsiveResults = []
 
-      const key = ALIASES[name] || name
-      let value = path.node.value
+  attrNodes.forEach(attrNode => {
+    const attrName = attrNode?.name?.name
+    const attrValue = attrNode?.value
+    const cssPropertyNames = castArray(SYSTEM_ALIASES[attrName] || attrName)
 
-      if (t.isJSXExpressionContainer(path.node.value)) {
-        value = path.node.value.expression
+    if (t.isJSXExpressionContainer(attrValue)) {
+      const expression = attrValue.expression
 
-        if (t.isArrayExpression(value)) value = value.elements
-      }
+      if (t.isArrayExpression(expression)) {
+        // e.g. prop={['test', null, 'test2']}
+        expression?.elements.forEach((element, i) => {
+          responsiveResults[i] = responsiveResults[i] || []
 
-      if (Array.isArray(key)) {
-        // Handle mx, my, px, py, etc
-        key.forEach(k => state.props.push({ key: k, value }))
-      } else {
-        state.props.push({ key, value })
-      }
+          const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
 
-      path.remove()
-    },
-  }
-
-  // Convert our system props to a CSS object.
-  const createStyleObject = props => {
-    const styles = []
-    const responsiveStyles = []
-
-    props.forEach(({ key, value }) => {
-      const id = t.identifier(key)
-
-      if (t.isCallExpression(value) || t.isIdentifier(value)) {
-        styles.push(t.objectProperty(id, value))
-      } else if (Array.isArray(value)) {
-        value.forEach((node, i) => {
-          if (i >= breakpoints.length) return
-
-          const media = breakpoints[i]
-
-          // We're dealing with the first breakpoint.
-          if (!media) {
-            const ast = getSystemAst(key, node, themeId)
-            const style = t.objectProperty(id, ast)
-
-            return styles.push(style)
-          }
-
-          const breakpointIndex = responsiveStyles.findIndex(
-            style => style.key.value === media,
-          )
-
-          if (breakpointIndex < 0) {
-            const ast = getSystemAst(key, node, themeId)
-
-            const responsiveStyle = t.objectProperty(id, ast)
-            const style = t.objectProperty(
-              t.stringLiteral(media),
-              t.objectExpression([responsiveStyle]),
-            )
-
-            responsiveStyles.push(style)
-          } else {
-            const ast = getSystemAst(key, node, themeId)
-
-            const responsiveStyle = t.objectProperty(id, ast)
-            responsiveStyles[breakpointIndex].value.properties.push(
-              responsiveStyle,
-            )
-          }
+          cssPropertyNames.forEach(cssPropertyName => {
+            resultArr.push(buildCssObjectProperty(cssPropertyName, element))
+          })
         })
       } else {
-        const ast = getSystemAst(key, value, themeId)
-        styles.push(t.objectProperty(id, ast))
+        // e.g. prop={bool ? 'foo' : "test"}
+        // e.g. prop={'test'}
+        // e.g. prop={test}
+        cssPropertyNames.forEach(cssPropertyName => {
+          baseResult.push(buildCssObjectProperty(cssPropertyName, expression))
+        })
       }
+    } else {
+      // e.g. prop="test"
+      cssPropertyNames.forEach(cssPropertyName => {
+        baseResult.push(buildCssObjectProperty(cssPropertyName, attrValue))
+      })
+    }
+  })
+
+  const keyedResponsiveResults = responsiveResults
+    .filter(x => x.length)
+    .map((objectPropertiesForBreakpoint, i) => {
+      const mediaQuery = createMediaQuery(breakpoints[i])
+
+      return t.objectProperty(
+        t.stringLiteral(mediaQuery),
+        t.objectExpression(objectPropertiesForBreakpoint),
+      )
     })
 
-    return [...styles, ...responsiveStyles]
+  return [...baseResult, ...keyedResponsiveResults]
+}
+
+const buildCssAttr = (objectProperties, existingCssAttr) => {
+  if (!objectProperties.length) return existingCssAttr
+
+  if (existingCssAttr) {
+    // ignore for now
   }
 
-  // Visitor that renames identifiers to our constant theme
-  // identifier.
-  const updateCSSPropParams = {
-    Identifier(path, state) {
-      if (path.node.name === state.currParamName) path.node.name = themeId
-    },
-  }
+  return t.jsxAttribute(
+    t.jSXIdentifier('css'),
+    t.jSXExpressionContainer(
+      t.arrowFunctionExpression(
+        [t.identifier('__theme__')],
+        t.objectExpression(objectProperties),
+      ),
+    ),
+  )
+}
 
-  // Recursively renames existing CSS prop parameters from an
-  // existing CSS prop function to match our known properties.
-  const visitCSSPropFunction = path => {
-    const paramNode = path.node.params[0]
-    const nodeBody = path.node.body
-    const destructuredProps = paramNode?.properties ?? []
-    const declarations = destructuredProps.map(prop =>
-      t.variableDeclaration('const', [
-        t.variableDeclarator(
-          t.assignmentPattern(
-            t.identifier(prop.key.name),
-            t.memberExpression(
-              t.identifier(themeId),
-              t.identifier(prop.key.name),
-            ),
-          ),
-        ),
-      ]),
+const jsxOpeningElementVisitor = {
+  JSXOpeningElement(path, state) {
+    const breakpoints = state?.opts?.breakpoints ?? DEFAULT_OPTIONS.breakpoints
+
+    const name = path.node.name.name
+    if (svgTags.includes(name)) return
+
+    state.props = []
+
+    const systemProps = onlySystemProps(path.node.attributes)
+    const cssObjectProperties = buildCssObjectProperties(
+      systemProps,
+      breakpoints,
     )
 
-    if (t.isObjectPattern(paramNode)) {
-      // Has desctructured identifier properties
-      if (t.isBlockStatement(nodeBody)) {
-        // Has explicit return statement, so just prepend our declarations.
-        path.node.body = t.blockStatement([...declarations, ...nodeBody.body])
-      } else if (t.isObjectExpression(nodeBody)) {
-        // Has implicit return
-        const cssObjNode = path.node.body
+    const existingCssAttr = path.node.attributes.find(
+      attr => attr?.name?.name === 'css',
+    )
+    const newCssAttr = buildCssAttr(cssObjectProperties, existingCssAttr)
 
-        path.node.body = t.blockStatement([
-          ...declarations,
-          t.returnStatement(cssObjNode),
-        ])
-      }
-    } else if (t.isIdentifier(paramNode)) {
-      // Has a named param identifier
-      const currParamName = paramNode.name
-      path.traverse(updateCSSPropParams, { currParamName })
-    }
+    path.node.attributes = notSystemProps(path.node.attributes).filter(
+      attr => attr?.name?.name !== 'css',
+    )
+    if (newCssAttr) path.node.attributes.push(newCssAttr)
+  },
+}
 
-    // Always replace params with the constant theme identifier.
-    path.node.params[0] = t.identifier(themeId)
-  }
+const programVisitor = {
+  Program(path, state) {
+    path.traverse(jsxOpeningElementVisitor, state)
+  },
+}
 
-  // Visit an existing CSS prop to merge our existing styles we built.
-  const visitCSSProp = {
-    ObjectExpression(path, state) {
-      path.node.properties.unshift(...state.styles)
-      path.stop()
-    },
-    FunctionExpression(path) {
-      visitCSSPropFunction(path)
-    },
-    ArrowFunctionExpression(path) {
-      visitCSSPropFunction(path)
-    },
-  }
-
-  // Creates the final CSS prop.
-  const applyCSSProp = (path, state) => {
-    // Read our props from state from visitSystemProps() and create our css object.
-    const styles = createStyleObject(state.props)
-    if (!styles.length) return
-
-    const cssIndex = path.node.attributes
-      .filter(attr => t.isJSXAttribute(attr))
-      .findIndex(attr => attr.name && attr.name.name === 'css')
-
-    // There is no current CSS prop, so we need to create it.
-    if (cssIndex < 0) {
-      const cssAttribute = t.jSXAttribute(
-        t.jSXIdentifier('css'),
-        t.jSXExpressionContainer(t.objectExpression(styles)),
-      )
-      path.node.attributes.push(cssAttribute)
-    } else {
-      // There is a CSS prop, so we need to visit it and merge the styles we made.
-      path
-        .get(`attributes.${cssIndex}.value`)
-        .traverse(visitCSSProp, { styles })
-    }
-  }
-
-  // Wraps the CSS prop with a function that receives the theme from context as an argument.
-  const wrapCSSProp = {
-    JSXAttribute(path) {
-      if (path.node.name.name !== 'css') return
-
-      const value = path.get('value.expression')
-      if (!value.isObjectExpression()) return
-
-      const ast = t.arrowFunctionExpression([t.identifier(themeId)], value.node)
-
-      value.replaceWith(ast)
-    },
-  }
-
+export default () => {
   return {
     name: 'styled-system',
-    visitor: {
-      Program(path, state) {
-        path.traverse(
-          {
-            JSXOpeningElement(path, state) {
-              const name = path.node.name.name
-              if (svgTags.includes(name)) return
-
-              state.elementName = name
-              state.props = []
-
-              path.traverse(visitSystemProps, state)
-              applyCSSProp(path, state)
-              path.traverse(wrapCSSProp)
-
-              state.set('isJSX', true)
-            },
-          },
-          state,
-        )
-      },
-    },
+    visitor: programVisitor,
   }
 }

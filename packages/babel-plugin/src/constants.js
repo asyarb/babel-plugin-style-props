@@ -3,7 +3,7 @@ import cssProps from 'known-css-properties'
 import isPropValid from '@emotion/is-prop-valid'
 
 export const IDENTIFIERS = {
-  emotion: '__theme',
+  emotion: '__theme__',
   styledComponents: 'p',
 }
 
@@ -16,7 +16,7 @@ export const DEFAULT_OPTIONS = {
   emotion: false,
 }
 
-export const ALIASES = {
+export const SYSTEM_ALIASES = {
   bg: 'backgroundColor',
   m: 'margin',
   mt: 'marginTop',
@@ -88,10 +88,100 @@ const propNames = [
   'paddingY',
 ]
 
-export const PROPS = propNames.reduce(
+export const SYSTEM_PROPS = propNames.reduce(
   (acc, key) => ({
     ...acc,
     [key]: true,
   }),
   {},
 )
+
+export const SCALES_MAP = {
+  // SPACE
+  padding: 'space',
+  margin: 'space',
+  marginTop: 'space',
+  marginRight: 'space',
+  marginBottom: 'space',
+  marginLeft: 'space',
+  marginX: 'space',
+  marginY: 'space',
+  padding: 'space',
+  paddingTop: 'space',
+  paddingRight: 'space',
+  paddingBottom: 'space',
+  paddingLeft: 'space',
+  paddingX: 'space',
+  paddingY: 'space',
+  m: 'space',
+  mt: 'space',
+  mr: 'space',
+  mb: 'space',
+  ml: 'space',
+  mx: 'space',
+  my: 'space',
+  p: 'space',
+  pt: 'space',
+  pr: 'space',
+  pb: 'space',
+  pl: 'space',
+  px: 'space',
+  py: 'space',
+
+  // COLOR
+  color: 'colors',
+  backgroundColor: 'colors',
+  borderColor: 'colors',
+
+  // TYPOGRAPHY
+  fontFamily: 'fonts',
+  fontSize: 'fontSizes',
+  fontWeight: 'fontWeights',
+  lineHeight: 'lineHeights',
+  letterSpacing: 'letterSpacing',
+
+  // LAYOUT
+  width: 'sizes',
+  height: 'sizes',
+  minWidth: 'sizes',
+  maxWidth: 'sizes',
+  minHeight: 'sizes',
+  maxHeight: 'sizes',
+
+  // FLEXBOX -- needs no theme keys
+
+  // GRID LAYOUT
+  gridGap: 'space',
+  gridRowGap: 'space',
+  gridColumnGap: 'space',
+  rowGap: 'space',
+  columnGap: 'space',
+  gap: 'space',
+
+  // BACKGROUND -- needs no theme keys
+
+  // BORDER
+  border: 'borders',
+  borderTop: 'borders',
+  borderRight: 'borders',
+  borderBottom: 'borders',
+  borderLeft: 'borders',
+  borderWidth: 'borderWidths',
+  borderColor: 'colors',
+  borderTopColor: 'colors',
+  borderRightColor: 'colors',
+  borderBottomColor: 'colors',
+  borderLeftColor: 'colors',
+  borderRadius: 'radii',
+
+  // POSITION
+  zIndex: 'zIndices',
+  top: 'space',
+  right: 'space',
+  bottom: 'space',
+  left: 'space',
+
+  // SHADOW
+  boxShadow: 'shadows',
+  textShadow: 'shadows',
+}
