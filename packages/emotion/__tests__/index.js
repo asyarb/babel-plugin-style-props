@@ -1,11 +1,13 @@
 import React from 'react'
+import * as emotion from 'emotion'
 import renderer, { act } from 'react-test-renderer'
-import { matchers } from 'jest-emotion'
+import { matchers, createSerializer } from 'jest-emotion'
 import { ThemeProvider } from 'emotion-theming'
 
 import { theme } from '../theme'
 
 expect.extend(matchers)
+expect.addSnapshotSerializer(createSerializer(emotion))
 
 const Providers = ({ children }) => (
   <ThemeProvider theme={theme}>{children}</ThemeProvider>
@@ -51,7 +53,7 @@ describe('emotion integration', () => {
   })
 
   it('merges styles with existing css prop', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         color="#000"
         p={4}
@@ -63,15 +65,16 @@ describe('emotion integration', () => {
         <h1 color="white">Hello</h1>
       </div>,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('color', '#000')
-    expect(result).toHaveStyleRule('border', '2px solid')
-    expect(result).toHaveStyleRule('font-family', 'system-ui')
-    expect(result.firstChild).toHaveStyleRule('color', theme.colors.white)
+    expect(json).toHaveStyleRule('color', '#000')
+    expect(json).toHaveStyleRule('border', '2px solid')
+    expect(json).toHaveStyleRule('font-family', 'system-ui')
+    expect(json.children[0]).toHaveStyleRule('color', theme.colors.white)
   })
 
   it('merges styles to existing css prop arrow functions', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={() => ({
@@ -79,13 +82,14 @@ describe('emotion integration', () => {
         })}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', '#fff')
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', '#fff')
   })
 
   it('merges styles to existing css prop arrow functions with return statement', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={() => {
@@ -95,13 +99,14 @@ describe('emotion integration', () => {
         }}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', '#fff')
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', '#fff')
   })
 
   it('merges styles to existing css prop arrow function that use theme param', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={a => ({
@@ -109,13 +114,14 @@ describe('emotion integration', () => {
         })}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', theme.colors.white)
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', theme.colors.white)
   })
 
   it('merges styles to existing css prop arrow functions that use the theme param with a return statement', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={a => {
@@ -125,13 +131,14 @@ describe('emotion integration', () => {
         }}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', theme.colors.white)
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', theme.colors.white)
   })
 
   it('handles property destructuring in css prop arrow functions', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={({ colors, space }) => ({
@@ -140,14 +147,15 @@ describe('emotion integration', () => {
         })}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', theme.colors.white)
-    expect(result).toHaveStyleRule('margin', theme.space[4])
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', theme.colors.white)
+    expect(json).toHaveStyleRule('margin', theme.space[4])
   })
 
   it('handles property destructuring in css prop arrow functions with a return statement', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={({ colors, space }) => {
@@ -158,14 +166,15 @@ describe('emotion integration', () => {
         }}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', theme.colors.white)
-    expect(result).toHaveStyleRule('margin', theme.space[4])
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', theme.colors.white)
+    expect(json).toHaveStyleRule('margin', theme.space[4])
   })
 
   it('merges styles to existing css prop function expressions', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={function() {
@@ -175,13 +184,24 @@ describe('emotion integration', () => {
         }}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', '#fff')
+    expect(json).toMatchInlineSnapshot(`
+      .emotion-0 {
+        padding: 1rem;
+        color: #fff;
+      }
+
+      <div
+        className="emotion-0"
+      />
+    `)
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', '#fff')
   })
 
   it('merges styles to existing css prop function expressions that use the theme param', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={function(a) {
@@ -191,13 +211,14 @@ describe('emotion integration', () => {
         }}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', theme.colors.white)
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', theme.colors.white)
   })
 
   it('merges styles to existing css prop function expressions that use destructuring', () => {
-    const { result } = customRender(
+    const tree = customRender(
       <div
         p={5}
         css={function({ colors, space }) {
@@ -208,10 +229,11 @@ describe('emotion integration', () => {
         }}
       />,
     )
+    const json = tree.toJSON()
 
-    expect(result).toHaveStyleRule('padding', theme.space[5])
-    expect(result).toHaveStyleRule('color', theme.colors.white)
-    expect(result).toHaveStyleRule('margin', theme.space[4])
+    expect(json).toHaveStyleRule('padding', theme.space[5])
+    expect(json).toHaveStyleRule('color', theme.colors.white)
+    expect(json).toHaveStyleRule('margin', theme.space[4])
   })
 
   it('parses array props', () => {

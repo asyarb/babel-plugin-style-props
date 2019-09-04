@@ -1,7 +1,6 @@
 import svgTags from 'svg-tags'
-import { types as t } from '@babel/core'
+import { types as t, traverse } from '@babel/core'
 
-import { createMediaQuery } from './system'
 import {
   SYSTEM_PROPS,
   SYSTEM_ALIASES,
@@ -10,6 +9,8 @@ import {
 } from './constants'
 
 const castArray = x => (Array.isArray(x) ? x : [x])
+
+const createMediaQuery = n => `@media screen and (min-width: ${n})`
 
 const onlySystemProps = attrs =>
   attrs.filter(attr => Boolean(SYSTEM_PROPS[attr.name.name]))
@@ -128,25 +129,101 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
   return [...baseResult, ...keyedResponsiveResults]
 }
 
-const buildCssAttr = (objectProperties, existingCssAttr) => {
-  if (!objectProperties.length) return existingCssAttr
+const buildCssAttr = objectProperties =>
+  t.jsxAttribute(
+    t.jSXIdentifier('css'),
+    t.jSXExpressionContainer(
+      t.arrowFunctionExpression(
+        [t.identifier('__theme__')],
+        t.objectExpression(objectProperties),
+      ),
+    ),
+  )
 
-  let properties = objectProperties
+const buildVariableDeclaration = (type, left, right) =>
+  t.variableDeclaration(type, [
+    t.variableDeclarator(t.assignmentPattern(left, right)),
+  ])
 
-  if (existingCssAttr) {
-    const existingExpression = existingCssAttr.value.expression
+const extractAndCleanFunctionParts = expression => {
+  const functionBody = expression.body
+  const functionParam = expression.params[0]
+  let bodyStatements = []
 
-    if (t.isObjectExpression(existingExpression)) {
-      properties = [...properties, ...existingExpression.properties]
-    }
+  if (t.isIdentifier(functionParam)) {
+    // e.g. css={theme => }
+    traverse(
+      functionBody,
+      {
+        Identifier(path, exisitingParamName) {
+          if (path.node.name === exisitingParamName)
+            path.node.name = '__theme__'
+        },
+      },
+      expression,
+      functionParam.name,
+    )
+  } else if (t.isObjectPattern(functionParam)) {
+    // e.g. css={({ colors, theme }) => }
+    bodyStatements = [
+      buildVariableDeclaration(
+        'const',
+        functionParam,
+        t.identifier('__theme__'),
+      ),
+    ]
   }
+
+  if (t.isObjectExpression(functionBody)) {
+    // e.g. css={theme => ({ ... })}
+    return [bodyStatements, functionBody.properties]
+  } else if (t.isBlockStatement(functionBody)) {
+    // e.g. css={theme => { return { ... } }}
+    const exisitingBodyStatements = functionBody.body.filter(
+      node => !t.isReturnStatement(node),
+    )
+    const returnStatement = functionBody.body.find(node =>
+      t.isReturnStatement(node),
+    )
+
+    bodyStatements = [...bodyStatements, ...exisitingBodyStatements]
+
+    // throw error if returnStatement.argument is not an object.
+
+    return [bodyStatements, returnStatement.argument.properties]
+  }
+}
+
+const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
+  const existingExpression = existingCssAttr.value.expression
+  let mergedProperties = []
+  let bodyStatements = []
+
+  if (t.isObjectExpression(existingExpression))
+    mergedProperties = [...objectProperties, ...existingExpression.properties]
+  else if (t.isFunction(existingExpression)) {
+    const [
+      extractedBodyStatements,
+      returnObjectProperties,
+    ] = extractAndCleanFunctionParts(existingExpression)
+
+    bodyStatements = extractedBodyStatements
+    mergedProperties = [...objectProperties, ...returnObjectProperties]
+  }
+
+  const hasBodyStatements = bodyStatements.length
 
   return t.jsxAttribute(
     t.jSXIdentifier('css'),
     t.jSXExpressionContainer(
       t.arrowFunctionExpression(
         [t.identifier('__theme__')],
-        t.objectExpression(properties),
+        hasBodyStatements
+          ? t.blockStatement([
+              ...bodyStatements,
+              t.returnStatement(t.objectExpression(mergedProperties)),
+            ])
+          : t.objectExpression(mergedProperties),
       ),
     ),
   )
@@ -167,10 +244,16 @@ const jsxOpeningElementVisitor = {
       breakpoints,
     )
 
+    if (!cssObjectProperties.length) return
+
     const existingCssAttr = path.node.attributes.find(
       attr => attr.name.name === 'css',
     )
-    const newCssAttr = buildCssAttr(cssObjectProperties, existingCssAttr)
+
+    let newCssAttr
+    if (existingCssAttr)
+      newCssAttr = buildMergedCssAttr(cssObjectProperties, existingCssAttr)
+    else newCssAttr = buildCssAttr(cssObjectProperties)
 
     path.node.attributes = notSystemProps(path.node.attributes).filter(
       attr => attr.name.name !== 'css',
@@ -179,15 +262,11 @@ const jsxOpeningElementVisitor = {
   },
 }
 
-const programVisitor = {
-  Program(path, state) {
-    path.traverse(jsxOpeningElementVisitor, state)
+export default () => ({
+  name: 'styled-system',
+  visitor: {
+    Program(path, state) {
+      path.traverse(jsxOpeningElementVisitor, state)
+    },
   },
-}
-
-export default () => {
-  return {
-    name: 'styled-system',
-    visitor: programVisitor,
-  }
-}
+})
