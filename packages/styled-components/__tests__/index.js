@@ -106,7 +106,7 @@ describe('styled-components integration', () => {
       <div
         p={5}
         css={a => ({
-          color: a.colors.white,
+          color: a.theme.colors.white,
         })}
       />,
     )
@@ -122,7 +122,7 @@ describe('styled-components integration', () => {
         p={5}
         css={a => {
           return {
-            color: a.colors.white,
+            color: a.theme.colors.white,
           }
         }}
       />,
@@ -137,9 +137,9 @@ describe('styled-components integration', () => {
     const tree = customRender(
       <div
         p={5}
-        css={({ colors, space }) => ({
-          color: colors.white,
-          margin: space[4],
+        css={({ theme }) => ({
+          color: theme.colors.white,
+          margin: theme.space[4],
         })}
       />,
     )
@@ -154,10 +154,10 @@ describe('styled-components integration', () => {
     const tree = customRender(
       <div
         p={5}
-        css={({ colors, space }) => {
+        css={({ theme }) => {
           return {
-            color: colors.white,
-            margin: space[4],
+            color: theme.colors.white,
+            margin: theme.space[4],
           }
         }}
       />,
@@ -182,6 +182,16 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #fff;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', '#fff')
   })
@@ -192,7 +202,7 @@ describe('styled-components integration', () => {
         p={5}
         css={function(a) {
           return {
-            color: a.colors.white,
+            color: a.theme.colors.white,
           }
         }}
       />,
@@ -207,10 +217,10 @@ describe('styled-components integration', () => {
     const tree = customRender(
       <div
         p={5}
-        css={function({ colors, space }) {
+        css={function({ theme }) {
           return {
-            color: colors.white,
-            margin: space[4],
+            color: theme.colors.white,
+            margin: theme.space[4],
           }
         }}
       />,

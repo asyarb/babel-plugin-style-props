@@ -1,16 +1,5 @@
 import React from 'react'
 
 export const Hello = () => {
-  return (
-    <div
-      p={5}
-      css={function() {
-        const woah = true
-
-        return {
-          color: '#fff',
-        }
-      }}
-    />
-  )
+  return <div m={[0, '3rem', '6rem']} />
 }

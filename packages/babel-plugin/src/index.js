@@ -6,7 +6,10 @@ import {
   SYSTEM_ALIASES,
   DEFAULT_OPTIONS,
   SCALES_MAP,
+  IDENTIFIERS,
 } from './constants'
+
+let themeIdentifier
 
 /**
  * Casts a provided value as an array if it is not one.
@@ -22,7 +25,7 @@ const castArray = x => (Array.isArray(x) ? x : [x])
  * @param {*} n - The CSS unit to generate a media query from.
  * @returns The media query string.
  */
-const createMediaQuery = unit => `@media screeunit and (min-width: ${unit})`
+const createMediaQuery = unit => `@media screen and (min-width: ${unit})`
 
 /**
  * Given an array of props, returns only the known system props.
@@ -93,6 +96,10 @@ const stripNegativeFromAttrValue = attrValue => {
 
 const attrToThemeExpression = (propName, attrValue) => {
   const scaleName = SCALES_MAP[propName]
+  const isStyledComponents = themeIdentifier === IDENTIFIERS.styledComponents
+  const themeIdentifierPath = isStyledComponents
+    ? themeIdentifier + '.theme'
+    : themeIdentifier
 
   if (!scaleName) return attrValue
 
@@ -101,7 +108,7 @@ const attrToThemeExpression = (propName, attrValue) => {
   let themeExpression = buildUndefinedConditionalFallback(
     t.memberExpression(
       t.memberExpression(
-        t.identifier('__theme__'),
+        t.identifier(themeIdentifierPath),
         t.stringLiteral(scaleName),
         true,
       ),
@@ -185,7 +192,7 @@ const buildCssAttr = objectProperties =>
     t.jSXIdentifier('css'),
     t.jSXExpressionContainer(
       t.arrowFunctionExpression(
-        [t.identifier('__theme__')],
+        [t.identifier(themeIdentifier)],
         t.objectExpression(objectProperties),
       ),
     ),
@@ -202,8 +209,9 @@ const extractAndCleanFunctionParts = expression => {
       functionBody,
       {
         Identifier(path, exisitingParamName) {
-          if (path.node.name === exisitingParamName)
-            path.node.name = '__theme__'
+          if (path.node.name === exisitingParamName) {
+            path.node.name = themeIdentifier
+          }
         },
       },
       expression,
@@ -215,7 +223,7 @@ const extractAndCleanFunctionParts = expression => {
       buildVariableDeclaration(
         'const',
         functionParam,
-        t.identifier('__theme__'),
+        t.identifier(themeIdentifier),
       ),
     ]
   }
@@ -263,7 +271,7 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
     t.jSXIdentifier('css'),
     t.jSXExpressionContainer(
       t.arrowFunctionExpression(
-        [t.identifier('__theme__')],
+        [t.identifier(themeIdentifier)],
         hasBodyStatements
           ? t.blockStatement([
               ...bodyStatements,
@@ -278,6 +286,10 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path, state) {
     const breakpoints = state.opts.breakpoints ?? DEFAULT_OPTIONS.breakpoints
+
+    themeIdentifier = state.opts.emotion
+      ? IDENTIFIERS.emotion
+      : IDENTIFIERS.styledComponents
 
     const name = path.node.name.name
     if (svgTags.includes(name)) return
