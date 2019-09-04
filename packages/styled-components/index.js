@@ -3,10 +3,14 @@ import React from 'react'
 export const Hello = () => {
   return (
     <div
-      bg="white"
-      css={p => ({
-        color: p.theme.colors.white,
-      })}
+      p={5}
+      css={function() {
+        const woah = true
+
+        return {
+          color: '#fff',
+        }
+      }}
     />
   )
 }

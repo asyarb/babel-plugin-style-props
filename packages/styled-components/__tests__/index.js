@@ -182,16 +182,6 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
-    expect(json).toMatchInlineSnapshot(`
-      .emotion-0 {
-        padding: 1rem;
-        color: #fff;
-      }
-
-      <div
-        className="emotion-0"
-      />
-    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', '#fff')
   })
