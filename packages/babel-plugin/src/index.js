@@ -12,10 +12,10 @@ import {
 const castArray = x => (Array.isArray(x) ? x : [x])
 
 const onlySystemProps = attrs =>
-  attrs?.filter(attr => Boolean(SYSTEM_PROPS[(attr?.name?.name)]))
+  attrs.filter(attr => Boolean(SYSTEM_PROPS[attr.name.name]))
 
 const notSystemProps = attrs =>
-  attrs.filter(attr => !Boolean(SYSTEM_PROPS[(attr?.name?.name)]))
+  attrs.filter(attr => !Boolean(SYSTEM_PROPS[attr.name.name]))
 
 const buildUndefinedConditionalFallback = (value, fallbackValue) =>
   t.conditionalExpression(
@@ -32,9 +32,9 @@ const stripNegativeFromAttrValue = attrValue => {
   let baseAttrValue = attrValue
 
   if (isNegative && t.isUnaryExpression(attrValue))
-    baseAttrValue = attrValue?.argument
+    baseAttrValue = attrValue.argument
   if (isNegative && t.isStringLiteral(attrValue))
-    baseAttrValue = t.stringLiteral(attrValue?.value?.substring(1))
+    baseAttrValue = t.stringLiteral(attrValue.value.substring(1))
 
   return [baseAttrValue, isNegative]
 }
@@ -80,8 +80,8 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
   const responsiveResults = []
 
   attrNodes.forEach(attrNode => {
-    const attrName = attrNode?.name?.name
-    const attrValue = attrNode?.value
+    const attrName = attrNode.name.name
+    const attrValue = attrNode.value
     const cssPropertyNames = castArray(SYSTEM_ALIASES[attrName] || attrName)
 
     if (t.isJSXExpressionContainer(attrValue)) {
@@ -89,7 +89,7 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
 
       if (t.isArrayExpression(expression)) {
         // e.g. prop={['test', null, 'test2']}
-        expression?.elements.forEach((element, i) => {
+        expression.elements.forEach((element, i) => {
           responsiveResults[i] = responsiveResults[i] || []
 
           const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
@@ -131,8 +131,14 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
 const buildCssAttr = (objectProperties, existingCssAttr) => {
   if (!objectProperties.length) return existingCssAttr
 
+  let properties = objectProperties
+
   if (existingCssAttr) {
-    // ignore for now
+    const existingExpression = existingCssAttr.value.expression
+
+    if (t.isObjectExpression(existingExpression)) {
+      properties = [...properties, ...existingExpression.properties]
+    }
   }
 
   return t.jsxAttribute(
@@ -140,7 +146,7 @@ const buildCssAttr = (objectProperties, existingCssAttr) => {
     t.jSXExpressionContainer(
       t.arrowFunctionExpression(
         [t.identifier('__theme__')],
-        t.objectExpression(objectProperties),
+        t.objectExpression(properties),
       ),
     ),
   )
@@ -148,7 +154,7 @@ const buildCssAttr = (objectProperties, existingCssAttr) => {
 
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path, state) {
-    const breakpoints = state?.opts?.breakpoints ?? DEFAULT_OPTIONS.breakpoints
+    const breakpoints = state.opts.breakpoints ?? DEFAULT_OPTIONS.breakpoints
 
     const name = path.node.name.name
     if (svgTags.includes(name)) return
@@ -162,12 +168,12 @@ const jsxOpeningElementVisitor = {
     )
 
     const existingCssAttr = path.node.attributes.find(
-      attr => attr?.name?.name === 'css',
+      attr => attr.name.name === 'css',
     )
     const newCssAttr = buildCssAttr(cssObjectProperties, existingCssAttr)
 
     path.node.attributes = notSystemProps(path.node.attributes).filter(
-      attr => attr?.name?.name !== 'css',
+      attr => attr.name.name !== 'css',
     )
     if (newCssAttr) path.node.attributes.push(newCssAttr)
   },
