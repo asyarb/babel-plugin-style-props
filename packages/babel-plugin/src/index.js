@@ -8,16 +8,47 @@ import {
   SCALES_MAP,
 } from './constants'
 
+/**
+ * Casts a provided value as an array if it is not one.
+ *
+ * @param {*} x - The value to cast to an array.
+ * @returns The casted array.
+ */
 const castArray = x => (Array.isArray(x) ? x : [x])
 
-const createMediaQuery = n => `@media screen and (min-width: ${n})`
+/**
+ * Returns a valid media query given a CSS unit.
+ *
+ * @param {*} n - The CSS unit to generate a media query from.
+ * @returns The media query string.
+ */
+const createMediaQuery = unit => `@media screeunit and (min-width: ${unit})`
 
+/**
+ * Given an array of props, returns only the known system props.
+ *
+ * @param {Array} attrs - Props to filter.
+ * @returns The array of system props.
+ */
 const onlySystemProps = attrs =>
   attrs.filter(attr => Boolean(SYSTEM_PROPS[attr.name.name]))
 
+/**
+ * Given an array of props, returns only non-system props.
+ *
+ * @param {Array} attrs - Props to filter.
+ * @returns The array of non-system props.
+ */
 const notSystemProps = attrs =>
   attrs.filter(attr => !Boolean(SYSTEM_PROPS[attr.name.name]))
 
+/**
+ * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
+ *
+ * @param {Object} value - babel AST to truthily use.
+ * @param {Object} fallbackValue - babel AST to falsily use.
+ * @returns The conditional fallback babel AST.
+ */
 const buildUndefinedConditionalFallback = (value, fallbackValue) =>
   t.conditionalExpression(
     t.binaryExpression('!==', value, t.identifier('undefined')),
@@ -25,6 +56,26 @@ const buildUndefinedConditionalFallback = (value, fallbackValue) =>
     fallbackValue,
   )
 
+/**
+ * Builds a babel AST for a variable declaration e.g. `const var = true`.
+ *
+ * @param {Object} type - enum of `const`, `let,` or `var`.
+ * @param {Object} left - babel AST for the left hand side of the declaration.
+ * @param {Object} right - babel AST for the right hand side of the declaration.
+ * @returns The variable declaration AST.
+ */
+const buildVariableDeclaration = (type, left, right) =>
+  t.variableDeclaration(type, [
+    t.variableDeclarator(t.assignmentPattern(left, right)),
+  ])
+
+/**
+ * Strips and returns the base value of a negative babel AST.
+ *
+ * @param {Object} attrValue - babel ast node to strip.
+ * @returns A tuple containing the base value and a boolean
+ * indicating if the value was negative.
+ */
 const stripNegativeFromAttrValue = attrValue => {
   const isNegative =
     (t.isUnaryExpression(attrValue) && attrValue.operator === '-') ||
@@ -139,11 +190,6 @@ const buildCssAttr = objectProperties =>
       ),
     ),
   )
-
-const buildVariableDeclaration = (type, left, right) =>
-  t.variableDeclaration(type, [
-    t.variableDeclarator(t.assignmentPattern(left, right)),
-  ])
 
 const extractAndCleanFunctionParts = expression => {
   const functionBody = expression.body
