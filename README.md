@@ -198,7 +198,7 @@ module.exports = {
 For performance reasons, this plugin **only** supports two levels of nesting in
 a `theme` object. Consider the following example.
 
-```jsx
+```js
 // theme.js
 const theme = {
   colors: {
@@ -223,7 +223,7 @@ limitation of this plugin.
 If you wish to have name-spaced keys like above, consider flatly namespacing
 your keys instead.
 
-```jsx
+```js
 const theme = {
   colors: {
     primary: '#fff',
