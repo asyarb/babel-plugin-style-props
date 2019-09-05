@@ -286,10 +286,18 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path, state) {
     const breakpoints = state.opts.breakpoints ?? DEFAULT_OPTIONS.breakpoints
+    const stylingLibrary =
+      state.opts.stylingLibrary ?? DEFAULT_OPTIONS.stylingLibrary
 
-    themeIdentifier = state.opts.emotion
-      ? IDENTIFIERS.emotion
-      : IDENTIFIERS.styledComponents
+    if (!stylingLibrary)
+      throw new Error(
+        'Please define `stylingLibrary` in your babel plugin options.',
+      )
+
+    themeIdentifier =
+      stylingLibrary === 'emotion'
+        ? IDENTIFIERS.emotion
+        : IDENTIFIERS.styledComponents
 
     const name = path.node.name.name
     if (svgTags.includes(name)) return

@@ -3,7 +3,7 @@
 Use Styled System props on any JSX element.
 
 ```jsx
-<h1 mt={0} mb={4} color="primary">
+<h1 mt={0} mb={4} color="primary" textDecoration="underline">
   Hello
 </h1>
 ```
@@ -12,30 +12,19 @@ Use Styled System props on any JSX element.
 - Reads values from your `<ThemeProvider>`.
 - Use arrays for responsive styles.
 - Performant. No additional runtime overhead of `styled-system`. Equivalent perf
-  to using `styled-components` or `emotion` directly.
-- Removes props from rendered HTML (if using `emotion`).
-
-## Additional features from official experiment
-
-- [x] Supports all missing properties from the `styled-system` reference table.
-      Have their theme keys appropriately associated.
-- [x] Refactored testing to be more integration oriented.
-- [x] Eliminates `styled-system` runtime of iterating over style props & keys.
-- [x] Transform keyable values to `theme.SPACE_KEY.value` object member
-      expressions.
-- [x] Drops in function expressions and identifiers used in system-props into
-      the `css` prop as is.
-- [x] Merges style props with existing `css` prop expressions and objects if
-      already defined.
-  - [x] Support and merge css prop function expressions with destructuring.
-- [x] Support responsive negative values and theme keys.
-- [x] Support responsive ternary operators with theme keys.
-- [ ] Ability to specifiy custom variants through plugin options.
+  to using `styled-components` or `emotion` with the `css` prop directly.
+- Removes props from rendered HTML.
 
 ## Getting Started
 
-Add the plugin to your Babel config. Be sure that
-`@emotion/babel-preset-css-prop` is included as well.
+### Configure Babel
+
+Add the plugin to your Babel config and specify the `stylingLibrary` option. Be
+sure that the appropriate `css` prop babel plugin is included as well.
+
+See below for examples with popular CSS-in-JS libraries.
+
+#### Emotion
 
 ```js
 // babel.config.js
@@ -45,24 +34,58 @@ module.exports = {
     '@babel/preset-react',
     '@emotion/babel-preset-css-prop',
   ],
-  plugins: ['@styled-system/babel-plugin'],
+  plugins: [
+    [
+      '@styled-system/babel-plugin',
+      {
+        stylingLibrary: 'emotion',
+      },
+    ],
+    'babel-plugin-styled-components',
+  ],
 }
 ```
 
-Use Styled System props or CSS properties as React props on any JSX element.
+#### Styled Components
 
-```jsx
-<h1
-  color="tomato"
-  fontFamily="system-ui"
-  textDecoration="underline"
-  textDecorationStyle="wavy"
-/>
+```js
+// babel.config.js
+module.exports = {
+  presets: ['@babel/preset-env', '@babel/preset-react'],
+  plugins: [
+    [
+      '@styled-system/babel-plugin',
+      {
+        stylingLibrary: 'styled-components',
+      },
+    ],
+    'babel-plugin-styled-components',
+  ],
+}
 ```
 
-## What it does
+### Setup your `<ThemeProvider>`
 
-`@styled-system/babel-plugin` converts style props to objects in a `css` prop.
+Setup your `<ThemeProvider>` component around your React app as you normally
+would.
+
+```jsx
+import { ThemeProvider } from 'styled-components'
+import { theme } from './pathToYourTheme'
+
+const YourApp = () => (
+  <ThemeProvider theme={theme}>
+    <App />
+  </ThemeProvider>
+)
+```
+
+Your `theme` should follow the `styled-system` specification that you can find
+detailed [here](https://styled-system.com/theme-specification).
+
+## What this plugin does
+
+`@styled-system/babel-plugin` converts style props to an object in a `css` prop.
 This allows libraries like `styled-components` or `emotion` to parse the styles
 into CSS.
 
@@ -70,16 +93,16 @@ into CSS.
 // in
 <div color='red' px={5} />
 
-// out (SC, before their babel plugin)
+// out (styled-components, before babel plugin)
 <div
-  css={p.theme => ({
+  css={theme => ({
     color: p.theme.colors.red,
     paddingLeft: p.theme.space[5],
     paddingRight: p.theme.space[5],
   })}
 />
 
-// out (emotion, before their babel plugin)
+// out (emotion, before babel plugin)
 <div
   css={theme => ({
     color: theme.colors.red,
@@ -92,7 +115,7 @@ into CSS.
 ## Use values from your theme
 
 When colors, fonts, font sizes, a spacing scale, or other values are definied in
-an `<ThemeProvider>` context, the values can be referenced by key in the props.
+a `<ThemeProvider>` context, the values can be referenced by key in the props.
 
 ```js
 // example theme
@@ -118,41 +141,98 @@ Just like with `styled-system`, you can use arrays to specify responsive styles.
 
 ## Gotchas
 
-- Breakpoints can **only** be configured in the Babel plugin options (this is an
-  intentional performance enhancement).
-- Function expressions and plain variables are dropped into the `css` prop as is
-  under the appropriate key.
-- Incompatible with components built with `styled-system`.
+### Breakpoints
 
-## Limitations compared to `styled-system`
+Unlike `styled-system`, breakpoints can **only** be configured in the Babel
+plugin options. This is an intentional performance enhancement.
+
+### Nested theme properties
+
+For performance reasons, this plugin **only** supports two levels of nesting in
+a `theme` object. Consider the following example.
+
+```jsx
+// theme.js
+const theme = {
+  colors: {
+    primary: '#fff',
+    red: {
+      light: '#f0f',
+      dark: '#0f0',
+    },
+  },
+  lineHeights: {
+    copy: 1.5,
+  },
+}
+
+const Box = () => <div color="red.light" bg="primary" />
+```
+
+The above will not work because we are accessing a third level of nesting for
+our `color` style prop. This is an intentional performance enhancement and
+limitation of this plugin.
+
+If you wish to have name-spaced keys like above, consider flatly namespacing
+your keys instead.
+
+```jsx
+const theme = {
+  colors: {
+    primary: '#fff',
+
+    'red.light': '#f0f',
+    'red.dark': '#0f0',
+  },
+  lineHeights: {
+    copy: 1.5,
+  },
+}
+```
+
+### Function calls and variables in style props
+
+Function calls and variables are dropped into the `css` prop as computed
+properties. Consider the following example:
+
+```jsx
+const myFunction = () => 'muted'
+
+const Box = () => {
+  const myColor = 'primary'
+
+  return <div color={myColor} bg={myBackgroundFunction()} />
+}
+
+// Is equivalent to...
+
+const Box = () => {
+  const myColor = 'primary'
+
+  return (
+    <div
+      css={theme => ({
+        color: theme.colors[myColor] === undefined || myColor, // theme.colors.primary
+        backgroundColor: theme.colors[myFunction()] || myFunction(), // theme.colors.muted
+      })}
+    />
+  )
+}
+```
+
+### Incompatible with components built with `styled-system`
+
+Due to this plugin stripping style props from the final JavaScript, this plugin
+is incompatibile with any component that is built with `styled-system` **or**
+uses the same expected style prop names.
+
+## Other limitations compared to `styled-system`
 
 - Cannot specify `theme` keys that begin with `-`. This plugin relies on the `-`
   preceeding a theme key to determine the negation of a scale.
 - Does not transform fractional width values.
 - Does not include a default theme.
 - Does not parse props on SVG elements.
-
-To configure custom breakpoint values, set the `breakpoints` option in your
-Babel config file.
-
-```js
-// babel.config.js
-module.exports = {
-  presets: [
-    '@babel/preset-env',
-    '@babel/preset-react',
-    '@emotion/babel-preset-css-prop',
-  ],
-  plugins: [
-    [
-      '@styles-system/babel-plugin',
-      {
-        breakpoints: ['32em', '48em', '64em', '72em'],
-      },
-    ],
-  ],
-}
-```
 
 ## License
 

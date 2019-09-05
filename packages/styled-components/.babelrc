@@ -12,7 +12,7 @@
     [
       "@styled-system/babel-plugin",
       {
-        "styled-components": true
+        "stylingLibrary": "styled-components"
       }
     ],
     "babel-plugin-styled-components"
