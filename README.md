@@ -8,12 +8,31 @@ Use Styled System props on any JSX element.
 </h1>
 ```
 
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Configure Babel](#configure-babel)
+    - [Emotion](#emotion)
+    - [Styled Components](#styled-components)
+  - [Setup your `<ThemeProvider>`](#setup-your-themeprovider)
+- [What this plugin does](#what-this-plugin-does)
+- [Use values from your theme](#use-values-from-your-theme)
+- [Use arrays for responsive styles](#use-arrays-for-responsive-styles)
+- [Gotchas](#gotchas)
+  - [Breakpoints](#breakpoints)
+  - [Nested theme properties](#nested-theme-properties)
+  - [Function calls and variables in style props](#function-calls-and-variables-in-style-props)
+  - [Incompatible with components built with `styled-system`](#incompatible-with-components-built-with-styled-system)
+- [Other limitations compared to `styled-system`](#other-limitations-compared-to-styled-system)
+- [License](#license)
+
+## Features
+
 - Support for **all** CSS properties.
 - Reads values from your `<ThemeProvider>`.
 - Use arrays for responsive styles.
 - Performant. No additional runtime overhead of `styled-system`. Equivalent perf
   to using `styled-components` or `emotion` with the `css` prop directly.
-- Removes props from rendered HTML.
+- Removes style props from rendered HTML.
 
 ## Getting Started
 
