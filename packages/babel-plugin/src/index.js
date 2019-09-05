@@ -173,17 +173,17 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
 
           const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
 
-          cssPropertyNames.forEach(cssPropertyName => {
-            resultArr.push(buildCssObjectProperty(cssPropertyName, element))
-          })
+          cssPropertyNames.forEach(cssPropertyName =>
+            resultArr.push(buildCssObjectProperty(cssPropertyName, element)),
+          )
         })
       } else {
         // e.g. prop={bool ? 'foo' : "test"}
         // e.g. prop={'test'}
         // e.g. prop={test}
-        cssPropertyNames.forEach(cssPropertyName => {
-          baseResult.push(buildCssObjectProperty(cssPropertyName, expression))
-        })
+        cssPropertyNames.forEach(cssPropertyName =>
+          baseResult.push(buildCssObjectProperty(cssPropertyName, expression)),
+        )
       }
     } else {
       const isVariant = Boolean(options.variants[attrNode.name.name])
