@@ -96,7 +96,7 @@ module.exports = {
 
 ### Setup your `<ThemeProvider>`
 
-Setup your `<ThemeProvider>` component around your React app as you normally
+Place your `<ThemeProvider>` component around your React app as you normally
 would.
 
 ```jsx
@@ -175,6 +175,23 @@ Just like with `styled-system`, you can use arrays to specify responsive styles.
 
 Unlike `styled-system`, breakpoints can **only** be configured in the Babel
 plugin options. This is an intentional performance enhancement.
+
+```js
+// babel.config.js
+module.exports = {
+  presets: ['@babel/preset-env', '@babel/preset-react'],
+  plugins: [
+    [
+      '@styled-system/babel-plugin',
+      {
+        stylingLibrary: 'styled-components',
+        breakpoints: ['32rem', '60rem', '100rem'],
+      },
+    ],
+    'babel-plugin-styled-components',
+  ],
+}
+```
 
 ### Nested theme properties
 
