@@ -12,6 +12,7 @@ export const theme = {
   colors: {
     black: '#333',
     white: '#FFF',
+    myColor: '#000',
   },
 
   shadows: {
@@ -75,21 +76,13 @@ export const theme = {
   sizes,
 
   boxStyles: {
-    lastNoMargin: {
-      '&:last-child': {
-        marginBottom: 0,
-        marginRight: 0,
-      },
+    primary: {
+      backgroundColor: 'black',
+      color: 'white',
     },
-    firstLastNoMargin: {
-      '&:first-child': {
-        marginTop: 0,
-        marginLeft: 0,
-      },
-      '&:last-child': {
-        marginBottom: 0,
-        marginRight: 0,
-      },
+    secondary: {
+      backgroundColor: 'white',
+      color: 'black',
     },
   },
 

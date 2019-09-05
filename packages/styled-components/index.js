@@ -1,5 +1,8 @@
 import React from 'react'
 
 export const Hello = () => {
-  return <div m={[0, '3rem', '6rem']} />
+  const myColor = 'myColor'
+  const myBackground = () => '#123456'
+
+  return <div color={myColor} bg={myBackground()} lineHeight="copy" />
 }

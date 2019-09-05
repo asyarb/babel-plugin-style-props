@@ -12,6 +12,7 @@ import {
 let themeIdentifier
 let themeIdentifierPath
 let options
+let propsToPass = []
 
 /**
  * Casts a provided value as an array if it is not one.
@@ -140,11 +141,15 @@ const attrToThemeExpression = (
   return themeExpression
 }
 
-const buildCssObjectProperty = (propName, attrValue) =>
-  t.objectProperty(
+const buildCssObjectProperty = (propName, attrValue) => {
+  if (t.isIdentifier(attrValue) || t.isCallExpression(attrValue))
+    propsToPass.push(t.objectProperty(t.identifier(propName), attrValue))
+
+  return t.objectProperty(
     t.identifier(propName),
     attrToThemeExpression(propName, attrValue),
   )
+}
 
 const buildCssSpreadElement = (propName, attrValue) =>
   t.spreadElement(
@@ -308,11 +313,12 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
 }
 
 const jsxOpeningElementVisitor = {
-  JSXOpeningElement(path, state) {
+  JSXOpeningElement(path) {
     const name = path.node.name.name
     if (svgTags.includes(name)) return
 
-    state.props = []
+    // Props to pass to createElement
+    propsToPass = []
 
     const systemProps = onlySystemProps(path.node.attributes)
     const cssObjectProperties = buildCssObjectProperties(
@@ -335,6 +341,14 @@ const jsxOpeningElementVisitor = {
       attr => attr.name.name !== 'css',
     )
     if (newCssAttr) path.node.attributes.push(newCssAttr)
+
+    if (options.stylingLibrary === 'styled-components')
+      path.node.attributes.push(
+        t.jsxAttribute(
+          t.jsxIdentifier('__SUPER_SECRET_INTERNAL_PROPS__'),
+          t.jsxExpressionContainer(t.objectExpression(propsToPass)),
+        ),
+      )
   },
 }
 
@@ -361,8 +375,8 @@ export default (_, opts) => {
   return {
     name: 'styled-system',
     visitor: {
-      Program(path, state) {
-        path.traverse(jsxOpeningElementVisitor, state)
+      Program(path) {
+        path.traverse(jsxOpeningElementVisitor)
       },
     },
   }

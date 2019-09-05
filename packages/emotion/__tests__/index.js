@@ -52,6 +52,38 @@ describe('emotion integration', () => {
     expect(props.style.color).toBe('blue')
   })
 
+  it('handles variants', () => {
+    const tree = customRender(<div boxStyle="primary" />)
+    const json = tree.toJSON()
+
+    expect(json).toHaveStyleRule('background-color', 'black')
+    expect(json).toHaveStyleRule('color', 'white')
+  })
+
+  it('handles variable usage in style props', () => {
+    const myColor = 'myColor'
+    const myBackground = '#123456'
+
+    const tree = customRender(<div color={myColor} bg={myBackground} />)
+    const json = tree.toJSON()
+
+    expect(json).toHaveStyleRule('color', theme.colors.myColor)
+    expect(json).toHaveStyleRule('background-color', myBackground)
+  })
+
+  it('handles function expression usage in style props', () => {
+    const myColorFunction = () => 'myColor'
+    const myBackgroundFunction = () => '#123456'
+
+    const tree = customRender(
+      <div color={myColorFunction()} bg={myBackgroundFunction()} />,
+    )
+    const json = tree.toJSON()
+
+    expect(json).toHaveStyleRule('color', theme.colors.myColor)
+    expect(json).toHaveStyleRule('background-color', '#123456')
+  })
+
   it('merges styles with existing css prop', () => {
     const tree = customRender(
       <div
@@ -137,7 +169,7 @@ describe('emotion integration', () => {
     expect(json).toHaveStyleRule('color', theme.colors.white)
   })
 
-  it('handles property destructuring in css prop arrow functions', () => {
+  it('merges styles while property destructuring in css prop arrow functions', () => {
     const tree = customRender(
       <div
         p={5}
@@ -154,7 +186,7 @@ describe('emotion integration', () => {
     expect(json).toHaveStyleRule('margin', theme.space[4])
   })
 
-  it('handles property destructuring in css prop arrow functions with a return statement', () => {
+  it('merges styles while property destructuring in css prop arrow functions with a return statement', () => {
     const tree = customRender(
       <div
         p={5}
