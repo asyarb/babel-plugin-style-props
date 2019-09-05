@@ -33,6 +33,7 @@ Use Styled System props on any JSX element.
 - Use arrays for responsive styles.
 - Performant. No additional runtime overhead of `styled-system`. Equivalent perf
   to using `styled-components` or `emotion` with the `css` prop directly.
+- Customizable variants.
 - Removes style props from rendered HTML.
 
 ## Getting Started
@@ -259,8 +260,8 @@ const Box = () => {
   return (
     <div
       css={theme => ({
-        color: theme.colors[myColor] === undefined || myColor, // theme.colors.primary
-        backgroundColor: theme.colors[myFunction()] || myFunction(), // theme.colors.muted
+        color: theme.colors[myColor], // theme.colors.primary
+        backgroundColor: theme.colors[myFunction()], // theme.colors.muted
       })}
     />
   )

@@ -12,7 +12,10 @@
     [
       "@styled-system/babel-plugin",
       {
-        "stylingLibrary": "styled-components"
+        "stylingLibrary": "styled-components",
+        "variants": {
+          "boxStyle": "boxStyles"
+        }
       }
     ],
     "babel-plugin-styled-components"

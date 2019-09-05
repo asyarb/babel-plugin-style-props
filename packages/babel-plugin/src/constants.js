@@ -13,6 +13,7 @@ export const STYLED_COMPONENTS_ID = 'p'
 export const DEFAULT_OPTIONS = {
   breakpoints: ['40em', '52em', '64em'],
   stylingLibrary: null,
+  variants: {},
 }
 
 export const SYSTEM_ALIASES = {

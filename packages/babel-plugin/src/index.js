@@ -10,6 +10,8 @@ import {
 } from './constants'
 
 let themeIdentifier
+let themeIdentifierPath
+let options
 
 /**
  * Casts a provided value as an array if it is not one.
@@ -34,7 +36,9 @@ const createMediaQuery = unit => `@media screen and (min-width: ${unit})`
  * @returns The array of system props.
  */
 const onlySystemProps = attrs =>
-  attrs.filter(attr => Boolean(SYSTEM_PROPS[attr.name.name]))
+  attrs.filter(attr =>
+    Boolean(SYSTEM_PROPS[attr.name.name] || options.variants[attr.name.name]),
+  )
 
 /**
  * Given an array of props, returns only non-system props.
@@ -43,7 +47,12 @@ const onlySystemProps = attrs =>
  * @returns The array of non-system props.
  */
 const notSystemProps = attrs =>
-  attrs.filter(attr => !Boolean(SYSTEM_PROPS[attr.name.name]))
+  attrs.filter(
+    attr =>
+      !Boolean(
+        SYSTEM_PROPS[attr.name.name] || options.variants[attr.name.name],
+      ),
+  )
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
@@ -94,31 +103,34 @@ const stripNegativeFromAttrValue = attrValue => {
   return [baseAttrValue, isNegative]
 }
 
-const attrToThemeExpression = (propName, attrValue) => {
-  const scaleName = SCALES_MAP[propName]
-  const isStyledComponents = themeIdentifier === IDENTIFIERS.styledComponents
-  const themeIdentifierPath = isStyledComponents
-    ? themeIdentifier + '.theme'
-    : themeIdentifier
+const attrToThemeExpression = (
+  propName,
+  attrValue,
+  { withUndefinedFallback = true, withNegativeTransform = true } = {},
+) => {
+  const scaleName = SCALES_MAP[propName] || options.variants[propName]
 
   if (!scaleName) return attrValue
 
   const [attrBaseValue, isNegative] = stripNegativeFromAttrValue(attrValue)
 
-  let themeExpression = buildUndefinedConditionalFallback(
+  let themeExpression = t.memberExpression(
     t.memberExpression(
-      t.memberExpression(
-        t.identifier(themeIdentifierPath),
-        t.stringLiteral(scaleName),
-        true,
-      ),
-      attrBaseValue,
+      t.identifier(themeIdentifierPath),
+      t.stringLiteral(scaleName),
       true,
     ),
     attrBaseValue,
+    true,
   )
 
-  if (isNegative)
+  if (withUndefinedFallback)
+    themeExpression = buildUndefinedConditionalFallback(
+      themeExpression,
+      attrBaseValue,
+    )
+
+  if (withNegativeTransform && isNegative)
     themeExpression = t.binaryExpression(
       '+',
       t.stringLiteral('-'),
@@ -132,6 +144,14 @@ const buildCssObjectProperty = (propName, attrValue) =>
   t.objectProperty(
     t.identifier(propName),
     attrToThemeExpression(propName, attrValue),
+  )
+
+const buildCssSpreadElement = (propName, attrValue) =>
+  t.spreadElement(
+    attrToThemeExpression(propName, attrValue, {
+      withUndefinedFallback: false,
+      withNegativeTransform: false,
+    }),
   )
 
 const buildCssObjectProperties = (attrNodes, breakpoints) => {
@@ -166,9 +186,13 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
         })
       }
     } else {
+      const isVariant = Boolean(options.variants[attrNode.name.name])
+
       // e.g. prop="test"
       cssPropertyNames.forEach(cssPropertyName => {
-        baseResult.push(buildCssObjectProperty(cssPropertyName, attrValue))
+        if (isVariant)
+          baseResult.push(buildCssSpreadElement(cssPropertyNames, attrValue))
+        else baseResult.push(buildCssObjectProperty(cssPropertyName, attrValue))
       })
     }
   })
@@ -285,20 +309,6 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
 
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path, state) {
-    const breakpoints = state.opts.breakpoints ?? DEFAULT_OPTIONS.breakpoints
-    const stylingLibrary =
-      state.opts.stylingLibrary ?? DEFAULT_OPTIONS.stylingLibrary
-
-    if (!stylingLibrary)
-      throw new Error(
-        'Please define `stylingLibrary` in your babel plugin options.',
-      )
-
-    themeIdentifier =
-      stylingLibrary === 'emotion'
-        ? IDENTIFIERS.emotion
-        : IDENTIFIERS.styledComponents
-
     const name = path.node.name.name
     if (svgTags.includes(name)) return
 
@@ -307,7 +317,7 @@ const jsxOpeningElementVisitor = {
     const systemProps = onlySystemProps(path.node.attributes)
     const cssObjectProperties = buildCssObjectProperties(
       systemProps,
-      breakpoints,
+      options.breakpoints,
     )
 
     if (!cssObjectProperties.length) return
@@ -328,11 +338,32 @@ const jsxOpeningElementVisitor = {
   },
 }
 
-export default () => ({
-  name: 'styled-system',
-  visitor: {
-    Program(path, state) {
-      path.traverse(jsxOpeningElementVisitor, state)
+export default (_, opts) => {
+  options = { ...DEFAULT_OPTIONS, ...opts }
+
+  switch (options.stylingLibrary) {
+    case 'styled-components':
+      themeIdentifier = IDENTIFIERS.styledComponents
+      themeIdentifierPath = themeIdentifier + '.theme'
+      break
+
+    case 'emotion':
+      themeIdentifier = IDENTIFIERS.emotion
+      themeIdentifierPath = themeIdentifier
+      break
+
+    default:
+      throw new Error(
+        '`stylingLibrary` must be either "emotion" or "styled-components"',
+      )
+  }
+
+  return {
+    name: 'styled-system',
+    visitor: {
+      Program(path, state) {
+        path.traverse(jsxOpeningElementVisitor, state)
+      },
     },
-  },
-})
+  }
+}

@@ -13,7 +13,10 @@
     [
       "@styled-system/babel-plugin",
       {
-        "stylingLibrary": "emotion"
+        "stylingLibrary": "emotion",
+        "variants": {
+          "boxStyle": "boxStyles"
+        }
       }
     ]
   ]

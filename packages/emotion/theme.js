@@ -74,6 +74,25 @@ export const theme = {
   ],
   sizes,
 
+  boxStyles: {
+    lastNoMargin: {
+      '&:last-child': {
+        marginBottom: 0,
+        marginRight: 0,
+      },
+    },
+    firstLastNoMargin: {
+      '&:first-child': {
+        marginTop: 0,
+        marginLeft: 0,
+      },
+      '&:last-child': {
+        marginBottom: 0,
+        marginRight: 0,
+      },
+    },
+  },
+
   textStyles: {
     caps: {
       textTransform: 'uppercase',
