@@ -6,7 +6,7 @@ import {
   SYSTEM_ALIASES,
   DEFAULT_OPTIONS,
   SCALES_MAP,
-  IDENTIFIERS,
+  STYLING_LIBRARIES,
 } from './constants'
 
 let themeIdentifier
@@ -343,13 +343,13 @@ export default (_, opts) => {
 
   switch (options.stylingLibrary) {
     case 'styled-components':
-      themeIdentifier = IDENTIFIERS.styledComponents
-      themeIdentifierPath = themeIdentifier + '.theme'
+      themeIdentifier = STYLING_LIBRARIES.styledComponents.identifier
+      themeIdentifierPath = STYLING_LIBRARIES.styledComponents.identifierPath
       break
 
     case 'emotion':
-      themeIdentifier = IDENTIFIERS.emotion
-      themeIdentifierPath = themeIdentifier
+      themeIdentifier = STYLING_LIBRARIES.emotion.identifier
+      themeIdentifierPath = STYLING_LIBRARIES.emotion.identifierPath
       break
 
     default:
