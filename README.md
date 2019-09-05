@@ -10,6 +10,7 @@ Use Styled System props on any JSX element.
 
 - [Features](#features)
 - [Getting Started](#getting-started)
+  - [Installation](#installation)
   - [Configure Babel](#configure-babel)
     - [Emotion](#emotion)
     - [Styled Components](#styled-components)
@@ -35,6 +36,16 @@ Use Styled System props on any JSX element.
 - Removes style props from rendered HTML.
 
 ## Getting Started
+
+### Installation
+
+```bash
+# yarn
+yarn add -D @styled-system/babel-plugin
+
+# npm
+npm i -D @styled-system/babel-plugin
+```
 
 ### Configure Babel
 
