@@ -268,6 +268,27 @@ describe('styled-components integration', () => {
     const tree = customRender(<div m={[0, '3rem', '6rem']} />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        margin: 0;
+      }
+
+      @media screen and (min-width:40em) {
+        .c0 {
+          margin: 3rem;
+        }
+      }
+
+      @media screen and (min-width:52em) {
+        .c0 {
+          margin: 6rem;
+        }
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('margin', '0')
     expect(json).toHaveStyleRule('margin', '3rem', {
       media: 'screen and (min-width: 40em)',

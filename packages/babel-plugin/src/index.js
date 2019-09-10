@@ -9,6 +9,7 @@ import {
   STYLING_LIBRARIES,
 } from './constants'
 
+// Globals
 let themeIdentifier
 let themeIdentifierPath
 let options
@@ -115,20 +116,32 @@ const attrToThemeExpression = (
 
   const [attrBaseValue, isNegative] = stripNegativeFromAttrValue(attrValue)
 
+  let stylingLibraryAttrValue = attrBaseValue // emotion
+
+  if (
+    options.stylingLibrary === 'styled-components' &&
+    propsToPass.some(prop => prop.key.name === propName) &&
+    !Array.isArray(propName) // exclude variants
+  )
+    stylingLibraryAttrValue = t.memberExpression(
+      t.memberExpression(t.identifier('p'), t.identifier('__styleProps')),
+      t.identifier(propName),
+    )
+
   let themeExpression = t.memberExpression(
     t.memberExpression(
       t.identifier(themeIdentifierPath),
       t.stringLiteral(scaleName),
       true,
     ),
-    attrBaseValue,
+    stylingLibraryAttrValue,
     true,
   )
 
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
       themeExpression,
-      attrBaseValue,
+      stylingLibraryAttrValue,
     )
 
   if (withNegativeTransform && isNegative)
@@ -141,16 +154,6 @@ const attrToThemeExpression = (
   return themeExpression
 }
 
-const buildCssObjectProperty = (propName, attrValue) => {
-  if (t.isIdentifier(attrValue) || t.isCallExpression(attrValue))
-    propsToPass.push(t.objectProperty(t.identifier(propName), attrValue))
-
-  return t.objectProperty(
-    t.identifier(propName),
-    attrToThemeExpression(propName, attrValue),
-  )
-}
-
 const buildCssSpreadElement = (propName, attrValue) =>
   t.spreadElement(
     attrToThemeExpression(propName, attrValue, {
@@ -158,6 +161,16 @@ const buildCssSpreadElement = (propName, attrValue) =>
       withNegativeTransform: false,
     }),
   )
+
+const buildAndConditionallyPassObjectProp = (propName, attrValue) => {
+  if (!t.isLiteral(attrValue) && !t.isUnaryExpression(attrValue))
+    propsToPass.push(t.objectProperty(t.identifier(propName), attrValue))
+
+  return t.objectProperty(
+    t.identifier(propName),
+    attrToThemeExpression(propName, attrValue),
+  )
+}
 
 const buildCssObjectProperties = (attrNodes, breakpoints) => {
   const baseResult = []
@@ -179,7 +192,9 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
           const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
 
           cssPropertyNames.forEach(cssPropertyName =>
-            resultArr.push(buildCssObjectProperty(cssPropertyName, element)),
+            resultArr.push(
+              buildAndConditionallyPassObjectProp(cssPropertyName, element),
+            ),
           )
         })
       } else {
@@ -187,7 +202,9 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
         // e.g. prop={'test'}
         // e.g. prop={test}
         cssPropertyNames.forEach(cssPropertyName =>
-          baseResult.push(buildCssObjectProperty(cssPropertyName, expression)),
+          baseResult.push(
+            buildAndConditionallyPassObjectProp(cssPropertyName, expression),
+          ),
         )
       }
     } else {
@@ -197,7 +214,10 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
       cssPropertyNames.forEach(cssPropertyName => {
         if (isVariant)
           baseResult.push(buildCssSpreadElement(cssPropertyNames, attrValue))
-        else baseResult.push(buildCssObjectProperty(cssPropertyName, attrValue))
+        else
+          baseResult.push(
+            buildAndConditionallyPassObjectProp(cssPropertyName, attrValue),
+          )
       })
     }
   })
@@ -272,7 +292,6 @@ const extractAndCleanFunctionParts = expression => {
     bodyStatements = [...bodyStatements, ...exisitingBodyStatements]
 
     // throw error if returnStatement.argument is not an object.
-
     return [bodyStatements, returnStatement.argument.properties]
   }
 }
@@ -342,10 +361,10 @@ const jsxOpeningElementVisitor = {
     )
     if (newCssAttr) path.node.attributes.push(newCssAttr)
 
-    if (options.stylingLibrary === 'styled-components')
+    if (options.stylingLibrary === 'styled-components' && propsToPass.length)
       path.node.attributes.push(
         t.jsxAttribute(
-          t.jsxIdentifier('__SUPER_SECRET_INTERNAL_PROPS__'),
+          t.jsxIdentifier('__styleProps'),
           t.jsxExpressionContainer(t.objectExpression(propsToPass)),
         ),
       )
