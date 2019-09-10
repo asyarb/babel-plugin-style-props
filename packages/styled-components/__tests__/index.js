@@ -22,6 +22,16 @@ describe('styled-components integration', () => {
     const tree = customRender(<div color="black" bg="white" />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        color: #333;
+        background-color: #FFF;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('color', theme.colors.black)
     expect(json).toHaveStyleRule('background-color', theme.colors.white)
   })
@@ -34,6 +44,25 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 3rem;
+      }
+
+      .c1 {
+        color: #333;
+      }
+
+      <div
+        className="c0"
+      >
+        <h1
+          className="c1"
+        >
+          Hello
+        </h1>
+      </div>
+    `)
     expect(json).toHaveStyleRule('padding', '3rem')
     expect(json.children[0]).toHaveStyleRule('color', theme.colors.black)
   })
@@ -43,6 +72,15 @@ describe('styled-components integration', () => {
     const json = tree.toJSON()
     const props = json.props
 
+    expect(json).toMatchInlineSnapshot(`
+      <div
+        style={
+          Object {
+            "color": "blue",
+          }
+        }
+      />
+    `)
     expect(props.hasOwnProperty('style')).toBe(true)
     expect(props.hasOwnProperty('className')).toBe(false)
     expect(props.style.color).toBe('blue')
@@ -52,6 +90,16 @@ describe('styled-components integration', () => {
     const tree = customRender(<div boxStyle="primary" />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        background-color: black;
+        color: white;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('background-color', 'black')
     expect(json).toHaveStyleRule('color', 'white')
   })
@@ -60,11 +108,32 @@ describe('styled-components integration', () => {
     const myColor = 'myColor'
     const myBackground = '#123456'
 
-    const tree = customRender(<div color={myColor} bg={myBackground} />)
+    const tree = customRender(
+      <div color={myColor} bg={[myBackground, myColor]} />,
+    )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        color: #000;
+        background-color: #123456;
+      }
+
+      @media screen and (min-width:40em) {
+        .c0 {
+          background-color: #000;
+        }
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('color', theme.colors.myColor)
     expect(json).toHaveStyleRule('background-color', myBackground)
+    expect(json).toHaveStyleRule('background-color', theme.colors.myColor, {
+      media: 'screen and (min-width: 40em)',
+    })
   })
 
   it('handles function expression usage in style props', () => {
@@ -72,10 +141,29 @@ describe('styled-components integration', () => {
     const myBackgroundFunction = () => '#123456'
 
     const tree = customRender(
-      <div color={myColorFunction()} bg={myBackgroundFunction()} />,
+      <div
+        color={myColorFunction()}
+        bg={[myBackgroundFunction(), myColorFunction()]}
+      />,
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        color: #000;
+        background-color: #123456;
+      }
+
+      @media screen and (min-width:40em) {
+        .c0 {
+          background-color: #000;
+        }
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('color', theme.colors.myColor)
     expect(json).toHaveStyleRule('background-color', '#123456')
   })
@@ -95,6 +183,28 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        color: #000;
+        padding: .75rem;
+        border: 2px solid;
+        font-family: system-ui;
+      }
+
+      .c1 {
+        color: #FFF;
+      }
+
+      <div
+        className="c0"
+      >
+        <h1
+          className="c1"
+        >
+          Hello
+        </h1>
+      </div>
+    `)
     expect(json).toHaveStyleRule('color', '#000')
     expect(json).toHaveStyleRule('border', '2px solid')
     expect(json).toHaveStyleRule('font-family', 'system-ui')
@@ -112,6 +222,16 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #fff;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', '#fff')
   })
@@ -129,6 +249,16 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #fff;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', '#fff')
   })
@@ -144,6 +274,16 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #FFF;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', theme.colors.white)
   })
@@ -161,6 +301,16 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #FFF;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', theme.colors.white)
   })
@@ -177,6 +327,17 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #FFF;
+        margin: .75rem;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', theme.colors.white)
     expect(json).toHaveStyleRule('margin', theme.space[4])
@@ -196,6 +357,17 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #FFF;
+        margin: .75rem;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', theme.colors.white)
     expect(json).toHaveStyleRule('margin', theme.space[4])
@@ -241,6 +413,16 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #FFF;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', theme.colors.white)
   })
@@ -259,6 +441,17 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding: 1rem;
+        color: #FFF;
+        margin: .75rem;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding', theme.space[5])
     expect(json).toHaveStyleRule('color', theme.colors.white)
     expect(json).toHaveStyleRule('margin', theme.space[4])
@@ -299,6 +492,23 @@ describe('styled-components integration', () => {
     const tree = customRender(<div px={['1rem', '2rem']} />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      @media screen and (min-width:40em) {
+        .c0 {
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('padding-left', '1rem')
     expect(json).toHaveStyleRule('padding-right', '1rem')
 
@@ -330,6 +540,16 @@ describe('styled-components integration', () => {
     const tree = customRender(<div mr="-large" ml={-4} />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        margin-right: -2rem;
+        margin-left: -.75rem;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('margin-right', '-2rem')
     expect(json).toHaveStyleRule('margin-left', '-.75rem')
   })
@@ -338,6 +558,33 @@ describe('styled-components integration', () => {
     const tree = customRender(<div m={['-large', 'large', 4, -4]} />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        margin: -2rem;
+      }
+
+      @media screen and (min-width:40em) {
+        .c0 {
+          margin: 2rem;
+        }
+      }
+
+      @media screen and (min-width:52em) {
+        .c0 {
+          margin: .75rem;
+        }
+      }
+
+      @media screen and (min-width:64em) {
+        .c0 {
+          margin: -.75rem;
+        }
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('margin', '-2rem')
     expect(json).toHaveStyleRule('margin', '2rem', {
       media: 'screen and (min-width: 40em)',
@@ -399,6 +646,23 @@ describe('styled-components integration', () => {
     )
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        color: #FFF;
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 1rem;
+        box-shadow: rgba(0,0,0,0.15) 0px 20px 40px;
+        line-height: 1.5;
+        display: grid;
+        background-color: #FFF;
+        row-gap: 1rem;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('color', theme.colors.white)
     expect(json).toHaveStyleRule('font-size', theme.fontSizes[2])
     expect(json).toHaveStyleRule(
@@ -421,6 +685,16 @@ describe('styled-components integration', () => {
     const tree = customRender(<div boxStyle="primary" />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        background-color: black;
+        color: white;
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).toHaveStyleRule('background-color', 'black')
     expect(json).toHaveStyleRule('color', 'white')
   })

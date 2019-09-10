@@ -13,7 +13,7 @@ import {
 let themeIdentifier
 let themeIdentifierPath
 let options
-let propsToPass = []
+let propsToPass = {}
 
 /**
  * Casts a provided value as an array if it is not one.
@@ -108,7 +108,11 @@ const stripNegativeFromAttrValue = attrValue => {
 const attrToThemeExpression = (
   propName,
   attrValue,
-  { withUndefinedFallback = true, withNegativeTransform = true } = {},
+  {
+    withUndefinedFallback = true,
+    withNegativeTransform = true,
+    mediaIndex = 0,
+  } = {},
 ) => {
   const scaleName = SCALES_MAP[propName] || options.variants[propName]
 
@@ -120,12 +124,16 @@ const attrToThemeExpression = (
 
   if (
     options.stylingLibrary === 'styled-components' &&
-    propsToPass.some(prop => prop.key.name === propName) &&
+    propsToPass[propName] &&
     !Array.isArray(propName) // exclude variants
   )
     stylingLibraryAttrValue = t.memberExpression(
-      t.memberExpression(t.identifier('p'), t.identifier('__styleProps')),
-      t.identifier(propName),
+      t.memberExpression(
+        t.memberExpression(t.identifier('p'), t.identifier('__styleProps')),
+        t.identifier(propName),
+      ),
+      t.numericLiteral(mediaIndex),
+      true,
     )
 
   let themeExpression = t.memberExpression(
@@ -162,13 +170,23 @@ const buildCssSpreadElement = (propName, attrValue) =>
     }),
   )
 
-const buildAndConditionallyPassObjectProp = (propName, attrValue) => {
-  if (!t.isLiteral(attrValue) && !t.isUnaryExpression(attrValue))
-    propsToPass.push(t.objectProperty(t.identifier(propName), attrValue))
+const buildAndConditionallyPassObjectProp = (
+  propName,
+  attrValue,
+  { mediaIndex = 0 } = {},
+) => {
+  if (
+    !t.isNumericLiteral(attrValue) &&
+    !t.isStringLiteral(attrValue) &&
+    !t.isUnaryExpression(attrValue)
+  ) {
+    propsToPass[propName] = propsToPass[propName] || []
+    propsToPass[propName].push(attrValue)
+  }
 
   return t.objectProperty(
     t.identifier(propName),
-    attrToThemeExpression(propName, attrValue),
+    attrToThemeExpression(propName, attrValue, { mediaIndex }),
   )
 }
 
@@ -193,7 +211,9 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
 
           cssPropertyNames.forEach(cssPropertyName =>
             resultArr.push(
-              buildAndConditionallyPassObjectProp(cssPropertyName, element),
+              buildAndConditionallyPassObjectProp(cssPropertyName, element, {
+                mediaIndex: i,
+              }),
             ),
           )
         })
@@ -361,11 +381,15 @@ const jsxOpeningElementVisitor = {
     )
     if (newCssAttr) path.node.attributes.push(newCssAttr)
 
-    if (options.stylingLibrary === 'styled-components' && propsToPass.length)
+    const internalProps = Object.entries(propsToPass).map(([propName, attrs]) =>
+      t.objectProperty(t.identifier(propName), t.arrayExpression(attrs)),
+    )
+
+    if (options.stylingLibrary === 'styled-components' && internalProps.length)
       path.node.attributes.push(
         t.jsxAttribute(
           t.jsxIdentifier('__styleProps'),
-          t.jsxExpressionContainer(t.objectExpression(propsToPass)),
+          t.jsxExpressionContainer(t.objectExpression(internalProps)),
         ),
       )
   },

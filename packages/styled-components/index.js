@@ -1,9 +1,5 @@
 import React from 'react'
 
 export const Hello = () => {
-  const myColor = 'myColor'
-  const myBackground = () => '#123456'
-  const size = 'large'
-
-  return <div m={`${size}`} />
+  return <div m={[null, '2rem', null, '4rem']} />
 }
