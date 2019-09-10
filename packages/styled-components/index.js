@@ -1,5 +1,8 @@
 import React from 'react'
 
 export const Hello = () => {
-  return <div m={[null, '2rem', null, '4rem']} />
+  const mySpace = '2rem'
+  const myFunc = () => '4rem'
+
+  return <div m={[mySpace, null, '-large', myFunc()]} px="small" />
 }

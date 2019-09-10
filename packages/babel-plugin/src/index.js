@@ -9,6 +9,12 @@ import {
   STYLING_LIBRARIES,
 } from './constants'
 
+import {
+  buildUndefinedConditionalFallback,
+  buildVariableDeclaration,
+  buildSpreadElement,
+} from './builders'
+
 // Globals
 let themeIdentifier
 let themeIdentifierPath
@@ -57,33 +63,6 @@ const notSystemProps = attrs =>
   )
 
 /**
- * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
- *
- * @param {Object} value - babel AST to truthily use.
- * @param {Object} fallbackValue - babel AST to falsily use.
- * @returns The conditional fallback babel AST.
- */
-const buildUndefinedConditionalFallback = (value, fallbackValue) =>
-  t.conditionalExpression(
-    t.binaryExpression('!==', value, t.identifier('undefined')),
-    value,
-    fallbackValue,
-  )
-
-/**
- * Builds a babel AST for a variable declaration e.g. `const var = true`.
- *
- * @param {Object} type - enum of `const`, `let,` or `var`.
- * @param {Object} left - babel AST for the left hand side of the declaration.
- * @param {Object} right - babel AST for the right hand side of the declaration.
- * @returns The variable declaration AST.
- */
-const buildVariableDeclaration = (type, left, right) =>
-  t.variableDeclaration(type, [
-    t.variableDeclarator(t.assignmentPattern(left, right)),
-  ])
-
-/**
  * Strips and returns the base value of a negative babel AST.
  *
  * @param {Object} attrValue - babel ast node to strip.
@@ -115,18 +94,12 @@ const attrToThemeExpression = (
   } = {},
 ) => {
   const scaleName = SCALES_MAP[propName] || options.variants[propName]
-
   if (!scaleName) return attrValue
 
   const [attrBaseValue, isNegative] = stripNegativeFromAttrValue(attrValue)
-
   let stylingLibraryAttrValue = attrBaseValue // emotion
 
-  if (
-    options.stylingLibrary === 'styled-components' &&
-    propsToPass[propName] &&
-    !Array.isArray(propName) // exclude variants
-  )
+  if (options.stylingLibrary === 'styled-components' && propsToPass[propName])
     stylingLibraryAttrValue = t.memberExpression(
       t.memberExpression(
         t.memberExpression(t.identifier('p'), t.identifier('__styleProps')),
@@ -162,28 +135,16 @@ const attrToThemeExpression = (
   return themeExpression
 }
 
-const buildCssSpreadElement = (propName, attrValue) =>
-  t.spreadElement(
-    attrToThemeExpression(propName, attrValue, {
-      withUndefinedFallback: false,
-      withNegativeTransform: false,
-    }),
-  )
+const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
 
-const buildAndConditionallyPassObjectProp = (
-  propName,
-  attrValue,
-  { mediaIndex = 0 } = {},
-) => {
-  if (
-    !t.isNumericLiteral(attrValue) &&
-    !t.isStringLiteral(attrValue) &&
-    !t.isUnaryExpression(attrValue)
-  ) {
-    propsToPass[propName] = propsToPass[propName] || []
-    propsToPass[propName].push(attrValue)
-  }
+const preprocessProp = (propName, attrValue) => {
+  // Process negative values
 
+  propsToPass[propName] = propsToPass[propName] || []
+  propsToPass[propName].push(attrValue)
+}
+
+const buildCssObjectProp = (propName, attrValue, { mediaIndex = 0 } = {}) => {
   return t.objectProperty(
     t.identifier(propName),
     attrToThemeExpression(propName, attrValue, { mediaIndex }),
@@ -209,35 +170,47 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
 
           const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
 
-          cssPropertyNames.forEach(cssPropertyName =>
+          cssPropertyNames.forEach(cssPropertyName => {
+            preprocessProp(cssPropertyName, element)
+
+            if (shouldSkipProp(element)) return
+
             resultArr.push(
-              buildAndConditionallyPassObjectProp(cssPropertyName, element, {
-                mediaIndex: i,
-              }),
-            ),
-          )
+              buildCssObjectProp(cssPropertyName, element, { mediaIndex: i }),
+            )
+          })
         })
       } else {
         // e.g. prop={bool ? 'foo' : "test"}
         // e.g. prop={'test'}
         // e.g. prop={test}
-        cssPropertyNames.forEach(cssPropertyName =>
-          baseResult.push(
-            buildAndConditionallyPassObjectProp(cssPropertyName, expression),
-          ),
-        )
+        cssPropertyNames.forEach(cssPropertyName => {
+          preprocessProp(cssPropertyName, expression)
+
+          if (shouldSkipProp(expression)) return
+
+          baseResult.push(buildCssObjectProp(cssPropertyName, expression))
+        })
       }
     } else {
       const isVariant = Boolean(options.variants[attrNode.name.name])
 
       // e.g. prop="test"
       cssPropertyNames.forEach(cssPropertyName => {
+        preprocessProp(cssPropertyName, attrValue)
+
+        if (shouldSkipProp(attrValue)) return
+
         if (isVariant)
-          baseResult.push(buildCssSpreadElement(cssPropertyNames, attrValue))
-        else
           baseResult.push(
-            buildAndConditionallyPassObjectProp(cssPropertyName, attrValue),
+            buildSpreadElement(
+              attrToThemeExpression(cssPropertyName, attrValue, {
+                withUndefinedFallback: false,
+                withNegativeTransform: false,
+              }),
+            ),
           )
+        else baseResult.push(buildCssObjectProp(cssPropertyName, attrValue))
       })
     }
   })
