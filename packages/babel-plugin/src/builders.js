@@ -27,4 +27,10 @@ export const buildVariableDeclaration = (type, left, right) =>
     t.variableDeclarator(t.assignmentPattern(left, right)),
   ])
 
+/**
+ * Builds a babel AST for a spread operator. e.g. `...arr`.
+ *
+ * @param {Object} expression - Babel expression to spread.
+ * @returns The spread operator AST.
+ */
 export const buildSpreadElement = expression => t.spreadElement(expression)

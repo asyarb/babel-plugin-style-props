@@ -8,7 +8,7 @@ import {
   SCALES_MAP,
   STYLING_LIBRARIES,
 } from './constants'
-
+import { castArray, createMediaQuery } from './utils'
 import {
   buildUndefinedConditionalFallback,
   buildVariableDeclaration,
@@ -20,22 +20,6 @@ let themeIdentifier
 let themeIdentifierPath
 let options
 let propsToPass = {}
-
-/**
- * Casts a provided value as an array if it is not one.
- *
- * @param {*} x - The value to cast to an array.
- * @returns The casted array.
- */
-const castArray = x => (Array.isArray(x) ? x : [x])
-
-/**
- * Returns a valid media query given a CSS unit.
- *
- * @param {*} n - The CSS unit to generate a media query from.
- * @returns The media query string.
- */
-const createMediaQuery = unit => `@media screen and (min-width: ${unit})`
 
 /**
  * Given an array of props, returns only the known system props.
@@ -63,6 +47,17 @@ const notSystemProps = attrs =>
   )
 
 /**
+ * Checks if the provided Babel node is a negative system
+ * prop.
+ *
+ * @param {Object} attrValue - Babel AST node to check.
+ * @returns `true` if negative, `false` otherwise.
+ */
+const isNegativeSystemAttr = attrValue =>
+  (t.isUnaryExpression(attrValue) && attrValue.operator === '-') ||
+  (t.isStringLiteral(attrValue) && attrValue.value[0] === '-')
+
+/**
  * Strips and returns the base value of a negative babel AST.
  *
  * @param {Object} attrValue - babel ast node to strip.
@@ -70,9 +65,7 @@ const notSystemProps = attrs =>
  * indicating if the value was negative.
  */
 const stripNegativeFromAttrValue = attrValue => {
-  const isNegative =
-    (t.isUnaryExpression(attrValue) && attrValue.operator === '-') ||
-    (t.isStringLiteral(attrValue) && attrValue.value[0] === '-')
+  const isNegative = isNegativeSystemAttr(attrValue)
 
   let baseAttrValue = attrValue
 
@@ -84,6 +77,15 @@ const stripNegativeFromAttrValue = attrValue => {
   return [baseAttrValue, isNegative]
 }
 
+/**
+ * Given a css prop name and node, returns the equivalent theme aware
+ * accessor expression.
+ *
+ * @param {string} propName - Name of the prop being converted.
+ * @param {Object} attrValue - Babel AST to convert.
+ * @param {Object} options - Optional options for this utility.
+ * @returns The equivalent theme appropriate AST.
+ */
 const attrToThemeExpression = (
   propName,
   attrValue,
@@ -135,22 +137,52 @@ const attrToThemeExpression = (
   return themeExpression
 }
 
+/**
+ * Checks if the provided Babel node is skippable by checking
+ * if it is `null`.
+ *
+ * @param {Object} attrValue - Babel node to check.
+ * @returns `true` if it is skippable, `false` otherwise.
+ */
 const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
 
+/**
+ * Function to perform any related side-effects for a system prop,
+ * e.g. adding it to our private-prop accumulator for `styled-components`.
+ *
+ * @param {string} propName - The name of the system prop to process.
+ * @param {Object} attrValue - The Babel node to process.
+ */
 const preprocessProp = (propName, attrValue) => {
   // Process negative values
-
   propsToPass[propName] = propsToPass[propName] || []
   propsToPass[propName].push(attrValue)
 }
 
-const buildCssObjectProp = (propName, attrValue, { mediaIndex = 0 } = {}) => {
-  return t.objectProperty(
+/**
+ * Given a prop name and babel node, returns an object property containing
+ * the prop name as the key and the appropriate theme-aware accessor as it's
+ * value.
+ *
+ * @param {string} propName - Prop name to build
+ * @param {Object} attrValue - Babel node to build into theme-aware accessor.
+ * @param {Object} param2 - Optional options. Used for specifying the current media
+ * breakpoint.
+ */
+const buildCssObjectProp = (propName, attrValue, { mediaIndex = 0 } = {}) =>
+  t.objectProperty(
     t.identifier(propName),
     attrToThemeExpression(propName, attrValue, { mediaIndex }),
   )
-}
 
+/**
+ * Builds an array of theme-aware babel Object Properties for the `css`
+ * prop from a list of system-prop-JSX attribute nodes.
+ *
+ * @param {Array} attrNodes - Array of JSX attributes.
+ * @param {Array} breakpoints - Media query breakpoints.
+ * @returns An array with the theme aware object properties.
+ */
 const buildCssObjectProperties = (attrNodes, breakpoints) => {
   const baseResult = []
   const responsiveResults = []
@@ -161,6 +193,7 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
     const cssPropertyNames = castArray(SYSTEM_ALIASES[attrName] || attrName)
 
     if (t.isJSXExpressionContainer(attrValue)) {
+      // e.g prop={}
       const expression = attrValue.expression
 
       if (t.isArrayExpression(expression)) {
@@ -172,7 +205,6 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
 
           cssPropertyNames.forEach(cssPropertyName => {
             preprocessProp(cssPropertyName, element)
-
             if (shouldSkipProp(element)) return
 
             resultArr.push(
@@ -181,24 +213,20 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
           })
         })
       } else {
-        // e.g. prop={bool ? 'foo' : "test"}
-        // e.g. prop={'test'}
-        // e.g. prop={test}
+        // e.g. prop={bool ? 'foo' : "test"}, prop={'test'}, prop={text}
         cssPropertyNames.forEach(cssPropertyName => {
           preprocessProp(cssPropertyName, expression)
-
           if (shouldSkipProp(expression)) return
 
           baseResult.push(buildCssObjectProp(cssPropertyName, expression))
         })
       }
     } else {
+      // e.g. prop="test"
       const isVariant = Boolean(options.variants[attrNode.name.name])
 
-      // e.g. prop="test"
       cssPropertyNames.forEach(cssPropertyName => {
         preprocessProp(cssPropertyName, attrValue)
-
         if (shouldSkipProp(attrValue)) return
 
         if (isVariant)
@@ -229,6 +257,13 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
   return [...baseResult, ...keyedResponsiveResults]
 }
 
+/**
+ * Builds the JSX AST for the `css` prop given a list of
+ * object property ASTs.
+ *
+ * @param {Array} objectProperties - List of object properties.
+ * @returns A JSX attribute AST for the `css` prop.
+ */
 const buildCssAttr = objectProperties =>
   t.jsxAttribute(
     t.jSXIdentifier('css'),
@@ -240,6 +275,18 @@ const buildCssAttr = objectProperties =>
     ),
   )
 
+/**
+ * Given a function expression from a `css` prop, returns a tuple
+ * containining an array of the body statements from the expression,
+ * and the return statement of the expression.
+ *
+ * Also handles renaming any existing identifiers from the
+ * function expression's parameters or destructured parameters that are used
+ * in the function expression body or return statement.
+ *
+ * @param {Object} expression - Babel function/arrow function expression node.
+ * @returns The tuple of body statements and return statement.
+ */
 const extractAndCleanFunctionParts = expression => {
   const functionBody = expression.body
   const functionParam = expression.params[0]
@@ -284,11 +331,19 @@ const extractAndCleanFunctionParts = expression => {
 
     bodyStatements = [...bodyStatements, ...exisitingBodyStatements]
 
-    // throw error if returnStatement.argument is not an object.
+    // TODO: throw error if returnStatement.argument is not an object.
     return [bodyStatements, returnStatement.argument.properties]
   }
 }
 
+/**
+ * Builds a merged `css` prop given a list of theme aware object properties and
+ * the existing CSS prop Babel node.
+ *
+ * @param {Array} objectProperties - Theme aware object properties.
+ * @param {Object} existingCssAttr - The Babel node of an existing `css` prop.
+ * @returns The merged `css` prop node.
+ */
 const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
   const existingExpression = existingCssAttr.value.expression
   let mergedProperties = []
