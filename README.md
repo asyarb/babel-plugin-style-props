@@ -33,8 +33,9 @@ Use Styled System props on any JSX element.
 ## Features
 
 - Support for **all** CSS properties.
-- Reads values from your `<ThemeProvider>` and `theme`.
-- Utilize arrays for responsive styles.
+- Use values from your `<ThemeProvider>` and `theme`, or just use raw CSS units
+  and properties.
+- Use arrays for responsive styles.
 - Performant. Equivalent to using `styled-components` or `emotion` directly.
 - Customizable variants.
 - Removes style props from rendered HTML.
