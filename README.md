@@ -18,8 +18,9 @@ Use Styled System props on any JSX element.
 - [What this plugin does](#what-this-plugin-does)
 - [Use values from your theme](#use-values-from-your-theme)
 - [Use arrays for responsive styles](#use-arrays-for-responsive-styles)
-- [Function calls and variables in style props](#function-calls-and-variables-in-style-props)
-- [Custom variants](#custom-variants)
+- [Use negative values](#use-negative-values)
+- [Use function calls and variables in style props](#use-function-calls-and-variables-in-style-props)
+- [Use custom variants](#use-custom-variants)
 - [Opinionated gotchas](#opinionated-gotchas)
   - [Breakpoints](#breakpoints)
   - [Nested theme properties](#nested-theme-properties)
@@ -32,8 +33,7 @@ Use Styled System props on any JSX element.
 - Support for **all** CSS properties.
 - Reads values from your `<ThemeProvider>` and `theme`.
 - Utilize arrays for responsive styles.
-- Eliminates additional runtime overhead of `styled-system`. Equivalent perf to
-  using `styled-components` or `emotion` with the `css` prop directly.
+- Performant. Equivalent to using `styled-components` or `emotion` directly.
 - Customizable variants.
 - Removes style props from rendered HTML.
 
@@ -131,10 +131,10 @@ detailed [here](https://styled-system.com/theme-specification).
 the styles into CSS.
 
 ```jsx
-// in
+// Your JSX
 <div color='red' px={5} />
 
-// out (styled-components, before babel plugin)
+// Output JSX (simplified): `styled-components`
 <div
   css={theme => ({
     color: p.theme.colors.red,
@@ -143,7 +143,7 @@ the styles into CSS.
   })}
 />
 
-// out (emotion, before babel plugin)
+// Output JSX (simplified): `emotion`
 <div
   css={theme => ({
     color: theme.colors.red,
@@ -156,31 +156,63 @@ the styles into CSS.
 ## Use values from your theme
 
 When colors, fonts, font sizes, a spacing scale, or other values are definied in
-a `<ThemeProvider>` context, the values can be referenced by key in the props.
+a `<ThemeProvider>`, the values can be referenced by key in the props.
 
-```js
+```jsx
 // example theme
-export default {
+const theme = {
+  // ...
   colors: {
     primary: '#07c',
     muted: '#f6f6f9',
   },
 }
-```
 
-```jsx
 <div color="primary" bg="muted" />
 ```
 
 ## Use arrays for responsive styles
 
-Just like with `styled-system`, you can use arrays to specify responsive styles.
+You can use arrays to specify responsive styles.
 
 ```jsx
 <div width={['100%', '50%', '25%']} />
 ```
 
-## Function calls and variables in style props
+Responsive arrays will generate styles according to the breakpoints defined in
+your babel config. See [breakpoints](#breakpoints) for more info.
+
+## Use negative values
+
+When a style prop has keys that are defined in a `<ThemeProvider>`, you can
+negate them by prefixed them with a '-' (hyphen).
+
+```jsx
+const theme = {
+  // ...
+  space: [
+    0,
+    '5rem'
+  ]
+}
+// theme alias
+theme.space.large = theme.space[1]
+
+<div mt="-large" mr={-1} />
+
+// transpiles to:
+<div
+  css={theme => ({
+    marginTop: '-' + theme.space.large,
+    marginRight: '-' + theme.space[1]
+  })}
+/>
+
+// resulting in:
+<div css={theme => ({ marginTop: '-5rem', marginRight: '-5rem' })} />
+```
+
+## Use function calls and variables in style props
 
 Function calls and variables are dropped into the `css` prop as computed
 properties. Consider the following example:
@@ -209,11 +241,11 @@ const Box = () => {
 }
 ```
 
-> If you are using `styled-components`, this plugin will automatically handle
-> passing any runtime functions and variables as `props` for the `styled.div`
-> that is created by `babel-plugin-styled-components`.
+If you are using `styled-components`, this plugin will automatically handle
+passing your functions and variables as props to the `styled.div` that is
+created by `babel-plugin-styled-components`.
 
-## Custom variants
+## Use custom variants
 
 Custom variants and style props can be defined in the babel plugin options under
 `variants`. See below for an example config:
@@ -266,8 +298,9 @@ future, they will be able to support `theme` values.
 
 ## Opinionated gotchas
 
-To eliminate the `styled-system`/`theme-ui` runtime performance cost, this
-plugin makes some opinionated decisions as to how you can structure your theme.
+To achieve a similar API to `styled-system`/`theme-ui` without the performance
+cost, this plugin makes some opinionated decisions as to how you can structure
+your theme.
 
 ### Breakpoints
 
@@ -316,10 +349,11 @@ const Box = () => <div color="red.light" bg="primary" />
 
 The above example will not work because we are accessing a third level of
 nesting for our `color` style prop. This is an intentional limitation for
-performance, and is how this plugin eliminates the `styled-system` runtime.
+performance, and is largely how this plugin eliminates the `styled-system`
+runtime cost.
 
-If you want to have name-spaced key-like behavior, consider flatly namespacing
-as a workaround.
+If you want to have namespaced-like behavior, consider flatly namespacing your
+keys as a workaround.
 
 ```js
 const theme = {
@@ -338,8 +372,8 @@ const theme = {
 ### Incompatible with components built with `styled-system`
 
 Due to this plugin transpiling away style props, this plugin is incompatibile
-with any component that is built with `styled-system` **or** any component in
-general that uses a expected style prop names.
+with any component that is built with `styled-system` **or** any component that
+uses any of the expected style prop names.
 
 > In general, a style prop is the `camelCase` equivalent of any CSS property
 > name.
