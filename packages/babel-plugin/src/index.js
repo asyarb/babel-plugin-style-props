@@ -373,6 +373,15 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
   )
 }
 
+/**
+ * Primary visitor. Visits all JSX components transpiles any system
+ * props to a theme aware `css` prop. If an `css` prop already exists,
+ * merges the result.
+ *
+ * If `stylingLibrary` was set to `styled-components`, also passes the list
+ * of runtime identifiers and expressions needed to appropriately scope them
+ * to the generated `styled.div`, etc.
+ */
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path) {
     const name = path.node.name.name
