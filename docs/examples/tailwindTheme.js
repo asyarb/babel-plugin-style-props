@@ -213,3 +213,5 @@ export default {
     auto: 'auto',
   },
 }
+
+// Setup any aliases below:
