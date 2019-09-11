@@ -5,6 +5,7 @@
     "packages/*"
   ],
   "scripts": {
+    "build": "cd packages/babel-plugin && yarn build",
     "test": "cd packages/styled-components && yarn test && cd ../emotion && yarn test"
   },
   "devDependencies": {
