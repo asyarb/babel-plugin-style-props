@@ -47,17 +47,6 @@ const notSystemProps = attrs =>
   )
 
 /**
- * Checks if the provided Babel node is a negative system
- * prop.
- *
- * @param {Object} attrValue - Babel AST node to check.
- * @returns `true` if negative, `false` otherwise.
- */
-const isNegativeSystemAttr = attrValue =>
-  (t.isUnaryExpression(attrValue) && attrValue.operator === '-') ||
-  (t.isStringLiteral(attrValue) && attrValue.value[0] === '-')
-
-/**
  * Strips and returns the base value of a negative babel AST.
  *
  * @param {Object} attrValue - babel ast node to strip.
@@ -65,7 +54,9 @@ const isNegativeSystemAttr = attrValue =>
  * indicating if the value was negative.
  */
 const stripNegativeFromAttrValue = attrValue => {
-  const isNegative = isNegativeSystemAttr(attrValue)
+  const isNegative =
+    (t.isUnaryExpression(attrValue) && attrValue.operator === '-') ||
+    (t.isStringLiteral(attrValue) && attrValue.value[0] === '-')
 
   let baseAttrValue = attrValue
 
@@ -154,9 +145,12 @@ const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
  * @param {Object} attrValue - The Babel node to process.
  */
 const preprocessProp = (propName, attrValue) => {
-  // Process negative values
+  const [attrBaseValue, isNegative] = stripNegativeFromAttrValue(attrValue)
+
   propsToPass[propName] = propsToPass[propName] || []
-  propsToPass[propName].push(attrValue)
+
+  if (isNegative) propsToPass[propName].push(attrBaseValue)
+  else propsToPass[propName].push(attrValue)
 }
 
 /**
@@ -244,7 +238,6 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
   })
 
   const keyedResponsiveResults = responsiveResults
-    .filter(x => x.length)
     .map((objectPropertiesForBreakpoint, i) => {
       const mediaQuery = createMediaQuery(breakpoints[i])
 
@@ -253,6 +246,7 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
         t.objectExpression(objectPropertiesForBreakpoint),
       )
     })
+    .filter(results => results.value.properties.length)
 
   return [...baseResult, ...keyedResponsiveResults]
 }

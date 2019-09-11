@@ -315,7 +315,7 @@ describe('styled-components integration', () => {
     expect(json).toHaveStyleRule('color', theme.colors.white)
   })
 
-  it('handles property destructuring in css prop arrow functions', () => {
+  it('merges styles while property destructuring in css prop arrow functions', () => {
     const tree = customRender(
       <div
         p={5}
@@ -343,7 +343,7 @@ describe('styled-components integration', () => {
     expect(json).toHaveStyleRule('margin', theme.space[4])
   })
 
-  it('handles property destructuring in css prop arrow functions with a return statement', () => {
+  it('merges styles while property destructuring in css prop arrow functions with a return statement', () => {
     const tree = customRender(
       <div
         p={5}
@@ -524,6 +524,23 @@ describe('styled-components integration', () => {
     const tree = customRender(<div m={[null, '2rem', null, '4rem']} />)
     const json = tree.toJSON()
 
+    expect(json).toMatchInlineSnapshot(`
+      @media screen and (min-width:40em) {
+        .c0 {
+          margin: 2rem;
+        }
+      }
+
+      @media screen and (min-width:64em) {
+        .c0 {
+          margin: 4rem;
+        }
+      }
+
+      <div
+        className="c0"
+      />
+    `)
     expect(json).not.toHaveStyleRule('margin', '0')
     expect(json).toHaveStyleRule('margin', '2rem', {
       media: 'screen and (min-width: 40em)',

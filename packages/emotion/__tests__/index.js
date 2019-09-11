@@ -64,11 +64,16 @@ describe('emotion integration', () => {
     const myColor = 'myColor'
     const myBackground = '#123456'
 
-    const tree = customRender(<div color={myColor} bg={myBackground} />)
+    const tree = customRender(
+      <div color={myColor} bg={[myBackground, myColor]} />,
+    )
     const json = tree.toJSON()
 
     expect(json).toHaveStyleRule('color', theme.colors.myColor)
     expect(json).toHaveStyleRule('background-color', myBackground)
+    expect(json).toHaveStyleRule('background-color', theme.colors.myColor, {
+      media: 'screen and (min-width: 40em)',
+    })
   })
 
   it('handles function expression usage in style props', () => {
@@ -76,12 +81,18 @@ describe('emotion integration', () => {
     const myBackgroundFunction = () => '#123456'
 
     const tree = customRender(
-      <div color={myColorFunction()} bg={myBackgroundFunction()} />,
+      <div
+        color={myColorFunction()}
+        bg={[myBackgroundFunction(), myColorFunction()]}
+      />,
     )
     const json = tree.toJSON()
 
     expect(json).toHaveStyleRule('color', theme.colors.myColor)
     expect(json).toHaveStyleRule('background-color', '#123456')
+    expect(json).toHaveStyleRule('background-color', theme.colors.myColor, {
+      media: 'screen and (min-width: 40em)',
+    })
   })
 
   it('merges styles with existing css prop', () => {
@@ -398,5 +409,13 @@ describe('emotion integration', () => {
     expect(json).toHaveStyleRule('display', 'grid')
     expect(json).toHaveStyleRule('background-color', theme.colors.white)
     expect(json).toHaveStyleRule('row-gap', theme.space[5])
+  })
+
+  it('supports variants', () => {
+    const tree = customRender(<div boxStyle="primary" />)
+    const json = tree.toJSON()
+
+    expect(json).toHaveStyleRule('background-color', 'black')
+    expect(json).toHaveStyleRule('color', 'white')
   })
 })
