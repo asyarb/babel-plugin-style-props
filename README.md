@@ -221,8 +221,8 @@ theme.space.large = theme.space[1]
 
 ## Use function calls, variables, and expressions in style props
 
-Function calls and variables are dropped into the `css` prop as computed
-properties. Consider the following example:
+Function calls, expressions, and variables are dropped into the `css` prop as
+computed properties. Consider the following example:
 
 ```jsx
 const Box = () => {
