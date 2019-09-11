@@ -19,6 +19,7 @@ Use Styled System props on any JSX element.
 - [Use values from your theme](#use-values-from-your-theme)
 - [Use arrays for responsive styles](#use-arrays-for-responsive-styles)
 - [Function calls and variables in style props](#function-calls-and-variables-in-style-props)
+- [Custom variants](#custom-variants)
 - [Gotchas](#gotchas)
   - [Breakpoints](#breakpoints)
   - [Nested theme properties](#nested-theme-properties)
@@ -64,7 +65,7 @@ module.exports = {
   presets: ['@babel/preset-env', '@babel/preset-react'],
   plugins: [
     [
-      '@styled-system/babel-plugin',
+      'babel-plugin-style-props',
       {
         stylingLibrary: 'styled-components',
       },
@@ -86,7 +87,7 @@ module.exports = {
   ],
   plugins: [
     [
-      '@styled-system/babel-plugin',
+      'babel-plugin-style-props',
       {
         stylingLibrary: 'emotion',
       },
@@ -115,9 +116,9 @@ const YourApp = () => (
 In order for this plugin to work, you **must** specify a `theme` and
 `<ThemeProvider>`.
 
-- For a barebones theme to get started with, see this
+- For a barebones theme to start working with, see this
   [example](docs/examples/minimalTheme.js).
-- For a TailwindCSS copycat theme, see this
+- For a TailwindCSS copycat theme get started with, see this
   [example](docs/examples/tailwindTheme.js).
 
 Your `theme` should follow the `styled-system` specification that you can find
@@ -212,6 +213,57 @@ const Box = () => {
 > passing any runtime functions and variables as `props` for the `styled.div`
 > that is created by `babel-plugin-styled-components`.
 
+## Custom variants
+
+Custom variants and style props can be defined in the babel plugin options under
+`variants`. See below for an example config:
+
+```js
+// babel.config.js
+module.exports = {
+  presets: ['@babel/preset-env', '@babel/preset-react'],
+  plugins: [
+    [
+      'babel-plugin-style-props',
+      {
+        stylingLibrary: 'styled-components',
+        variants: {
+          boxStyle: 'boxStyles',
+        },
+      },
+    ],
+    'babel-plugin-styled-components',
+  ],
+}
+```
+
+The above config will tell `babel-plugin-style-props` to transpile the
+`boxStyle` prop on any JSX element to properties in the `css` prop.
+
+```jsx
+const theme = {
+  // ...
+  boxStyles: {
+    primary: {
+      color: 'white',
+      backgroundColor: '#f0f'
+    }
+  }
+}
+
+// `boxStyle` on an element:
+<div boxStyle="primary" />
+
+// will transpile to:
+<div css={theme => ({ ...theme.boxStyles.primary })} />
+
+// which results in:
+<div css={theme => ({ color: 'white', backgroundColor: '#f0f' })} />
+```
+
+Currently, variants can only specify raw CSS rules (no theme values). In the
+future, they will be able to support `theme` values.
+
 ## Gotchas
 
 To eliminate the `styled-system`/`theme-ui` runtime performance cost, this
@@ -228,7 +280,7 @@ module.exports = {
   presets: ['@babel/preset-env', '@babel/preset-react'],
   plugins: [
     [
-      '@styled-system/babel-plugin',
+      'babel-plugin-style-props',
       {
         stylingLibrary: 'styled-components',
         breakpoints: ['32rem', '60rem', '100rem'],

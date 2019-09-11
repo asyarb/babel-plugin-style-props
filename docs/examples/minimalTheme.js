@@ -1,7 +1,7 @@
 export default {
   borders: {},
   borderStyles: {},
-  borderWidths: {},
+  borderWidths: [],
   colors: {},
   fonts: {},
   fontSizes: [],
