@@ -12,8 +12,8 @@ Use Styled System props on any JSX element.
 - [Getting Started](#getting-started)
   - [Installation](#installation)
   - [Configure Babel](#configure-babel)
-    - [Emotion](#emotion)
     - [Styled Components](#styled-components)
+    - [Emotion](#emotion)
   - [Setup your `<ThemeProvider>`](#setup-your-themeprovider)
 - [What this plugin does](#what-this-plugin-does)
 - [Use values from your theme](#use-values-from-your-theme)
@@ -56,6 +56,24 @@ option. Be sure that the appropriate `css` prop babel plugin is included
 
 See below for examples with popular CSS-in-JS libraries.
 
+#### Styled Components
+
+```js
+// babel.config.js
+module.exports = {
+  presets: ['@babel/preset-env', '@babel/preset-react'],
+  plugins: [
+    [
+      '@styled-system/babel-plugin',
+      {
+        stylingLibrary: 'styled-components',
+      },
+    ],
+    'babel-plugin-styled-components',
+  ],
+}
+```
+
 #### Emotion
 
 ```js
@@ -78,24 +96,6 @@ module.exports = {
 }
 ```
 
-#### Styled Components
-
-```js
-// babel.config.js
-module.exports = {
-  presets: ['@babel/preset-env', '@babel/preset-react'],
-  plugins: [
-    [
-      '@styled-system/babel-plugin',
-      {
-        stylingLibrary: 'styled-components',
-      },
-    ],
-    'babel-plugin-styled-components',
-  ],
-}
-```
-
 ### Setup your `<ThemeProvider>`
 
 Place your `<ThemeProvider>` component around your React app as you normally
@@ -111,6 +111,14 @@ const YourApp = () => (
   </ThemeProvider>
 )
 ```
+
+In order for this plugin to work, you **must** specify a `theme` and
+`<ThemeProvider>`.
+
+- For a barebones theme to get started with, see this
+  [example](docs/examples/minimalTheme.js).
+- For a TailwindCSS copycat theme, see this
+  [example](docs/examples/tailwindTheme.js).
 
 Your `theme` should follow the `styled-system` specification that you can find
 detailed [here](https://styled-system.com/theme-specification).
