@@ -20,7 +20,7 @@ Use Styled System props on any JSX element.
 - [Use arrays for responsive styles](#use-arrays-for-responsive-styles)
 - [Function calls and variables in style props](#function-calls-and-variables-in-style-props)
 - [Custom variants](#custom-variants)
-- [Gotchas](#gotchas)
+- [Opinionated gotchas](#opinionated-gotchas)
   - [Breakpoints](#breakpoints)
   - [Nested theme properties](#nested-theme-properties)
   - [Incompatible with components built with `styled-system`](#incompatible-with-components-built-with-styled-system)
@@ -264,7 +264,7 @@ const theme = {
 Currently, variants can only specify raw CSS rules (no theme values). In the
 future, they will be able to support `theme` values.
 
-## Gotchas
+## Opinionated gotchas
 
 To eliminate the `styled-system`/`theme-ui` runtime performance cost, this
 plugin makes some opinionated decisions as to how you can structure your theme.
