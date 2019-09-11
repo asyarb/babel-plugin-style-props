@@ -4,7 +4,9 @@
   "workspaces": [
     "packages/*"
   ],
-  "scripts": {},
+  "scripts": {
+    "test": "cd packages/styled-components && yarn test && cd ../emotion && yarn test"
+  },
   "devDependencies": {
     "lerna": "^3.16.4",
     "@commitlint/cli": "^8.1.0",
