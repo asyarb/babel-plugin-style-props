@@ -11,7 +11,7 @@
   ],
   "plugins": [
     [
-      "@styled-system/babel-plugin",
+      "babel-plugin-style-props",
       {
         "stylingLibrary": "emotion",
         "variants": {
