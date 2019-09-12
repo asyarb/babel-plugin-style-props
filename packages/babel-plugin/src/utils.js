@@ -1,3 +1,7 @@
+import { types as t } from '@babel/core'
+
+import { SYSTEM_PROPS } from './constants'
+
 /**
  * Casts a provided value as an array if it is not one.
  *
@@ -13,3 +17,39 @@ export const castArray = x => (Array.isArray(x) ? x : [x])
  * @returns The media query string.
  */
 export const createMediaQuery = unit => `@media screen and (min-width: ${unit})`
+
+/**
+ * Given an array of props, returns only the known system props.
+ *
+ * @param {Array} attrs - Props to filter.
+ * @returns The array of system props.
+ */
+export const onlySystemProps = (context, attrs) => {
+  const { variants } = context
+
+  return attrs.filter(attr =>
+    Boolean(SYSTEM_PROPS[attr.name.name] || variants[attr.name.name]),
+  )
+}
+/**
+ * Given an array of props, returns only non-system props.
+ *
+ * @param {Array} attrs - Props to filter.
+ * @returns The array of non-system props.
+ */
+export const notSystemProps = (context, attrs) => {
+  const { variants } = context
+
+  return attrs.filter(
+    attr => !Boolean(SYSTEM_PROPS[attr.name.name] || variants[attr.name.name]),
+  )
+}
+
+/**
+ * Checks if the provided Babel node is skippable by checking
+ * if it is `null`.
+ *
+ * @param {Object} attrValue - Babel node to check.
+ * @returns `true` if it is skippable, `false` otherwise.
+ */
+export const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
