@@ -2,6 +2,8 @@ import camelCase from 'lodash.camelcase'
 import cssProps from 'known-css-properties'
 import isPropValid from '@emotion/is-prop-valid'
 
+export const INTERNAL_PROP_ID = '__styleProps__'
+
 export const STYLING_LIBRARIES = {
   styledComponents: {
     identifier: 'p',

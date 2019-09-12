@@ -1,3 +1,5 @@
+import { types as t } from '@babel/core'
+
 import { SYSTEM_PROPS } from './constants'
 
 /**
@@ -42,3 +44,12 @@ export const notSystemProps = (context, attrs) => {
     attr => !Boolean(SYSTEM_PROPS[attr.name.name] || variants[attr.name.name]),
   )
 }
+
+/**
+ * Checks if the provided Babel node is skippable by checking
+ * if it is `null`.
+ *
+ * @param {Object} attrValue - Babel node to check.
+ * @returns `true` if it is skippable, `false` otherwise.
+ */
+export const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
