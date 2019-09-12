@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "Use theme-aware style props on any JSX element.",
   "main": "index.js",
-  "types": "index.d.ts",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "babel src -d dist",
