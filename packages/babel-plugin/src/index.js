@@ -2,49 +2,22 @@ import svgTags from 'svg-tags'
 import { types as t, traverse } from '@babel/core'
 
 import {
-  SYSTEM_PROPS,
   SYSTEM_ALIASES,
   DEFAULT_OPTIONS,
   SCALES_MAP,
   STYLING_LIBRARIES,
 } from './constants'
-import { castArray, createMediaQuery } from './utils'
+import {
+  castArray,
+  createMediaQuery,
+  onlySystemProps,
+  notSystemProps,
+} from './utils'
 import {
   buildUndefinedConditionalFallback,
   buildVariableDeclaration,
   buildSpreadElement,
 } from './builders'
-
-// Globals
-let themeIdentifier
-let themeIdentifierPath
-let options
-let propsToPass = {}
-
-/**
- * Given an array of props, returns only the known system props.
- *
- * @param {Array} attrs - Props to filter.
- * @returns The array of system props.
- */
-const onlySystemProps = attrs =>
-  attrs.filter(attr =>
-    Boolean(SYSTEM_PROPS[attr.name.name] || options.variants[attr.name.name]),
-  )
-
-/**
- * Given an array of props, returns only non-system props.
- *
- * @param {Array} attrs - Props to filter.
- * @returns The array of non-system props.
- */
-const notSystemProps = attrs =>
-  attrs.filter(
-    attr =>
-      !Boolean(
-        SYSTEM_PROPS[attr.name.name] || options.variants[attr.name.name],
-      ),
-  )
 
 /**
  * Strips and returns the base value of a negative babel AST.
@@ -78,6 +51,7 @@ const stripNegativeFromAttrValue = attrValue => {
  * @returns The equivalent theme appropriate AST.
  */
 const attrToThemeExpression = (
+  context,
   propName,
   attrValue,
   {
@@ -86,13 +60,15 @@ const attrToThemeExpression = (
     mediaIndex = 0,
   } = {},
 ) => {
-  const scaleName = SCALES_MAP[propName] || options.variants[propName]
+  const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
+
+  const scaleName = SCALES_MAP[propName] || variants[propName]
   if (!scaleName) return attrValue
 
   const [attrBaseValue, isNegative] = stripNegativeFromAttrValue(attrValue)
   let stylingLibraryAttrValue = attrBaseValue // emotion
 
-  if (options.stylingLibrary === 'styled-components' && propsToPass[propName])
+  if (stylingLibrary === 'styled-components' && propsToPass[propName])
     stylingLibraryAttrValue = t.memberExpression(
       t.memberExpression(
         t.memberExpression(t.identifier('p'), t.identifier('__styleProps')),
@@ -144,7 +120,9 @@ const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
  * @param {string} propName - The name of the system prop to process.
  * @param {Object} attrValue - The Babel node to process.
  */
-const preprocessProp = (propName, attrValue) => {
+const preprocessProp = (context, propName, attrValue) => {
+  const { propsToPass } = context
+
   const [attrBaseValue, isNegative] = stripNegativeFromAttrValue(attrValue)
 
   propsToPass[propName] = propsToPass[propName] || []
@@ -163,10 +141,15 @@ const preprocessProp = (propName, attrValue) => {
  * @param {Object} param2 - Optional options. Used for specifying the current media
  * breakpoint.
  */
-const buildCssObjectProp = (propName, attrValue, { mediaIndex = 0 } = {}) =>
+const buildCssObjectProp = (
+  context,
+  propName,
+  attrValue,
+  { mediaIndex = 0 } = {},
+) =>
   t.objectProperty(
     t.identifier(propName),
-    attrToThemeExpression(propName, attrValue, { mediaIndex }),
+    attrToThemeExpression(context, propName, attrValue, { mediaIndex }),
   )
 
 /**
@@ -177,7 +160,8 @@ const buildCssObjectProp = (propName, attrValue, { mediaIndex = 0 } = {}) =>
  * @param {Array} breakpoints - Media query breakpoints.
  * @returns An array with the theme aware object properties.
  */
-const buildCssObjectProperties = (attrNodes, breakpoints) => {
+const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
+  const { variants } = context
   const baseResult = []
   const responsiveResults = []
 
@@ -198,41 +182,48 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
           const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
 
           cssPropertyNames.forEach(cssPropertyName => {
-            preprocessProp(cssPropertyName, element)
+            preprocessProp(context, cssPropertyName, element)
             if (shouldSkipProp(element)) return
 
             resultArr.push(
-              buildCssObjectProp(cssPropertyName, element, { mediaIndex: i }),
+              buildCssObjectProp(context, cssPropertyName, element, {
+                mediaIndex: i,
+              }),
             )
           })
         })
       } else {
         // e.g. prop={bool ? 'foo' : "test"}, prop={'test'}, prop={text}
         cssPropertyNames.forEach(cssPropertyName => {
-          preprocessProp(cssPropertyName, expression)
+          preprocessProp(context, cssPropertyName, expression)
           if (shouldSkipProp(expression)) return
 
-          baseResult.push(buildCssObjectProp(cssPropertyName, expression))
+          baseResult.push(
+            buildCssObjectProp(context, cssPropertyName, expression),
+          )
         })
       }
     } else {
       // e.g. prop="test"
-      const isVariant = Boolean(options.variants[attrNode.name.name])
+      const isVariant = Boolean(variants[attrNode.name.name])
 
       cssPropertyNames.forEach(cssPropertyName => {
-        preprocessProp(cssPropertyName, attrValue)
+        preprocessProp(context, cssPropertyName, attrValue)
         if (shouldSkipProp(attrValue)) return
 
         if (isVariant)
           baseResult.push(
             buildSpreadElement(
-              attrToThemeExpression(cssPropertyName, attrValue, {
+              attrToThemeExpression(context, cssPropertyName, attrValue, {
                 withUndefinedFallback: false,
                 withNegativeTransform: false,
               }),
             ),
           )
-        else baseResult.push(buildCssObjectProp(cssPropertyName, attrValue))
+        else
+          baseResult.push(
+            buildCssObjectProp(context, cssPropertyName, attrValue),
+          )
       })
     }
   })
@@ -258,8 +249,10 @@ const buildCssObjectProperties = (attrNodes, breakpoints) => {
  * @param {Array} objectProperties - List of object properties.
  * @returns A JSX attribute AST for the `css` prop.
  */
-const buildCssAttr = objectProperties =>
-  t.jsxAttribute(
+const buildCssAttr = (context, objectProperties) => {
+  const { themeIdentifier } = context
+
+  return t.jsxAttribute(
     t.jSXIdentifier('css'),
     t.jSXExpressionContainer(
       t.arrowFunctionExpression(
@@ -268,6 +261,7 @@ const buildCssAttr = objectProperties =>
       ),
     ),
   )
+}
 
 /**
  * Given a function expression from a `css` prop, returns a tuple
@@ -281,7 +275,9 @@ const buildCssAttr = objectProperties =>
  * @param {Object} expression - Babel function/arrow function expression node.
  * @returns The tuple of body statements and return statement.
  */
-const extractAndCleanFunctionParts = expression => {
+const extractAndCleanFunctionParts = (context, expression) => {
+  const { themeIdentifier } = context
+
   const functionBody = expression.body
   const functionParam = expression.params[0]
   let bodyStatements = []
@@ -338,7 +334,9 @@ const extractAndCleanFunctionParts = expression => {
  * @param {Object} existingCssAttr - The Babel node of an existing `css` prop.
  * @returns The merged `css` prop node.
  */
-const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
+const buildMergedCssAttr = (context, objectProperties, existingCssAttr) => {
+  const { themeIdentifier } = context
+
   const existingExpression = existingCssAttr.value.expression
   let mergedProperties = []
   let bodyStatements = []
@@ -349,7 +347,7 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
     const [
       extractedBodyStatements,
       returnObjectProperties,
-    ] = extractAndCleanFunctionParts(existingExpression)
+    ] = extractAndCleanFunctionParts(context, existingExpression)
 
     bodyStatements = extractedBodyStatements
     mergedProperties = [...objectProperties, ...returnObjectProperties]
@@ -383,17 +381,20 @@ const buildMergedCssAttr = (objectProperties, existingCssAttr) => {
  * to the generated `styled.div`, etc.
  */
 const jsxOpeningElementVisitor = {
-  JSXOpeningElement(path) {
-    const name = path.node.name.name
-    if (svgTags.includes(name)) return
+  JSXOpeningElement(path, { optionsContext }) {
+    if (svgTags.includes(path.node.name.name)) return
 
-    // Props to pass to createElement
-    propsToPass = []
+    const context = {
+      propsToPass: [],
+      ...optionsContext,
+    }
+    const { breakpoints, propsToPass, stylingLibrary } = context
 
-    const systemProps = onlySystemProps(path.node.attributes)
+    const systemProps = onlySystemProps(context, path.node.attributes)
     const cssObjectProperties = buildCssObjectProperties(
+      context,
       systemProps,
-      options.breakpoints,
+      breakpoints,
     )
 
     if (!cssObjectProperties.length) return
@@ -402,12 +403,11 @@ const jsxOpeningElementVisitor = {
       attr => attr.name.name === 'css',
     )
 
-    let newCssAttr
-    if (existingCssAttr)
-      newCssAttr = buildMergedCssAttr(cssObjectProperties, existingCssAttr)
-    else newCssAttr = buildCssAttr(cssObjectProperties)
+    const newCssAttr = existingCssAttr
+      ? buildMergedCssAttr(context, cssObjectProperties, existingCssAttr)
+      : buildCssAttr(context, cssObjectProperties)
 
-    path.node.attributes = notSystemProps(path.node.attributes).filter(
+    path.node.attributes = notSystemProps(context, path.node.attributes).filter(
       attr => attr.name.name !== 'css',
     )
     if (newCssAttr) path.node.attributes.push(newCssAttr)
@@ -416,7 +416,7 @@ const jsxOpeningElementVisitor = {
       t.objectProperty(t.identifier(propName), t.arrayExpression(attrs)),
     )
 
-    if (options.stylingLibrary === 'styled-components' && internalProps.length)
+    if (stylingLibrary === 'styled-components' && internalProps.length)
       path.node.attributes.push(
         t.jsxAttribute(
           t.jsxIdentifier('__styleProps'),
@@ -427,7 +427,9 @@ const jsxOpeningElementVisitor = {
 }
 
 export default (_, opts) => {
-  options = { ...DEFAULT_OPTIONS, ...opts }
+  const options = { ...DEFAULT_OPTIONS, ...opts }
+  let themeIdentifier
+  let themeIdentifierPath
 
   switch (options.stylingLibrary) {
     case 'styled-components':
@@ -446,11 +448,17 @@ export default (_, opts) => {
       )
   }
 
+  const optionsContext = {
+    themeIdentifier,
+    themeIdentifierPath,
+    ...options,
+  }
+
   return {
     name: 'styled-system',
     visitor: {
       Program(path) {
-        path.traverse(jsxOpeningElementVisitor)
+        path.traverse(jsxOpeningElementVisitor, { optionsContext })
       },
     },
   }
