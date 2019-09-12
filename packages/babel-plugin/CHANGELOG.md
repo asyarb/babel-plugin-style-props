@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/asyarb/ss-babel-plugin/compare/v0.1.1...v0.1.2) (2019-09-12)
+
+
+### Bug Fixes
+
+* linked dep versions ([e5baf65](https://github.com/asyarb/ss-babel-plugin/commit/e5baf65))
+* update git repo ([cb3f4ca](https://github.com/asyarb/ss-babel-plugin/commit/cb3f4ca))
+
+
+### Features
+
+* update CI for pushes ([75e7e8d](https://github.com/asyarb/ss-babel-plugin/commit/75e7e8d))
+* update npm ignores ([2675937](https://github.com/asyarb/ss-babel-plugin/commit/2675937))
+
 ### 0.1.1 (2019-09-12)
 
 
