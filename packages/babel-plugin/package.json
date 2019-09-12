@@ -10,10 +10,10 @@
     "prerelease": "yarn build",
     "release": "standard-version"
   },
-  "homepage": "https://github.com/asyarb/use-resize-observer",
+  "homepage": "https://github.com/asyarb/ss-babel-plugin",
   "repository": {
     "type": "git",
-    "url": "https://github.com/asyarb/use-resize-observer.git"
+    "url": "https://github.com/asyarb/ss-babel-plugin.git"
   },
   "keywords": [
     "style",
