@@ -1,6 +1,6 @@
-# Babel plugin for Styled-System <!-- omit in toc -->
+# Babel Plugin Style Props <!-- omit in toc -->
 
-Use Styled System props on any JSX element.
+Use theme aware style props on any JSX element.
 
 ```jsx
 <h1 mt={0} mb={4} color="primary" textDecoration="underline">
@@ -126,7 +126,7 @@ For a barebones theme to start working with, see this
 
 #### Tailwind
 
-For a TailwindCSS copycat theme get started with, see this
+For a TailwindCSS copycat theme to get started with, see this
 [example](docs/examples/tailwindTheme.js).
 
 Your `theme` should follow the `styled-system` specification that you can find
