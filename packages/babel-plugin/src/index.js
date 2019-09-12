@@ -24,7 +24,7 @@ import {
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path, { optionsContext }) {
     const context = {
-      propsToPass: [],
+      propsToPass: {},
       ...optionsContext,
     }
     const { breakpoints, propsToPass, stylingLibrary } = context
