@@ -10,6 +10,8 @@
   "author": "Anthony Yarbrough <asyarb@hawaii.edu>",
   "license": "MIT",
   "dependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
     "@emotion/core": "^10.0.17",
     "emotion-theming": "^10.0.18",
     "react": "^16.9.0",
