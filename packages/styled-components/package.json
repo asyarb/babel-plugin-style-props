@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@babel/preset-react": "^7.0.0",
-    "babel-plugin-style-props": "0.1.0",
+    "babel-plugin-style-props": "^0.1.1",
     "babel-plugin-styled-components": "^1.10.6",
     "jest-styled-components": "^7.0.0-beta.1",
     "react-test-renderer": "^16.9.0"
