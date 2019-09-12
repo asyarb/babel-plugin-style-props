@@ -1,15 +1,31 @@
 {
-  "name": "@styled-system/babel-plugin",
-  "version": "0.0.20",
-  "description": "Use styled-system props on any JSX element.",
+  "name": "babel-plugin-style-props",
+  "version": "0.1.0",
+  "description": "Use theme-aware style props on any JSX element.",
   "main": "index.js",
   "types": "index.d.ts",
+  "homepage": "https://github.com/asyarb/ss-babel-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/asyarb/ss-babel-plugin.git"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "babel src -d dist",
-    "test": "jest"
+    "test": "jest",
+    "release": "standard-version"
   },
-  "keywords": [],
+  "keywords": [
+    "style",
+    "props",
+    "react",
+    "styled",
+    "system",
+    "theme",
+    "performance",
+    "emotion",
+    "styled-components"
+  ],
   "author": "Anthony Yarbrough <asyarb@hawaii.edu>",
   "license": "MIT",
   "devDependencies": {
@@ -20,8 +36,6 @@
   "dependencies": {
     "@emotion/is-prop-valid": "^0.8.2",
     "known-css-properties": "^0.16.0",
-    "lodash.camelcase": "^4.3.0",
-    "lodash.isfunction": "^3.0.9",
-    "svg-tags": "^1.0.0"
+    "lodash.camelcase": "^4.3.0"
   }
 }
