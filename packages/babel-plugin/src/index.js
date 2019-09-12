@@ -99,7 +99,7 @@ export default (_, opts) => {
   }
 
   return {
-    name: 'styled-system',
+    name: 'styled-props',
     visitor: {
       Program(path) {
         path.traverse(jsxOpeningElementVisitor, { optionsContext })
