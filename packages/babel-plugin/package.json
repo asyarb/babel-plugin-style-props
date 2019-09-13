@@ -10,10 +10,10 @@
     "prerelease": "yarn build",
     "release": "standard-version"
   },
-  "homepage": "https://github.com/asyarb/ss-babel-plugin",
+  "homepage": "https://github.com/asyarb/babel-plugin-style-props",
   "repository": {
     "type": "git",
-    "url": "https://github.com/asyarb/ss-babel-plugin.git"
+    "url": "https://github.com/asyarb/babel-plugin-style-props.git"
   },
   "keywords": [
     "style",
