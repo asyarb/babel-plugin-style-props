@@ -424,9 +424,9 @@ This plugin does not support specifying React's `defaultProps` for style props.
 `defaultProps` get injected into components at run-time, and therefore cannot be
 transpiled by our babel plugin.
 
-If you are composing re-usable components with defaults using this plugin,
-consider it's recommended to just set your defaults directly in conjunction with
-prop spreading.
+If you are composing re-usable components with defaults using this plugin, it's
+recommended to just set your defaults directly in conjunction with prop
+spreading.
 
 ```jsx
 // Grid.js
