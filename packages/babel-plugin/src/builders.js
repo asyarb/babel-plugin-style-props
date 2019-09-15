@@ -326,18 +326,43 @@ export const buildCssObjectProperties = (
     }
   })
 
-  const keyedResponsiveResults = responsiveResults
-    .map((objectPropertiesForBreakpoint, i) => {
-      const mediaQuery = createMediaQuery(breakpoints[i])
+  return [...baseResult, ...responsiveResults]
+}
 
-      return t.objectProperty(
-        t.stringLiteral(mediaQuery),
-        t.objectExpression(objectPropertiesForBreakpoint)
+export const buildKeyedCssObjectProperties = (context, properties) => {
+  const { breakpoints } = context
+  const responsiveCssObjectProperties = [[], ...breakpoints.map(() => [])]
+  const result = []
+
+  let mediaIndex = 0
+
+  properties.forEach(property => {
+    if (t.isObjectProperty(property))
+      responsiveCssObjectProperties[0].push(property)
+    else {
+      mediaIndex++
+      property.forEach(responsiveProperty =>
+        responsiveCssObjectProperties[mediaIndex].push(responsiveProperty)
       )
-    })
-    .filter(results => results.value.properties.length)
+      if (mediaIndex % breakpoints.length === 0) mediaIndex = 0
+    }
+  })
 
-  return [...baseResult, ...keyedResponsiveResults]
+  responsiveCssObjectProperties.forEach((objectPropertiesForBreakpoint, i) => {
+    if (i === 0) result.push(...objectPropertiesForBreakpoint)
+    else {
+      const mediaQuery = createMediaQuery(breakpoints[i - 1])
+
+      result.push(
+        t.objectProperty(
+          t.stringLiteral(mediaQuery),
+          t.objectExpression(objectPropertiesForBreakpoint)
+        )
+      )
+    }
+  })
+
+  return result
 }
 
 /**

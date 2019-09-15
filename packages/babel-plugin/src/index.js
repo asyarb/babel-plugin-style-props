@@ -7,6 +7,7 @@ import {
 } from './constants'
 import { onlyStyleProps, onlyScaleProps, notStyleProps } from './utils'
 import {
+  buildKeyedCssObjectProperties,
   buildCssObjectProperties,
   buildCssAttr,
   buildMergedCssAttr
@@ -36,38 +37,39 @@ const jsxOpeningElementVisitor = {
     const spreadAttrs = allAttrs.filter(attr => t.isJSXSpreadAttribute(attr)) // e.g. {...props}
 
     const scaleAttrs = onlyScaleProps(explicitAttrs) // e.g. mxScale={}
-    const styleAttrs = onlyStyleProps(context, explicitAttrs)
+    const styleAttrs = onlyStyleProps(context, explicitAttrs) // e.g. mx={}
 
     if (!styleAttrs.length && !scaleAttrs.length) return
 
+    // Get our lists of props.
     const scaledCssObjectProperties = buildCssObjectProperties(
       context,
       scaleAttrs,
       { withScales: true }
     )
-    const cssObjectProperties = buildCssObjectProperties(context, styleAttrs)
+    const styleCssObjectProperties = buildCssObjectProperties(
+      context,
+      styleAttrs
+    )
 
-    // Cant just naively spread here, we need to merge our media queries
-    // fuck my life
-    const allCssObjectProperties = [
+    const keyedCssObjectProperties = buildKeyedCssObjectProperties(context, [
       ...scaledCssObjectProperties,
-      ...cssObjectProperties
-    ]
+      ...styleCssObjectProperties
+    ])
 
+    // Build our new `css` prop.
     const existingCssAttr = explicitAttrs.find(attr => attr.name.name === 'css')
     const newCssAttr = existingCssAttr
-      ? buildMergedCssAttr(context, allCssObjectProperties, existingCssAttr)
-      : buildCssAttr(context, allCssObjectProperties)
+      ? buildMergedCssAttr(context, keyedCssObjectProperties, existingCssAttr)
+      : buildCssAttr(context, keyedCssObjectProperties)
 
     // Remove the existing `css` prop, if there is one.
     path.node.attributes = notStyleProps(context, explicitAttrs).filter(
       attr => attr.name.name !== 'css'
     )
 
-    // Add our new `css` prop.
+    // Add our new `css` prop and add back our spread props.
     if (newCssAttr) path.node.attributes.push(newCssAttr)
-
-    // Add back our spread attributes.
     spreadAttrs.forEach(attr => path.node.attributes.push(attr))
 
     // For styled-components, we need to pass any runtime identifiers as props to

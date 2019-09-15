@@ -1,7 +1,10 @@
 import React from 'react'
 
 export const Hello = ({ ...props }) => {
+  const hello = true ? 'm' : 'l'
+  const myFunc = () => 'm'
+
   return (
-    <div myScale={['l', null, true ? 'm' : 'l']} p={[0, null, 3]} {...props} />
+    <div myScale={[myFunc(), null, hello]} p={[0, null, null, 4]} {...props} />
   )
 }
