@@ -12,10 +12,6 @@ import {
   buildMergedCssAttr,
 } from './builders'
 
-const processScaleProps = path => {
-  const scaleAttrs = onlyScaleProps(path.node.attributes)
-}
-
 /**
  * Primary visitor. Visits all JSX components transpiles any system
  * props to a theme aware `css` prop. If an `css` prop already exists,
@@ -34,26 +30,35 @@ const jsxOpeningElementVisitor = {
       propsToPass: {},
       ...optionsContext,
     }
-    const { breakpoints, propsToPass, stylingLibrary } = context
+    const { propsToPass, stylingLibrary } = context
 
-    processScaleProps(path)
-
-    const spreadAttrs = allAttrs.filter(attr => t.isJSXSpreadAttribute(attr)) // e.g. {...props}
     const explicitAttrs = allAttrs.filter(attr => !t.isJSXSpreadAttribute(attr)) // e.g. prop={value}
+    const spreadAttrs = allAttrs.filter(attr => t.isJSXSpreadAttribute(attr)) // e.g. {...props}
 
-    const styleProps = onlyStyleProps(context, explicitAttrs)
-    if (!styleProps.length) return
+    const scaleAttrs = onlyScaleProps(explicitAttrs) // e.g. mxScale={}
+    const styleAttrs = onlyStyleProps(context, explicitAttrs)
 
-    const cssObjectProperties = buildCssObjectProperties(
+    if (!styleAttrs.length && !scaleAttrs.length) return
+
+    const scaledCssObjectProperties = buildCssObjectProperties(
       context,
-      styleProps,
-      breakpoints,
+      scaleAttrs,
+      { withScales: true },
     )
+
+    const cssObjectProperties = buildCssObjectProperties(context, styleAttrs)
+
+    // Cant just naively spread here, we need to merge our media queries
+    // fuck my life
+    const allCssObjectProperties = [
+      ...scaledCssObjectProperties,
+      ...cssObjectProperties,
+    ]
 
     const existingCssAttr = explicitAttrs.find(attr => attr.name.name === 'css')
     const newCssAttr = existingCssAttr
-      ? buildMergedCssAttr(context, cssObjectProperties, existingCssAttr)
-      : buildCssAttr(context, cssObjectProperties)
+      ? buildMergedCssAttr(context, allCssObjectProperties, existingCssAttr)
+      : buildCssAttr(context, allCssObjectProperties)
 
     // Remove the existing `css` prop, if there is one.
     path.node.attributes = notStyleProps(context, explicitAttrs).filter(

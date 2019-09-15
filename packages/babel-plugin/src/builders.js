@@ -1,6 +1,12 @@
 import { types as t, traverse } from '@babel/core'
 
-import { THEME_MAP, SYSTEM_ALIASES, INTERNAL_PROP_ID } from './constants'
+import {
+  THEME_MAP,
+  SCALE_THEME_MAP,
+  STYLE_ALIASES,
+  SCALE_ALIASES,
+  INTERNAL_PROP_ID,
+} from './constants'
 import { createMediaQuery, castArray, shouldSkipProp } from './utils'
 
 /**
@@ -72,12 +78,16 @@ export const buildThemeAwareExpression = (
   {
     withUndefinedFallback = true,
     withNegativeTransform = true,
+    withScales = false,
     mediaIndex = 0,
   } = {},
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
+  let themeKey
 
-  const themeKey = THEME_MAP[propName] || variants[propName]
+  if (withScales) themeKey = SCALE_THEME_MAP[propName]
+  else themeKey = THEME_MAP[propName] || variants[propName]
+
   if (!themeKey) return attrValue
 
   const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
@@ -102,6 +112,14 @@ export const buildThemeAwareExpression = (
     stylingLibraryAttrValue,
     true,
   )
+
+  if (withScales) {
+    return t.memberExpression(
+      themeExpression,
+      t.numericLiteral(mediaIndex),
+      true,
+    )
+  }
 
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
@@ -134,11 +152,14 @@ export const buildCssObjectProp = (
   context,
   propName,
   attrValue,
-  { mediaIndex = 0 } = {},
+  { mediaIndex = 0, withScales = false } = {},
 ) => {
   return t.objectProperty(
     t.identifier(propName),
-    buildThemeAwareExpression(context, propName, attrValue, { mediaIndex }),
+    buildThemeAwareExpression(context, propName, attrValue, {
+      mediaIndex,
+      withScales,
+    }),
   )
 }
 
@@ -162,24 +183,45 @@ const _preprocessProp = (context, propName, attrValue) => {
   else propsToPass[propName].push(attrValue)
 }
 
+// ['l', null, null, null, 'm']
+const scaleElements = elements => {
+  const unNulledElements = elements.map((element, i) => {
+    if (t.isNullLiteral(element)) {
+      elements[i] = elements[i - 1] || t.nullLiteral()
+      return elements[i - 1] || t.nullLiteral()
+    }
+
+    return element
+  })
+
+  return unNulledElements
+}
+
 /**
  * Builds an array of theme-aware babel Object Properties for the `css`
  * prop from a list of system-prop-JSX attribute nodes.
  *
  * @param {Object} context
  * @param {Array} attrNodes - Array of JSX attributes.
- * @param {Array} breakpoints - Media query breakpoints.
+ * @param {Object} options
  * @returns An array with the theme aware object properties.
  */
-export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
-  const { variants } = context
+export const buildCssObjectProperties = (
+  context,
+  attrNodes,
+  { withScales = false } = {},
+) => {
+  const { variants, breakpoints } = context
   const baseResult = []
-  const responsiveResults = []
+  const responsiveResults = breakpoints.map(() => [])
 
   attrNodes.forEach(attrNode => {
     const attrName = attrNode.name.name
     const attrValue = attrNode.value
-    const cssPropertyNames = castArray(SYSTEM_ALIASES[attrName] || attrName)
+
+    const cssPropertyNames = withScales
+      ? castArray(SCALE_ALIASES[attrName])
+      : castArray(STYLE_ALIASES[attrName] || attrName)
 
     if (t.isJSXExpressionContainer(attrValue)) {
       // e.g prop={}
@@ -187,8 +229,12 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
 
       if (t.isArrayExpression(expression)) {
         // e.g. prop={['test', null, 'test2']}
-        expression.elements.forEach((element, i) => {
-          responsiveResults[i] = responsiveResults[i] || []
+        const elements = withScales
+          ? scaleElements(expression.elements)
+          : expression.elements
+
+        elements.forEach((element, i) => {
+          if (i > breakpoints.length) return
 
           const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
 
@@ -198,6 +244,7 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
 
             resultArr.push(
               buildCssObjectProp(context, cssPropertyName, element, {
+                withScales,
                 mediaIndex: i,
               }),
             )
@@ -210,8 +257,21 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
           if (shouldSkipProp(expression)) return
 
           baseResult.push(
-            buildCssObjectProp(context, cssPropertyName, expression),
+            buildCssObjectProp(context, cssPropertyName, expression, {
+              withScales,
+            }),
           )
+
+          if (withScales) {
+            breakpoints.forEach((_, i) => {
+              responsiveResults[i].push(
+                buildCssObjectProp(context, cssPropertyName, expression, {
+                  mediaIndex: i + 1,
+                  withScales,
+                }),
+              )
+            })
+          }
         })
       }
     } else {
@@ -222,7 +282,7 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
         _preprocessProp(context, cssPropertyName, attrValue)
         if (shouldSkipProp(attrValue)) return
 
-        if (isVariant)
+        if (isVariant) {
           baseResult.push(
             t.spreadElement(
               buildThemeAwareExpression(context, cssPropertyName, attrValue, {
@@ -231,10 +291,26 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
               }),
             ),
           )
-        else
-          baseResult.push(
-            buildCssObjectProp(context, cssPropertyName, attrValue),
-          )
+
+          return
+        }
+
+        baseResult.push(
+          buildCssObjectProp(context, cssPropertyName, attrValue, {
+            withScales,
+          }),
+        )
+
+        if (withScales) {
+          breakpoints.forEach((_, i) => {
+            responsiveResults[i].push(
+              buildCssObjectProp(context, cssPropertyName, attrValue, {
+                mediaIndex: i + 1,
+                withScales,
+              }),
+            )
+          })
+        }
       })
     }
   })

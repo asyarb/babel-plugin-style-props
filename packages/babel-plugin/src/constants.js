@@ -21,7 +21,7 @@ export const DEFAULT_OPTIONS = {
   variants: {},
 }
 
-export const SYSTEM_ALIASES = {
+export const STYLE_ALIASES = {
   bg: 'backgroundColor',
   m: 'margin',
   mt: 'marginTop',
@@ -44,6 +44,14 @@ export const SYSTEM_ALIASES = {
   px: ['paddingLeft', 'paddingRight'],
   py: ['paddingTop', 'paddingBottom'],
 }
+
+export const SCALE_ALIASES = Object.entries(STYLE_ALIASES).reduce(
+  (acc, [key, value]) => ({
+    ...acc,
+    [key + 'Scale']: value,
+  }),
+  {},
+)
 
 const cssProperties = cssProps.all
   .filter(prop => !/^-/.test(prop))
@@ -199,10 +207,10 @@ export const THEME_MAP = {
   textShadow: 'shadows',
 }
 
-/* export const SCALE_THEME_MAP = Object.entries(THEME_MAP).reduce(
+export const SCALE_THEME_MAP = Object.entries(THEME_MAP).reduce(
   (acc, [key, value]) => ({
     ...acc,
-    [key + 'Scale']: value + 'Scales',
+    [key]: value + 'Scales',
   }),
   {},
-) */
+)

@@ -1,5 +1,5 @@
 import React from 'react'
 
-export const Hello = () => {
-  return <div boxStyle="primary" p="large" />
+export const Hello = ({ ...props }) => {
+  return <div pScale={['l', null, null, 'm']} {...props} />
 }
