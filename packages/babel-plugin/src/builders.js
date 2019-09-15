@@ -7,7 +7,7 @@ import {
   SCALE_ALIASES,
   INTERNAL_PROP_ID,
 } from './constants'
-import { createMediaQuery, castArray, shouldSkipProp } from './utils'
+import { createMediaQuery, castArray, times, shouldSkipProp } from './utils'
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
@@ -183,16 +183,17 @@ const _preprocessProp = (context, propName, attrValue) => {
   else propsToPass[propName].push(attrValue)
 }
 
-// ['l', null, null, null, 'm']
-const scaleElements = elements => {
-  const unNulledElements = elements.map((element, i) => {
-    if (t.isNullLiteral(element)) {
+// ['l', null, null, 'm']
+const scaleElements = (context, elements) => {
+  const { breakpoints } = context
+
+  const unNulledElements = times(i => {
+    if (t.isNullLiteral(elements[i]) || elements[i] === undefined) {
       elements[i] = elements[i - 1] || t.nullLiteral()
-      return elements[i - 1] || t.nullLiteral()
     }
 
-    return element
-  })
+    return elements[i]
+  }, breakpoints.length + 1)
 
   return unNulledElements
 }
@@ -230,7 +231,7 @@ export const buildCssObjectProperties = (
       if (t.isArrayExpression(expression)) {
         // e.g. prop={['test', null, 'test2']}
         const elements = withScales
-          ? scaleElements(expression.elements)
+          ? scaleElements(context, expression.elements)
           : expression.elements
 
         elements.forEach((element, i) => {

@@ -1,5 +1,5 @@
 import React from 'react'
 
 export const Hello = ({ ...props }) => {
-  return <div pScale={['l', null, null, 'm']} {...props} />
+  return <div myScale={['l', null, 'm']} {...props} />
 }

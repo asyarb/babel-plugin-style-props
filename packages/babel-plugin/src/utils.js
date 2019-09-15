@@ -10,6 +10,15 @@ import { STYLE_PROPS, SCALE_PROPS } from './constants'
  */
 export const castArray = x => (Array.isArray(x) ? x : [x])
 
+export const times = (fn, num) => {
+  const arr = []
+  for (let i = 0; i < num; i++) {
+    arr[i] = fn(i)
+  }
+
+  return arr
+}
+
 /**
  * Returns a valid media query given a CSS unit.
  *
