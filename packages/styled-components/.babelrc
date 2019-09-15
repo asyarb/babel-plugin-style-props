@@ -5,8 +5,7 @@
       {
         "targets": "> 3%, not dead"
       }
-    ],
-    "@babel/preset-react"
+    ]
   ],
   "plugins": [
     [

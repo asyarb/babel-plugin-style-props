@@ -101,7 +101,7 @@ export const SYSTEM_PROPS = propNames.reduce(
   {},
 )
 
-export const SCALES_MAP = {
+export const THEME_MAP = {
   // SPACE
   padding: 'space',
   margin: 'space',

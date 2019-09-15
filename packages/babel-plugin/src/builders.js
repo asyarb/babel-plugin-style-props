@@ -1,6 +1,6 @@
 import { types as t, traverse } from '@babel/core'
 
-import { SCALES_MAP, SYSTEM_ALIASES, INTERNAL_PROP_ID } from './constants'
+import { THEME_MAP, SYSTEM_ALIASES, INTERNAL_PROP_ID } from './constants'
 import { createMediaQuery, castArray, shouldSkipProp } from './utils'
 
 /**
@@ -77,7 +77,7 @@ export const buildThemeAwareExpression = (
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
 
-  const scaleName = SCALES_MAP[propName] || variants[propName]
+  const scaleName = THEME_MAP[propName] || variants[propName]
   if (!scaleName) return attrValue
 
   const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
