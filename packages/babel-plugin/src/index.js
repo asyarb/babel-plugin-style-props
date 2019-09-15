@@ -45,7 +45,6 @@ const jsxOpeningElementVisitor = {
       scaleAttrs,
       { withScales: true },
     )
-
     const cssObjectProperties = buildCssObjectProperties(context, styleAttrs)
 
     // Cant just naively spread here, we need to merge our media queries

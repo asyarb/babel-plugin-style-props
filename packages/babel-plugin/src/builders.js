@@ -183,8 +183,18 @@ const _preprocessProp = (context, propName, attrValue) => {
   else propsToPass[propName].push(attrValue)
 }
 
-// ['l', null, null, 'm']
-const scaleElements = (context, elements) => {
+/**
+ * Normalizes a list scale prop elements to no longer contain
+ * any null values. Null values will inherit the `firstLeft`
+ * non-null property.
+ *
+ * @example ['l', null, 'm'] => ['l', 'l', 'm']
+ *
+ * @param {Object} context
+ * @param {Array} elements - The element array from a scale prop.
+ * @returns The normalized scale value array.
+ */
+const _normalizeScaleElements = (context, elements) => {
   const { breakpoints } = context
 
   const unNulledElements = times(i => {
@@ -231,7 +241,7 @@ export const buildCssObjectProperties = (
       if (t.isArrayExpression(expression)) {
         // e.g. prop={['test', null, 'test2']}
         const elements = withScales
-          ? scaleElements(context, expression.elements)
+          ? _normalizeScaleElements(context, expression.elements)
           : expression.elements
 
         elements.forEach((element, i) => {

@@ -38,7 +38,7 @@ export const onlyStyleProps = (context, attrs) => {
   const { variants } = context
 
   return attrs.filter(attr =>
-    Boolean(STYLE_PROPS[attr.name.name] || variants[attr.name.name]),
+    Boolean(STYLE_PROPS[attr.name.name] || variants[attr.name.name])
   )
 }
 
@@ -51,7 +51,7 @@ export const onlyStyleProps = (context, attrs) => {
 export const onlyScaleProps = attrs => {
   return attrs.filter(
     attr =>
-      !t.isJSXSpreadAttribute(attr) && Boolean(SCALE_PROPS[attr.name.name]),
+      !t.isJSXSpreadAttribute(attr) && Boolean(SCALE_PROPS[attr.name.name])
   )
 }
 
@@ -65,9 +65,15 @@ export const onlyScaleProps = attrs => {
 export const notStyleProps = (context, attrs) => {
   const { variants } = context
 
-  return attrs.filter(
-    attr => !Boolean(STYLE_PROPS[attr.name.name] || variants[attr.name.name]),
-  )
+  return attrs.filter(attr => {
+    const propName = attr.name.name
+
+    return !(
+      Boolean(STYLE_PROPS[propName]) ||
+      Boolean(SCALE_PROPS[propName]) ||
+      variants[propName]
+    )
+  })
 }
 
 /**
