@@ -59,6 +59,7 @@ export const buildBaseValueAttr = attrValue => {
  * Given a css prop name and node, returns the equivalent theme aware
  * accessor expression.
  *
+ * @param {Object} context
  * @param {string} propName - Name of the prop being converted.
  * @param {Object} attrValue - Babel AST to convert.
  * @param {Object} options - Optional options for this utility.
@@ -123,6 +124,7 @@ export const buildThemeAwareExpression = (
  * the prop name as the key and the appropriate theme-aware accessor as it's
  * value.
  *
+ * @param {Object} context
  * @param {string} propName - Prop name to build
  * @param {Object} attrValue - Babel node to build into theme-aware accessor.
  * @param {Object} param2 - Optional options. Used for specifying the current media
@@ -145,6 +147,7 @@ export const buildCssObjectProp = (
  * e.g. adding it to our private-prop accumulator for `styled-components`.
  * @private
  *
+ * @param {Object} context
  * @param {string} propName - The name of the system prop to process.
  * @param {Object} attrValue - The Babel node to process.
  */
@@ -163,6 +166,7 @@ const _preprocessProp = (context, propName, attrValue) => {
  * Builds an array of theme-aware babel Object Properties for the `css`
  * prop from a list of system-prop-JSX attribute nodes.
  *
+ * @param {Object} context
  * @param {Array} attrNodes - Array of JSX attributes.
  * @param {Array} breakpoints - Media query breakpoints.
  * @returns An array with the theme aware object properties.
@@ -253,6 +257,7 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
  * Builds the JSX AST for the `css` prop given a list of
  * object property ASTs.
  *
+ * @param {Object} context
  * @param {Array} objectProperties - List of object properties.
  * @returns A JSX attribute AST for the `css` prop.
  */
@@ -279,6 +284,7 @@ export const buildCssAttr = (context, objectProperties) => {
  * function expression's parameters or destructured parameters that are used
  * in the function expression body or return statement.
  *
+ * @param {Object} context
  * @param {Object} expression - Babel function/arrow function expression node.
  * @returns The tuple of body statements and return statement.
  */
@@ -337,6 +343,7 @@ const _extractAndCleanFunctionParts = (context, expression) => {
  * Builds a merged `css` prop given a list of theme aware object properties and
  * the existing CSS prop Babel node.
  *
+ * @param {Object} context
  * @param {Array} objectProperties - Theme aware object properties.
  * @param {Object} existingCssAttr - The Babel node of an existing `css` prop.
  * @returns The merged `css` prop node.

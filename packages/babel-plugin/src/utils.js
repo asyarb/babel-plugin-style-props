@@ -21,6 +21,7 @@ export const createMediaQuery = unit => `@media screen and (min-width: ${unit})`
 /**
  * Given an array of props, returns only the known system props.
  *
+ * @param {Object} context
  * @param {Array} attrs - Props to filter.
  * @returns The array of system props.
  */
@@ -34,6 +35,7 @@ export const onlySystemProps = (context, attrs) => {
 /**
  * Given an array of props, returns only non-system props.
  *
+ * @param {Object} context
  * @param {Array} attrs - Props to filter.
  * @returns The array of non-system props.
  */
