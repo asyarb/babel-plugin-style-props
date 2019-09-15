@@ -93,10 +93,18 @@ const propNames = [
   'paddingY',
 ]
 
-export const SYSTEM_PROPS = propNames.reduce(
+export const STYLE_PROPS = propNames.reduce(
   (acc, key) => ({
     ...acc,
     [key]: true,
+  }),
+  {},
+)
+
+export const SCALE_PROPS = propNames.reduce(
+  (acc, key) => ({
+    ...acc,
+    [key + 'Scale']: true,
   }),
   {},
 )
@@ -190,3 +198,11 @@ export const THEME_MAP = {
   boxShadow: 'shadows',
   textShadow: 'shadows',
 }
+
+/* export const SCALE_THEME_MAP = Object.entries(THEME_MAP).reduce(
+  (acc, [key, value]) => ({
+    ...acc,
+    [key + 'Scale']: value + 'Scales',
+  }),
+  {},
+) */

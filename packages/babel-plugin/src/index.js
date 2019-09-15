@@ -5,12 +5,16 @@ import {
   STYLING_LIBRARIES,
   INTERNAL_PROP_ID,
 } from './constants'
-import { onlyStyleProps, notStyleProps } from './utils'
+import { onlyStyleProps, onlyScaleProps, notStyleProps } from './utils'
 import {
   buildCssObjectProperties,
   buildCssAttr,
   buildMergedCssAttr,
 } from './builders'
+
+const processScaleProps = path => {
+  const scaleAttrs = onlyScaleProps(path.node.attributes)
+}
 
 /**
  * Primary visitor. Visits all JSX components transpiles any system
@@ -23,24 +27,22 @@ import {
  */
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path, { optionsContext }) {
+    const allAttrs = path.node.attributes
+    if (!allAttrs.length) return
+
     const context = {
       propsToPass: {},
       ...optionsContext,
     }
     const { breakpoints, propsToPass, stylingLibrary } = context
 
-    // All spread props on this element e.g. {...props}.
-    const spreadAttrs = path.node.attributes.filter(attr =>
-      t.isJSXSpreadAttribute(attr),
-    )
+    processScaleProps(path)
 
-    // All explicit props on this element.
-    const nodeAttrs = path.node.attributes.filter(
-      attr => !t.isJSXSpreadAttribute(attr),
-    )
+    const spreadAttrs = allAttrs.filter(attr => t.isJSXSpreadAttribute(attr)) // e.g. {...props}
+    const explicitAttrs = allAttrs.filter(attr => !t.isJSXSpreadAttribute(attr)) // e.g. prop={value}
 
-    const styleProps = onlyStyleProps(context, nodeAttrs)
-    if (!styleProps.length) return // Stop early if there are no style props.
+    const styleProps = onlyStyleProps(context, explicitAttrs)
+    if (!styleProps.length) return
 
     const cssObjectProperties = buildCssObjectProperties(
       context,
@@ -48,13 +50,13 @@ const jsxOpeningElementVisitor = {
       breakpoints,
     )
 
-    const existingCssAttr = nodeAttrs.find(attr => attr.name.name === 'css')
+    const existingCssAttr = explicitAttrs.find(attr => attr.name.name === 'css')
     const newCssAttr = existingCssAttr
       ? buildMergedCssAttr(context, cssObjectProperties, existingCssAttr)
       : buildCssAttr(context, cssObjectProperties)
 
     // Remove the existing `css` prop, if there is one.
-    path.node.attributes = notStyleProps(context, nodeAttrs).filter(
+    path.node.attributes = notStyleProps(context, explicitAttrs).filter(
       attr => attr.name.name !== 'css',
     )
 

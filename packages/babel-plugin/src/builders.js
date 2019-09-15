@@ -77,8 +77,8 @@ export const buildThemeAwareExpression = (
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
 
-  const scaleName = THEME_MAP[propName] || variants[propName]
-  if (!scaleName) return attrValue
+  const themeKey = THEME_MAP[propName] || variants[propName]
+  if (!themeKey) return attrValue
 
   const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
   let stylingLibraryAttrValue = attrBaseValue // emotion
@@ -96,7 +96,7 @@ export const buildThemeAwareExpression = (
   let themeExpression = t.memberExpression(
     t.memberExpression(
       t.identifier(themeIdentifierPath),
-      t.stringLiteral(scaleName),
+      t.stringLiteral(themeKey),
       true,
     ),
     stylingLibraryAttrValue,

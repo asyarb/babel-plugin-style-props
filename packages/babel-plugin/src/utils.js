@@ -1,6 +1,6 @@
 import { types as t } from '@babel/core'
 
-import { SYSTEM_PROPS } from './constants'
+import { STYLE_PROPS, SCALE_PROPS } from './constants'
 
 /**
  * Casts a provided value as an array if it is not one.
@@ -19,7 +19,7 @@ export const castArray = x => (Array.isArray(x) ? x : [x])
 export const createMediaQuery = unit => `@media screen and (min-width: ${unit})`
 
 /**
- * Given an array of props, returns only the known system props.
+ * Given an array of props, returns only the known style props.
  *
  * @param {Object} context
  * @param {Array} attrs - Props to filter.
@@ -29,11 +29,25 @@ export const onlyStyleProps = (context, attrs) => {
   const { variants } = context
 
   return attrs.filter(attr =>
-    Boolean(SYSTEM_PROPS[attr.name.name] || variants[attr.name.name]),
+    Boolean(STYLE_PROPS[attr.name.name] || variants[attr.name.name]),
   )
 }
+
 /**
- * Given an array of props, returns only non-system props.
+ * Given an array of props, returns only the known scale props
+ *
+ * @param {Array} attrs - Props to filter.
+ * @returns The array of system props.
+ */
+export const onlyScaleProps = attrs => {
+  return attrs.filter(
+    attr =>
+      !t.isJSXSpreadAttribute(attr) && Boolean(SCALE_PROPS[attr.name.name]),
+  )
+}
+
+/**
+ * Given an array of props, returns only non-style props.
  *
  * @param {Object} context
  * @param {Array} attrs - Props to filter.
@@ -43,7 +57,7 @@ export const notStyleProps = (context, attrs) => {
   const { variants } = context
 
   return attrs.filter(
-    attr => !Boolean(SYSTEM_PROPS[attr.name.name] || variants[attr.name.name]),
+    attr => !Boolean(STYLE_PROPS[attr.name.name] || variants[attr.name.name]),
   )
 }
 
