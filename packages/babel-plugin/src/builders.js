@@ -349,7 +349,7 @@ export const buildKeyedCssObjectProperties = (context, properties) => {
 
   responsiveCssObjectProperties.forEach((objectPropertiesForBreakpoint, i) => {
     if (i === 0) result.push(...objectPropertiesForBreakpoint)
-    else {
+    else if (objectPropertiesForBreakpoint.length) {
       const mediaQuery = createMediaQuery(breakpoints[i - 1])
 
       result.push(

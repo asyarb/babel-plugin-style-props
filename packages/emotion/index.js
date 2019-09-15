@@ -1,5 +1,5 @@
 import React from 'react'
 
 export const Hello = ({ ...props }) => {
-  return <div mbScale="-xl" pbScale={['-l', null, 'm']} mt="-3rem" {...props} />
+  return <div mt={['-3rem', null, '4rem']} mbScale="xl" {...props} />
 }
