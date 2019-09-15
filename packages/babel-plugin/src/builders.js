@@ -83,11 +83,10 @@ export const buildThemeAwareExpression = (
   } = {}
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
-  let themeKey
 
-  if (withScales) themeKey = SCALE_THEME_MAP[propName]
-  else themeKey = THEME_MAP[propName] || variants[propName]
-
+  const themeKey = withScales
+    ? SCALE_THEME_MAP[propName]
+    : THEME_MAP[propName] || variants[propName]
   if (!themeKey) return attrValue
 
   const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
@@ -113,13 +112,12 @@ export const buildThemeAwareExpression = (
     true
   )
 
-  if (withScales) {
-    return t.memberExpression(
+  if (withScales)
+    themeExpression = t.memberExpression(
       themeExpression,
       t.numericLiteral(mediaIndex),
       true
     )
-  }
 
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
@@ -158,7 +156,8 @@ export const buildCssObjectProp = (
     t.identifier(propName),
     buildThemeAwareExpression(context, propName, attrValue, {
       mediaIndex,
-      withScales
+      withScales,
+      withUndefinedFallback: !withScales
     })
   )
 }
