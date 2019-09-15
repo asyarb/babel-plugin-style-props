@@ -5,7 +5,7 @@ import {
   STYLING_LIBRARIES,
   INTERNAL_PROP_ID,
 } from './constants'
-import { onlySystemProps, notSystemProps } from './utils'
+import { onlyStyleProps, notStyleProps } from './utils'
 import {
   buildCssObjectProperties,
   buildCssAttr,
@@ -29,17 +29,24 @@ const jsxOpeningElementVisitor = {
     }
     const { breakpoints, propsToPass, stylingLibrary } = context
 
-    // All props on this JSX Element
-    const nodeAttrs = path.node.attributes
-
-    const systemProps = onlySystemProps(context, nodeAttrs)
-    const cssObjectProperties = buildCssObjectProperties(
-      context,
-      systemProps,
-      breakpoints,
+    // All spread props on this element e.g. {...props}.
+    const spreadAttrs = path.node.attributes.filter(attr =>
+      t.isJSXSpreadAttribute(attr),
     )
 
-    if (!cssObjectProperties.length) return
+    // All explicit props on this element.
+    const nodeAttrs = path.node.attributes.filter(
+      attr => !t.isJSXSpreadAttribute(attr),
+    )
+
+    const styleProps = onlyStyleProps(context, nodeAttrs)
+    if (!styleProps.length) return // Stop early if there are no style props.
+
+    const cssObjectProperties = buildCssObjectProperties(
+      context,
+      styleProps,
+      breakpoints,
+    )
 
     const existingCssAttr = nodeAttrs.find(attr => attr.name.name === 'css')
     const newCssAttr = existingCssAttr
@@ -47,12 +54,15 @@ const jsxOpeningElementVisitor = {
       : buildCssAttr(context, cssObjectProperties)
 
     // Remove the existing `css` prop, if there is one.
-    path.node.attributes = notSystemProps(context, nodeAttrs).filter(
+    path.node.attributes = notStyleProps(context, nodeAttrs).filter(
       attr => attr.name.name !== 'css',
     )
 
     // Add our new `css` prop.
     if (newCssAttr) path.node.attributes.push(newCssAttr)
+
+    // Add back our spread attributes.
+    spreadAttrs.forEach(attr => path.node.attributes.push(attr))
 
     // For styled-components, we need to pass any runtime identifiers as props to
     // the `styled.div` that their babel plugin generates. This is because the
@@ -60,13 +70,14 @@ const jsxOpeningElementVisitor = {
     const internalProps = Object.entries(propsToPass).map(([propName, attrs]) =>
       t.objectProperty(t.identifier(propName), t.arrayExpression(attrs)),
     )
-    if (stylingLibrary === 'styled-components' && internalProps.length)
+    if (stylingLibrary === 'styled-components' && internalProps.length) {
       path.node.attributes.push(
         t.jsxAttribute(
           t.jsxIdentifier(INTERNAL_PROP_ID),
           t.jsxExpressionContainer(t.objectExpression(internalProps)),
         ),
       )
+    }
   },
 }
 

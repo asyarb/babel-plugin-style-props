@@ -25,7 +25,7 @@ export const createMediaQuery = unit => `@media screen and (min-width: ${unit})`
  * @param {Array} attrs - Props to filter.
  * @returns The array of system props.
  */
-export const onlySystemProps = (context, attrs) => {
+export const onlyStyleProps = (context, attrs) => {
   const { variants } = context
 
   return attrs.filter(attr =>
@@ -39,7 +39,7 @@ export const onlySystemProps = (context, attrs) => {
  * @param {Array} attrs - Props to filter.
  * @returns The array of non-system props.
  */
-export const notSystemProps = (context, attrs) => {
+export const notStyleProps = (context, attrs) => {
   const { variants } = context
 
   return attrs.filter(
