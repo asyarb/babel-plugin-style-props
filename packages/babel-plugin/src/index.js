@@ -3,13 +3,13 @@ import { types as t } from '@babel/core'
 import {
   DEFAULT_OPTIONS,
   STYLING_LIBRARIES,
-  INTERNAL_PROP_ID,
+  INTERNAL_PROP_ID
 } from './constants'
 import { onlyStyleProps, onlyScaleProps, notStyleProps } from './utils'
 import {
   buildCssObjectProperties,
   buildCssAttr,
-  buildMergedCssAttr,
+  buildMergedCssAttr
 } from './builders'
 
 /**
@@ -28,7 +28,7 @@ const jsxOpeningElementVisitor = {
 
     const context = {
       propsToPass: {},
-      ...optionsContext,
+      ...optionsContext
     }
     const { propsToPass, stylingLibrary } = context
 
@@ -43,7 +43,7 @@ const jsxOpeningElementVisitor = {
     const scaledCssObjectProperties = buildCssObjectProperties(
       context,
       scaleAttrs,
-      { withScales: true },
+      { withScales: true }
     )
     const cssObjectProperties = buildCssObjectProperties(context, styleAttrs)
 
@@ -51,7 +51,7 @@ const jsxOpeningElementVisitor = {
     // fuck my life
     const allCssObjectProperties = [
       ...scaledCssObjectProperties,
-      ...cssObjectProperties,
+      ...cssObjectProperties
     ]
 
     const existingCssAttr = explicitAttrs.find(attr => attr.name.name === 'css')
@@ -61,7 +61,7 @@ const jsxOpeningElementVisitor = {
 
     // Remove the existing `css` prop, if there is one.
     path.node.attributes = notStyleProps(context, explicitAttrs).filter(
-      attr => attr.name.name !== 'css',
+      attr => attr.name.name !== 'css'
     )
 
     // Add our new `css` prop.
@@ -74,17 +74,17 @@ const jsxOpeningElementVisitor = {
     // the `styled.div` that their babel plugin generates. This is because the
     // `styled.div` is generated outside the scope of this JSX element.
     const internalProps = Object.entries(propsToPass).map(([propName, attrs]) =>
-      t.objectProperty(t.identifier(propName), t.arrayExpression(attrs)),
+      t.objectProperty(t.identifier(propName), t.arrayExpression(attrs))
     )
     if (stylingLibrary === 'styled-components' && internalProps.length) {
       path.node.attributes.push(
         t.jsxAttribute(
           t.jsxIdentifier(INTERNAL_PROP_ID),
-          t.jsxExpressionContainer(t.objectExpression(internalProps)),
-        ),
+          t.jsxExpressionContainer(t.objectExpression(internalProps))
+        )
       )
     }
-  },
+  }
 }
 
 export default (_, opts) => {
@@ -105,14 +105,14 @@ export default (_, opts) => {
 
     default:
       throw new Error(
-        '`stylingLibrary` must be either "emotion" or "styled-components"',
+        '`stylingLibrary` must be either "emotion" or "styled-components"'
       )
   }
 
   const optionsContext = {
     themeIdentifier,
     themeIdentifierPath,
-    ...options,
+    ...options
   }
 
   return {
@@ -120,7 +120,7 @@ export default (_, opts) => {
     visitor: {
       Program(path) {
         path.traverse(jsxOpeningElementVisitor, { optionsContext })
-      },
-    },
+      }
+    }
   }
 }

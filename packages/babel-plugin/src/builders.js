@@ -5,7 +5,7 @@ import {
   SCALE_THEME_MAP,
   STYLE_ALIASES,
   SCALE_ALIASES,
-  INTERNAL_PROP_ID,
+  INTERNAL_PROP_ID
 } from './constants'
 import { createMediaQuery, castArray, times, shouldSkipProp } from './utils'
 
@@ -20,7 +20,7 @@ export const buildUndefinedConditionalFallback = (value, fallbackValue) => {
   return t.conditionalExpression(
     t.binaryExpression('!==', value, t.identifier('undefined')),
     value,
-    fallbackValue,
+    fallbackValue
   )
 }
 
@@ -34,7 +34,7 @@ export const buildUndefinedConditionalFallback = (value, fallbackValue) => {
  */
 export const buildVariableDeclaration = (type, left, right) => {
   return t.variableDeclaration(type, [
-    t.variableDeclarator(t.assignmentPattern(left, right)),
+    t.variableDeclarator(t.assignmentPattern(left, right))
   ])
 }
 
@@ -79,8 +79,8 @@ export const buildThemeAwareExpression = (
     withUndefinedFallback = true,
     withNegativeTransform = true,
     withScales = false,
-    mediaIndex = 0,
-  } = {},
+    mediaIndex = 0
+  } = {}
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
   let themeKey
@@ -97,41 +97,41 @@ export const buildThemeAwareExpression = (
     stylingLibraryAttrValue = t.memberExpression(
       t.memberExpression(
         t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
-        t.identifier(propName),
+        t.identifier(propName)
       ),
       t.numericLiteral(mediaIndex),
-      true,
+      true
     )
 
   let themeExpression = t.memberExpression(
     t.memberExpression(
       t.identifier(themeIdentifierPath),
       t.stringLiteral(themeKey),
-      true,
+      true
     ),
     stylingLibraryAttrValue,
-    true,
+    true
   )
 
   if (withScales) {
     return t.memberExpression(
       themeExpression,
       t.numericLiteral(mediaIndex),
-      true,
+      true
     )
   }
 
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
       themeExpression,
-      stylingLibraryAttrValue,
+      stylingLibraryAttrValue
     )
 
   if (withNegativeTransform && isNegative)
     themeExpression = t.binaryExpression(
       '+',
       t.stringLiteral('-'),
-      t.parenthesizedExpression(themeExpression),
+      t.parenthesizedExpression(themeExpression)
     )
 
   return themeExpression
@@ -152,14 +152,14 @@ export const buildCssObjectProp = (
   context,
   propName,
   attrValue,
-  { mediaIndex = 0, withScales = false } = {},
+  { mediaIndex = 0, withScales = false } = {}
 ) => {
   return t.objectProperty(
     t.identifier(propName),
     buildThemeAwareExpression(context, propName, attrValue, {
       mediaIndex,
-      withScales,
-    }),
+      withScales
+    })
   )
 }
 
@@ -220,7 +220,7 @@ const _normalizeScaleElements = (context, elements) => {
 export const buildCssObjectProperties = (
   context,
   attrNodes,
-  { withScales = false } = {},
+  { withScales = false } = {}
 ) => {
   const { variants, breakpoints } = context
   const baseResult = []
@@ -256,8 +256,8 @@ export const buildCssObjectProperties = (
             resultArr.push(
               buildCssObjectProp(context, cssPropertyName, element, {
                 withScales,
-                mediaIndex: i,
-              }),
+                mediaIndex: i
+              })
             )
           })
         })
@@ -269,8 +269,8 @@ export const buildCssObjectProperties = (
 
           baseResult.push(
             buildCssObjectProp(context, cssPropertyName, expression, {
-              withScales,
-            }),
+              withScales
+            })
           )
 
           if (withScales) {
@@ -278,8 +278,8 @@ export const buildCssObjectProperties = (
               responsiveResults[i].push(
                 buildCssObjectProp(context, cssPropertyName, expression, {
                   mediaIndex: i + 1,
-                  withScales,
-                }),
+                  withScales
+                })
               )
             })
           }
@@ -298,9 +298,9 @@ export const buildCssObjectProperties = (
             t.spreadElement(
               buildThemeAwareExpression(context, cssPropertyName, attrValue, {
                 withUndefinedFallback: false,
-                withNegativeTransform: false,
-              }),
-            ),
+                withNegativeTransform: false
+              })
+            )
           )
 
           return
@@ -308,8 +308,8 @@ export const buildCssObjectProperties = (
 
         baseResult.push(
           buildCssObjectProp(context, cssPropertyName, attrValue, {
-            withScales,
-          }),
+            withScales
+          })
         )
 
         if (withScales) {
@@ -317,8 +317,8 @@ export const buildCssObjectProperties = (
             responsiveResults[i].push(
               buildCssObjectProp(context, cssPropertyName, attrValue, {
                 mediaIndex: i + 1,
-                withScales,
-              }),
+                withScales
+              })
             )
           })
         }
@@ -332,7 +332,7 @@ export const buildCssObjectProperties = (
 
       return t.objectProperty(
         t.stringLiteral(mediaQuery),
-        t.objectExpression(objectPropertiesForBreakpoint),
+        t.objectExpression(objectPropertiesForBreakpoint)
       )
     })
     .filter(results => results.value.properties.length)
@@ -356,9 +356,9 @@ export const buildCssAttr = (context, objectProperties) => {
     t.jSXExpressionContainer(
       t.arrowFunctionExpression(
         [t.identifier(themeIdentifier)],
-        t.objectExpression(objectProperties),
-      ),
-    ),
+        t.objectExpression(objectProperties)
+      )
+    )
   )
 }
 
@@ -391,10 +391,10 @@ const _extractAndCleanFunctionParts = (context, expression) => {
           if (path.node.name === exisitingParamName) {
             path.node.name = themeIdentifier
           }
-        },
+        }
       },
       expression,
-      functionParam.name,
+      functionParam.name
     )
   } else if (t.isObjectPattern(functionParam)) {
     // e.g. css={({ colors, theme }) => }
@@ -402,8 +402,8 @@ const _extractAndCleanFunctionParts = (context, expression) => {
       buildVariableDeclaration(
         'const',
         functionParam,
-        t.identifier(themeIdentifier),
-      ),
+        t.identifier(themeIdentifier)
+      )
     ]
   }
 
@@ -413,10 +413,10 @@ const _extractAndCleanFunctionParts = (context, expression) => {
   } else if (t.isBlockStatement(functionBody)) {
     // e.g. css={theme => { return { ... } }}
     const exisitingBodyStatements = functionBody.body.filter(
-      node => !t.isReturnStatement(node),
+      node => !t.isReturnStatement(node)
     )
     const returnStatement = functionBody.body.find(node =>
-      t.isReturnStatement(node),
+      t.isReturnStatement(node)
     )
 
     bodyStatements = [...bodyStatements, ...exisitingBodyStatements]
@@ -438,7 +438,7 @@ const _extractAndCleanFunctionParts = (context, expression) => {
 export const buildMergedCssAttr = (
   context,
   objectProperties,
-  existingCssAttr,
+  existingCssAttr
 ) => {
   const { themeIdentifier } = context
 
@@ -451,7 +451,7 @@ export const buildMergedCssAttr = (
   else if (t.isFunction(existingExpression)) {
     const [
       extractedBodyStatements,
-      returnObjectProperties,
+      returnObjectProperties
     ] = _extractAndCleanFunctionParts(context, existingExpression)
 
     bodyStatements = extractedBodyStatements
@@ -468,10 +468,10 @@ export const buildMergedCssAttr = (
         hasBodyStatements
           ? t.blockStatement([
               ...bodyStatements,
-              t.returnStatement(t.objectExpression(mergedProperties)),
+              t.returnStatement(t.objectExpression(mergedProperties))
             ])
-          : t.objectExpression(mergedProperties),
-      ),
-    ),
+          : t.objectExpression(mergedProperties)
+      )
+    )
   )
 }
