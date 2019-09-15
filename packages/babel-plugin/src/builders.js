@@ -209,7 +209,7 @@ const _normalizeScaleElements = (context, elements) => {
 
 /**
  * Builds an array of theme-aware babel Object Properties for the `css`
- * prop from a list of system-prop-JSX attribute nodes.
+ * prop from a list of style prop attributes.
  *
  * @param {Object} context
  * @param {Array} attrNodes - Array of JSX attributes.
@@ -328,6 +328,15 @@ export const buildCssObjectProperties = (
   return [...baseResult, ...responsiveResults]
 }
 
+/**
+ * From an array of theme aware object properties, returns a new array
+ * containing a keyed set of object properties by mediaquery.
+ *
+ * @param {Object} context
+ * @param {Array} properties - Array of css object properties.
+ *
+ * @returns The array of keyed object properties.
+ */
 export const buildKeyedCssObjectProperties = (context, properties) => {
   const { breakpoints } = context
   const responsiveCssObjectProperties = [[], ...breakpoints.map(() => [])]
