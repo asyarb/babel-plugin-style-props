@@ -79,7 +79,8 @@ export const buildThemeAwareExpression = (
     withUndefinedFallback = true,
     withNegativeTransform = true,
     withScales = false,
-    mediaIndex = 0
+    mediaIndex = 0,
+    scaleIndex = 0
   } = {}
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
@@ -98,7 +99,7 @@ export const buildThemeAwareExpression = (
         t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
         t.identifier(propName)
       ),
-      t.numericLiteral(mediaIndex),
+      t.numericLiteral(withScales ? scaleIndex : mediaIndex),
       true
     )
 
@@ -150,14 +151,15 @@ export const buildCssObjectProp = (
   context,
   propName,
   attrValue,
-  { mediaIndex = 0, withScales = false } = {}
+  { mediaIndex = 0, withScales = false, scaleIndex = 0 } = {}
 ) => {
   return t.objectProperty(
     t.identifier(propName),
     buildThemeAwareExpression(context, propName, attrValue, {
       mediaIndex,
       withScales,
-      withUndefinedFallback: !withScales
+      withUndefinedFallback: !withScales,
+      scaleIndex
     })
   )
 }
@@ -255,6 +257,7 @@ export const buildCssObjectProperties = (
             resultArr.push(
               buildCssObjectProp(context, cssPropertyName, element, {
                 withScales,
+                scaleIndex: i,
                 mediaIndex: i
               })
             )
@@ -276,8 +279,9 @@ export const buildCssObjectProperties = (
             breakpoints.forEach((_, i) => {
               responsiveResults[i].push(
                 buildCssObjectProp(context, cssPropertyName, expression, {
+                  withScales,
                   mediaIndex: i + 1,
-                  withScales
+                  scaleIndex: 0
                 })
               )
             })
@@ -301,25 +305,24 @@ export const buildCssObjectProperties = (
               })
             )
           )
+        } else {
+          baseResult.push(
+            buildCssObjectProp(context, cssPropertyName, attrValue, {
+              withScales
+            })
+          )
 
-          return
-        }
-
-        baseResult.push(
-          buildCssObjectProp(context, cssPropertyName, attrValue, {
-            withScales
-          })
-        )
-
-        if (withScales) {
-          breakpoints.forEach((_, i) => {
-            responsiveResults[i].push(
-              buildCssObjectProp(context, cssPropertyName, attrValue, {
-                mediaIndex: i + 1,
-                withScales
-              })
-            )
-          })
+          if (withScales) {
+            breakpoints.forEach((_, i) => {
+              responsiveResults[i].push(
+                buildCssObjectProp(context, cssPropertyName, attrValue, {
+                  withScales,
+                  mediaIndex: i + 1,
+                  scaleIndex: 0
+                })
+              )
+            })
+          }
         }
       })
     }
@@ -345,14 +348,15 @@ export const buildKeyedCssObjectProperties = (context, properties) => {
   let mediaIndex = 0
 
   properties.forEach(property => {
-    if (t.isObjectProperty(property))
+    if (t.isObjectProperty(property) || t.isSpreadElement(property))
       responsiveCssObjectProperties[0].push(property)
-    else {
-      mediaIndex++
+    else if (property.length) {
       property.forEach(responsiveProperty =>
-        responsiveCssObjectProperties[mediaIndex].push(responsiveProperty)
+        responsiveCssObjectProperties[mediaIndex + 1].push(responsiveProperty)
       )
-      if (mediaIndex % breakpoints.length === 0) mediaIndex = 0
+      mediaIndex = (mediaIndex + 1) % breakpoints.length
+    } else {
+      mediaIndex = (mediaIndex + 1) % breakpoints.length
     }
   })
 
