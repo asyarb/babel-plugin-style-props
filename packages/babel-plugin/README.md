@@ -371,10 +371,11 @@ See below for an example:
 ```
 
 Just like with normal style props, `scale` props can be overridden per
-breakpoint using an array, and can use `null` to skip over breakpoints.
+breakpoint using an array, be negated with a `-`, support variables/functions,
+and can use `null` to skip over breakpoints.
 
 ```jsx
-<div mScale={['xl', null, 'l']} />
+<div mScale={['xl', null, myScale, '-l']} />
 
 // transpiles to something like
 <div
@@ -384,10 +385,10 @@ breakpoint using an array, and can use `null` to skip over breakpoints.
       margin: theme.spaceScales.xl[1]
     },
     "@media (min-width: 52em)": {
-      margin: theme.spaceScales.l[2]
+      margin: theme.spaceScales[myScale][2]
     },
     "@media (min-width: 64em)": {
-      margin: theme.spaceScales.l[3]
+      margin: "-" + theme.spaceScales.l[3]
     }
   })}
 />
