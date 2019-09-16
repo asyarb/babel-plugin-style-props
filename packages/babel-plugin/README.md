@@ -395,7 +395,7 @@ and can use `null` to skip over breakpoints.
 ```
 
 Note how the `xl` scale still persists through the second breakpoint. Using
-scales, we can persist a scale for as long as need it, then override it when
+scales, we can persist a scale for as long as we need it, then override it when
 necessary!
 
 #### Defining scales in your theme
