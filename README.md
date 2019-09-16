@@ -18,6 +18,7 @@ Use theme aware style props on any JSX element.
     - [Minimal theme](#minimal-theme)
     - [Tailwind](#tailwind)
 - [What this plugin does](#what-this-plugin-does)
+- [Usage](#usage)
   - [Use values from your theme](#use-values-from-your-theme)
   - [Use arrays for responsive styles](#use-arrays-for-responsive-styles)
   - [Use negative values](#use-negative-values)
@@ -25,12 +26,15 @@ Use theme aware style props on any JSX element.
     - [Negative values with variables and functions](#negative-values-with-variables-and-functions)
   - [Use custom variants](#use-custom-variants)
   - [Use styleScale props](#use-stylescale-props)
+    - [Defining scales in your theme](#defining-scales-in-your-theme)
+  - [Merges with existing `css` props.](#merges-with-existing-css-props)
+    - [`css` prop syntax](#css-prop-syntax)
 - [Opinionated gotchas](#opinionated-gotchas)
   - [Breakpoints](#breakpoints)
   - [Nested theme properties](#nested-theme-properties)
   - [Incompatible with `defaultProps`](#incompatible-with-defaultprops)
   - [Incompatible with components built with `styled-system`](#incompatible-with-components-built-with-styled-system)
-- [Limitations](#limitations)
+  - [Incompatible with theme keys that start with `-` (hypen)](#incompatible-with-theme-keys-that-start-with---hypen)
 - [License](#license)
 
 ## Features
@@ -73,11 +77,11 @@ module.exports = {
     [
       'babel-plugin-style-props',
       {
-        stylingLibrary: 'styled-components',
-      },
+        stylingLibrary: 'styled-components'
+      }
     ],
-    'babel-plugin-styled-components',
-  ],
+    'babel-plugin-styled-components'
+  ]
 }
 ```
 
@@ -89,17 +93,16 @@ module.exports = {
   presets: [
     '@babel/preset-env',
     '@babel/preset-react',
-    '@emotion/babel-preset-css-prop',
+    '@emotion/babel-preset-css-prop'
   ],
   plugins: [
     [
       'babel-plugin-style-props',
       {
-        stylingLibrary: 'emotion',
-      },
-    ],
-    'babel-plugin-styled-components',
-  ],
+        stylingLibrary: 'emotion'
+      }
+    ]
+  ]
 }
 ```
 
@@ -137,9 +140,9 @@ detailed [here](https://styled-system.com/theme-specification).
 
 ## What this plugin does
 
-`babel-plugin-style-props` converts style props to an object or function in a
-`css` prop. This allows libraries like `styled-components` or `emotion` to parse
-the styles into CSS.
+`babel-plugin-style-props` converts style props to a function in the `css` prop.
+This allows libraries like `styled-components` or `emotion` to parse the styles
+into CSS.
 
 ```jsx
 // Your JSX
@@ -147,7 +150,7 @@ the styles into CSS.
 
 // Output JSX (simplified): `styled-components`
 <div
-  css={theme => ({
+  css={p => ({
     color: p.theme.colors.red,
     paddingLeft: p.theme.space[5],
     paddingRight: p.theme.space[5],
@@ -163,6 +166,11 @@ the styles into CSS.
   })}
 />
 ```
+
+## Usage
+
+If you've used `styled-system` or any package based on it, this plugin's usage
+should be largely familiar.
 
 ### Use values from your theme
 
@@ -190,13 +198,19 @@ You can use arrays to specify responsive styles.
 <div width={['100%', '50%', '25%']} />
 ```
 
+Opt out of setting a value for a breakpoint by using `null`.
+
+```jsx
+<div width={[null, '50%', null, '25%']} />
+```
+
 Responsive arrays will generate styles according to the breakpoints defined in
 your babel config. See [breakpoints](#breakpoints) for more info.
 
 ### Use negative values
 
 When a style prop has keys that are defined in a `<ThemeProvider>`, you can
-negate them by prefixed them with a '-' (hyphen).
+negate them by prefixing them with a '-' (hyphen).
 
 ```jsx
 const theme = {
@@ -250,7 +264,7 @@ const Box = () => {
       css={theme => ({
         color: theme.colors[myColor], // theme.colors.primary
         backgroundColor: theme.colors[myFunction()], // theme.colors.muted
-        marginTop: theme.space[boolean ? 'large' : size], // theme.space.large || theme.space.small
+        marginTop: theme.space[boolean ? 'large' : size] // theme.space.large || theme.space.small
       })}
     />
   )
@@ -268,22 +282,11 @@ variable or a return value of a function will **not** result in the negation of
 a theme value.
 
 ```jsx
+// This will NOT work.
 const Box = ({ isNegative }) => {
   const mySpace = isNegative ? '-large' : 'large'
 
   return <div mx={mySpace}>
-}
-```
-
-The above will not work since we are unable to know at build-time what `mySpace`
-will evaluate to. If you need behavior like above, consider something like this
-instead:
-
-```jsx
-const Box = ({ isNegative }) => {
-  const mySpace = 'large'
-
-  return <div mx={isNegative ? `-${mySpace}` : mySpace}>
 }
 ```
 
@@ -302,12 +305,12 @@ module.exports = {
       {
         stylingLibrary: 'styled-components',
         variants: {
-          boxStyle: 'boxStyles',
-        },
-      },
+          boxStyle: 'boxStyles'
+        }
+      }
     ],
-    'babel-plugin-styled-components',
-  ],
+    'babel-plugin-styled-components'
+  ]
 }
 ```
 
@@ -340,11 +343,157 @@ future, they will be able to support `theme` values.
 
 ### Use styleScale props
 
-> ⚠️ This feature is still in development.
+Use `scale` variants for any themeable style prop. `scale` style props allow you
+to specify a full set of responsive values for a style prop in a single key.
+This is useful for styles that usually change at each breakpoint such as font
+sizes or space values.
 
-Use `scale` variants for any style prop. `scale` style props allow you to
-specify a full set of responsive values for a style prop in a single key. This
-is particularly useful for maintaining space and font sizes across breakpoints.
+See below for an example:
+
+```jsx
+<div mScale="xl" />
+
+// transpiles to something like
+<div
+  css={theme => ({
+    margin: theme.spaceScales.xl[0],
+    "@media (min-width: 40em)": {
+      margin: theme.spaceScales.xl[1]
+    },
+    "@media (min-width: 52em)": {
+      margin: theme.spaceScales.xl[2]
+    },
+    "@media (min-width: 64em)": {
+      margin: theme.spaceScales.xl[3]
+    }
+  })}
+/>
+```
+
+Just like with normal style props, `scale` props can be overridden per
+breakpoint using an array, and can use `null` to skip over breakpoints.
+
+```jsx
+<div mScale={['xl', null, 'l']} />
+
+// transpiles to something like
+<div
+  css={theme => ({
+    margin: theme.spaceScales.xl[0],
+    "@media (min-width: 40em)": {
+      margin: theme.spaceScales.xl[1]
+    },
+    "@media (min-width: 52em)": {
+      margin: theme.spaceScales.l[2]
+    },
+    "@media (min-width: 64em)": {
+      margin: theme.spaceScales.l[3]
+    }
+  })}
+/>
+```
+
+Note how the `xl` scale still persists through the second breakpoint. Using
+scales, we can persist a scale for as long as need it, then override it when
+necessary!
+
+#### Defining scales in your theme
+
+Scales follow the same theme specification as detailed above, except each theme
+key has `Scales` appeneded to it. For example, to define the scales for font
+sizes, it would exist in your theme as `fontSizesScales`. The associated prop
+would be `fontSizeScale`.
+
+```jsx
+const theme = {
+  fontSizesScales: {
+    l: ['1rem', '1.15rem', '1.35rem', '1.5rem']
+  }
+}
+
+<p fontSizeScale="l" />
+```
+
+### Merges with existing `css` props.
+
+If a JSX element already has a `css` prop defined, this plugin will merge your
+style prop styles with existing styles in a `css` prop. Styles in a `css` prop
+will take priority over styles from style props.
+
+```jsx
+<div
+  m="3rem"
+  lineHeight={1.5}
+  css={{
+    color: 'red',
+    backgroundColor: 'blue'
+  }}
+/>
+
+// will result in something like:
+<div
+  css={theme => ({
+    margin: '3rem',
+    lineHeight: 1.5,
+    color: 'red',
+    backgroundColor: 'blue'
+  })}
+/>
+```
+
+#### `css` prop syntax
+
+This plugin will properly merge your styles as long as the existing `css` prop
+is written using object syntax or with a function call. Currently, merging with
+tagged template literals is **not supported**.
+
+```jsx
+// Plain object - can merge
+<div
+  css={{
+    color: 'red'
+  }}
+/>
+
+// Arrow function - can merge
+<div
+  css={theme => ({
+    color: 'red'
+  })}
+/>
+
+// Arrow function with return - can merge
+<div
+  css={theme => {
+    return {
+      color: 'red'
+    }
+  }}
+/>
+
+// Function - can merge
+<div
+  css={function(theme) {
+    return {
+      color: 'red'
+    }
+  }}
+/>
+
+// Destructured properties, arrow and plain - can merge
+<div
+  css={({ colors }) => {
+    color: colors.red
+  }}
+/>
+
+// Tagged template literal - CANNOT MERGE
+<div
+  css={`
+    color: red;
+  `}
+/>
+```
 
 ## Opinionated gotchas
 
@@ -366,11 +515,11 @@ module.exports = {
       'babel-plugin-style-props',
       {
         stylingLibrary: 'styled-components',
-        breakpoints: ['32rem', '60rem', '100rem'],
-      },
+        breakpoints: ['32rem', '60rem', '100rem']
+      }
     ],
-    'babel-plugin-styled-components',
-  ],
+    'babel-plugin-styled-components'
+  ]
 }
 ```
 
@@ -410,11 +559,11 @@ const theme = {
     primary: '#fff',
 
     'red.light': '#f0f',
-    'red.dark': '#0f0',
+    'red.dark': '#0f0'
   },
   lineHeights: {
-    copy: 1.5,
-  },
+    copy: 1.5
+  }
 }
 ```
 
@@ -457,10 +606,10 @@ uses any of the expected style prop names.
 > In general, a style prop is the `camelCase` equivalent of any CSS property
 > name.
 
-## Limitations
+### Incompatible with theme keys that start with `-` (hypen)
 
-- Cannot specify `theme` keys that begin with a `-` (hyphen). This plugin relies
-  on the hyphen preceeding a theme key to determine the negation of a scale.
+This plugin relies on the hyphen preceeding a theme key to determine the
+negation of a scale.
 
 ## License
 

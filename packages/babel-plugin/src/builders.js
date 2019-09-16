@@ -1,7 +1,13 @@
 import { types as t, traverse } from '@babel/core'
 
-import { SCALES_MAP, SYSTEM_ALIASES, INTERNAL_PROP_ID } from './constants'
-import { createMediaQuery, castArray, shouldSkipProp } from './utils'
+import {
+  THEME_MAP,
+  SCALE_THEME_MAP,
+  STYLE_ALIASES,
+  SCALE_ALIASES,
+  INTERNAL_PROP_ID
+} from './constants'
+import { createMediaQuery, castArray, times, shouldSkipProp } from './utils'
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
@@ -14,7 +20,7 @@ export const buildUndefinedConditionalFallback = (value, fallbackValue) => {
   return t.conditionalExpression(
     t.binaryExpression('!==', value, t.identifier('undefined')),
     value,
-    fallbackValue,
+    fallbackValue
   )
 }
 
@@ -28,7 +34,7 @@ export const buildUndefinedConditionalFallback = (value, fallbackValue) => {
  */
 export const buildVariableDeclaration = (type, left, right) => {
   return t.variableDeclaration(type, [
-    t.variableDeclarator(t.assignmentPattern(left, right)),
+    t.variableDeclarator(t.assignmentPattern(left, right))
   ])
 }
 
@@ -59,6 +65,7 @@ export const buildBaseValueAttr = attrValue => {
  * Given a css prop name and node, returns the equivalent theme aware
  * accessor expression.
  *
+ * @param {Object} context
  * @param {string} propName - Name of the prop being converted.
  * @param {Object} attrValue - Babel AST to convert.
  * @param {Object} options - Optional options for this utility.
@@ -71,13 +78,17 @@ export const buildThemeAwareExpression = (
   {
     withUndefinedFallback = true,
     withNegativeTransform = true,
+    withScales = false,
     mediaIndex = 0,
-  } = {},
+    scaleIndex = 0
+  } = {}
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
 
-  const scaleName = SCALES_MAP[propName] || variants[propName]
-  if (!scaleName) return attrValue
+  const themeKey = withScales
+    ? SCALE_THEME_MAP[propName]
+    : THEME_MAP[propName] || variants[propName]
+  if (!themeKey) return attrValue
 
   const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
   let stylingLibraryAttrValue = attrBaseValue // emotion
@@ -86,33 +97,40 @@ export const buildThemeAwareExpression = (
     stylingLibraryAttrValue = t.memberExpression(
       t.memberExpression(
         t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
-        t.identifier(propName),
+        t.identifier(propName)
       ),
-      t.numericLiteral(mediaIndex),
-      true,
+      t.numericLiteral(withScales ? scaleIndex : mediaIndex),
+      true
     )
 
   let themeExpression = t.memberExpression(
     t.memberExpression(
       t.identifier(themeIdentifierPath),
-      t.stringLiteral(scaleName),
-      true,
+      t.stringLiteral(themeKey),
+      true
     ),
     stylingLibraryAttrValue,
-    true,
+    true
   )
+
+  if (withScales)
+    themeExpression = t.memberExpression(
+      themeExpression,
+      t.numericLiteral(mediaIndex),
+      true
+    )
 
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
       themeExpression,
-      stylingLibraryAttrValue,
+      stylingLibraryAttrValue
     )
 
   if (withNegativeTransform && isNegative)
     themeExpression = t.binaryExpression(
       '+',
       t.stringLiteral('-'),
-      t.parenthesizedExpression(themeExpression),
+      t.parenthesizedExpression(themeExpression)
     )
 
   return themeExpression
@@ -123,6 +141,7 @@ export const buildThemeAwareExpression = (
  * the prop name as the key and the appropriate theme-aware accessor as it's
  * value.
  *
+ * @param {Object} context
  * @param {string} propName - Prop name to build
  * @param {Object} attrValue - Babel node to build into theme-aware accessor.
  * @param {Object} param2 - Optional options. Used for specifying the current media
@@ -132,11 +151,16 @@ export const buildCssObjectProp = (
   context,
   propName,
   attrValue,
-  { mediaIndex = 0 } = {},
+  { mediaIndex = 0, withScales = false, scaleIndex = 0 } = {}
 ) => {
   return t.objectProperty(
     t.identifier(propName),
-    buildThemeAwareExpression(context, propName, attrValue, { mediaIndex }),
+    buildThemeAwareExpression(context, propName, attrValue, {
+      mediaIndex,
+      withScales,
+      withUndefinedFallback: !withScales,
+      scaleIndex
+    })
   )
 }
 
@@ -145,6 +169,7 @@ export const buildCssObjectProp = (
  * e.g. adding it to our private-prop accumulator for `styled-components`.
  * @private
  *
+ * @param {Object} context
  * @param {string} propName - The name of the system prop to process.
  * @param {Object} attrValue - The Babel node to process.
  */
@@ -160,22 +185,55 @@ const _preprocessProp = (context, propName, attrValue) => {
 }
 
 /**
- * Builds an array of theme-aware babel Object Properties for the `css`
- * prop from a list of system-prop-JSX attribute nodes.
+ * Normalizes a list scale prop elements to no longer contain
+ * any null values. Null values will inherit the `firstLeft`
+ * non-null property.
  *
+ * @example ['l', null, 'm'] => ['l', 'l', 'm']
+ *
+ * @param {Object} context
+ * @param {Array} elements - The element array from a scale prop.
+ * @returns The normalized scale value array.
+ */
+const _normalizeScaleElements = (context, elements) => {
+  const { breakpoints } = context
+
+  const unNulledElements = times(i => {
+    if (t.isNullLiteral(elements[i]) || elements[i] === undefined) {
+      elements[i] = elements[i - 1] || t.nullLiteral()
+    }
+
+    return elements[i]
+  }, breakpoints.length + 1)
+
+  return unNulledElements
+}
+
+/**
+ * Builds an array of theme-aware babel Object Properties for the `css`
+ * prop from a list of style prop attributes.
+ *
+ * @param {Object} context
  * @param {Array} attrNodes - Array of JSX attributes.
- * @param {Array} breakpoints - Media query breakpoints.
+ * @param {Object} options
  * @returns An array with the theme aware object properties.
  */
-export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
-  const { variants } = context
+export const buildCssObjectProperties = (
+  context,
+  attrNodes,
+  { withScales = false } = {}
+) => {
+  const { variants, breakpoints } = context
   const baseResult = []
-  const responsiveResults = []
+  const responsiveResults = breakpoints.map(() => [])
 
   attrNodes.forEach(attrNode => {
     const attrName = attrNode.name.name
     const attrValue = attrNode.value
-    const cssPropertyNames = castArray(SYSTEM_ALIASES[attrName] || attrName)
+
+    const cssPropertyNames = withScales
+      ? castArray(SCALE_ALIASES[attrName])
+      : castArray(STYLE_ALIASES[attrName] || attrName)
 
     if (t.isJSXExpressionContainer(attrValue)) {
       // e.g prop={}
@@ -183,8 +241,12 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
 
       if (t.isArrayExpression(expression)) {
         // e.g. prop={['test', null, 'test2']}
-        expression.elements.forEach((element, i) => {
-          responsiveResults[i] = responsiveResults[i] || []
+        const elements = withScales
+          ? _normalizeScaleElements(context, expression.elements)
+          : expression.elements
+
+        elements.forEach((element, i) => {
+          if (i > breakpoints.length) return
 
           const resultArr = i === 0 ? baseResult : responsiveResults[i - 1]
 
@@ -194,8 +256,10 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
 
             resultArr.push(
               buildCssObjectProp(context, cssPropertyName, element, {
-                mediaIndex: i,
-              }),
+                withScales,
+                scaleIndex: i,
+                mediaIndex: i
+              })
             )
           })
         })
@@ -206,8 +270,22 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
           if (shouldSkipProp(expression)) return
 
           baseResult.push(
-            buildCssObjectProp(context, cssPropertyName, expression),
+            buildCssObjectProp(context, cssPropertyName, expression, {
+              withScales
+            })
           )
+
+          if (withScales) {
+            breakpoints.forEach((_, i) => {
+              responsiveResults[i].push(
+                buildCssObjectProp(context, cssPropertyName, expression, {
+                  withScales,
+                  mediaIndex: i + 1,
+                  scaleIndex: 0
+                })
+              )
+            })
+          }
         })
       }
     } else {
@@ -218,41 +296,92 @@ export const buildCssObjectProperties = (context, attrNodes, breakpoints) => {
         _preprocessProp(context, cssPropertyName, attrValue)
         if (shouldSkipProp(attrValue)) return
 
-        if (isVariant)
+        if (isVariant) {
           baseResult.push(
             t.spreadElement(
               buildThemeAwareExpression(context, cssPropertyName, attrValue, {
                 withUndefinedFallback: false,
-                withNegativeTransform: false,
-              }),
-            ),
+                withNegativeTransform: false
+              })
+            )
           )
-        else
+        } else {
           baseResult.push(
-            buildCssObjectProp(context, cssPropertyName, attrValue),
+            buildCssObjectProp(context, cssPropertyName, attrValue, {
+              withScales
+            })
           )
+
+          if (withScales) {
+            breakpoints.forEach((_, i) => {
+              responsiveResults[i].push(
+                buildCssObjectProp(context, cssPropertyName, attrValue, {
+                  withScales,
+                  mediaIndex: i + 1,
+                  scaleIndex: 0
+                })
+              )
+            })
+          }
+        }
       })
     }
   })
 
-  const keyedResponsiveResults = responsiveResults
-    .map((objectPropertiesForBreakpoint, i) => {
-      const mediaQuery = createMediaQuery(breakpoints[i])
+  return [...baseResult, ...responsiveResults]
+}
 
-      return t.objectProperty(
-        t.stringLiteral(mediaQuery),
-        t.objectExpression(objectPropertiesForBreakpoint),
+/**
+ * From an array of theme aware object properties, returns a new array
+ * containing a keyed set of object properties by mediaquery.
+ *
+ * @param {Object} context
+ * @param {Array} properties - Array of css object properties.
+ *
+ * @returns The array of keyed object properties.
+ */
+export const buildKeyedCssObjectProperties = (context, properties) => {
+  const { breakpoints } = context
+  const responsiveCssObjectProperties = [[], ...breakpoints.map(() => [])]
+  const result = []
+
+  let mediaIndex = 0
+
+  properties.forEach(property => {
+    if (t.isObjectProperty(property) || t.isSpreadElement(property))
+      responsiveCssObjectProperties[0].push(property)
+    else if (property.length) {
+      property.forEach(responsiveProperty =>
+        responsiveCssObjectProperties[mediaIndex + 1].push(responsiveProperty)
       )
-    })
-    .filter(results => results.value.properties.length)
+      mediaIndex = (mediaIndex + 1) % breakpoints.length
+    } else {
+      mediaIndex = (mediaIndex + 1) % breakpoints.length
+    }
+  })
 
-  return [...baseResult, ...keyedResponsiveResults]
+  responsiveCssObjectProperties.forEach((objectPropertiesForBreakpoint, i) => {
+    if (i === 0) result.push(...objectPropertiesForBreakpoint)
+    else if (objectPropertiesForBreakpoint.length) {
+      const mediaQuery = createMediaQuery(breakpoints[i - 1])
+
+      result.push(
+        t.objectProperty(
+          t.stringLiteral(mediaQuery),
+          t.objectExpression(objectPropertiesForBreakpoint)
+        )
+      )
+    }
+  })
+
+  return result
 }
 
 /**
  * Builds the JSX AST for the `css` prop given a list of
  * object property ASTs.
  *
+ * @param {Object} context
  * @param {Array} objectProperties - List of object properties.
  * @returns A JSX attribute AST for the `css` prop.
  */
@@ -264,9 +393,9 @@ export const buildCssAttr = (context, objectProperties) => {
     t.jSXExpressionContainer(
       t.arrowFunctionExpression(
         [t.identifier(themeIdentifier)],
-        t.objectExpression(objectProperties),
-      ),
-    ),
+        t.objectExpression(objectProperties)
+      )
+    )
   )
 }
 
@@ -279,6 +408,7 @@ export const buildCssAttr = (context, objectProperties) => {
  * function expression's parameters or destructured parameters that are used
  * in the function expression body or return statement.
  *
+ * @param {Object} context
  * @param {Object} expression - Babel function/arrow function expression node.
  * @returns The tuple of body statements and return statement.
  */
@@ -298,10 +428,10 @@ const _extractAndCleanFunctionParts = (context, expression) => {
           if (path.node.name === exisitingParamName) {
             path.node.name = themeIdentifier
           }
-        },
+        }
       },
       expression,
-      functionParam.name,
+      functionParam.name
     )
   } else if (t.isObjectPattern(functionParam)) {
     // e.g. css={({ colors, theme }) => }
@@ -309,8 +439,8 @@ const _extractAndCleanFunctionParts = (context, expression) => {
       buildVariableDeclaration(
         'const',
         functionParam,
-        t.identifier(themeIdentifier),
-      ),
+        t.identifier(themeIdentifier)
+      )
     ]
   }
 
@@ -320,10 +450,10 @@ const _extractAndCleanFunctionParts = (context, expression) => {
   } else if (t.isBlockStatement(functionBody)) {
     // e.g. css={theme => { return { ... } }}
     const exisitingBodyStatements = functionBody.body.filter(
-      node => !t.isReturnStatement(node),
+      node => !t.isReturnStatement(node)
     )
     const returnStatement = functionBody.body.find(node =>
-      t.isReturnStatement(node),
+      t.isReturnStatement(node)
     )
 
     bodyStatements = [...bodyStatements, ...exisitingBodyStatements]
@@ -337,6 +467,7 @@ const _extractAndCleanFunctionParts = (context, expression) => {
  * Builds a merged `css` prop given a list of theme aware object properties and
  * the existing CSS prop Babel node.
  *
+ * @param {Object} context
  * @param {Array} objectProperties - Theme aware object properties.
  * @param {Object} existingCssAttr - The Babel node of an existing `css` prop.
  * @returns The merged `css` prop node.
@@ -344,7 +475,7 @@ const _extractAndCleanFunctionParts = (context, expression) => {
 export const buildMergedCssAttr = (
   context,
   objectProperties,
-  existingCssAttr,
+  existingCssAttr
 ) => {
   const { themeIdentifier } = context
 
@@ -357,7 +488,7 @@ export const buildMergedCssAttr = (
   else if (t.isFunction(existingExpression)) {
     const [
       extractedBodyStatements,
-      returnObjectProperties,
+      returnObjectProperties
     ] = _extractAndCleanFunctionParts(context, existingExpression)
 
     bodyStatements = extractedBodyStatements
@@ -374,10 +505,10 @@ export const buildMergedCssAttr = (
         hasBodyStatements
           ? t.blockStatement([
               ...bodyStatements,
-              t.returnStatement(t.objectExpression(mergedProperties)),
+              t.returnStatement(t.objectExpression(mergedProperties))
             ])
-          : t.objectExpression(mergedProperties),
-      ),
-    ),
+          : t.objectExpression(mergedProperties)
+      )
+    )
   )
 }

@@ -1,5 +1,8 @@
 import React from 'react'
 
-export const Hello = () => {
-  return <div boxStyle="primary" p="large" />
+export const Hello = ({ ...props }) => {
+  const bool = true
+  const size = 'large'
+
+  return <div m="-large" />
 }

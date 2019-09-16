@@ -21,7 +21,7 @@ export const DEFAULT_OPTIONS = {
   variants: {},
 }
 
-export const SYSTEM_ALIASES = {
+export const STYLE_ALIASES = {
   bg: 'backgroundColor',
   m: 'margin',
   mt: 'marginTop',
@@ -44,6 +44,14 @@ export const SYSTEM_ALIASES = {
   px: ['paddingLeft', 'paddingRight'],
   py: ['paddingTop', 'paddingBottom'],
 }
+
+export const SCALE_ALIASES = Object.entries(STYLE_ALIASES).reduce(
+  (acc, [key, value]) => ({
+    ...acc,
+    [key + 'Scale']: value,
+  }),
+  {},
+)
 
 const cssProperties = cssProps.all
   .filter(prop => !/^-/.test(prop))
@@ -93,7 +101,7 @@ const propNames = [
   'paddingY',
 ]
 
-export const SYSTEM_PROPS = propNames.reduce(
+export const STYLE_PROPS = propNames.reduce(
   (acc, key) => ({
     ...acc,
     [key]: true,
@@ -101,7 +109,15 @@ export const SYSTEM_PROPS = propNames.reduce(
   {},
 )
 
-export const SCALES_MAP = {
+export const SCALE_PROPS = propNames.reduce(
+  (acc, key) => ({
+    ...acc,
+    [key + 'Scale']: true,
+  }),
+  {},
+)
+
+export const THEME_MAP = {
   // SPACE
   padding: 'space',
   margin: 'space',
@@ -190,3 +206,11 @@ export const SCALES_MAP = {
   boxShadow: 'shadows',
   textShadow: 'shadows',
 }
+
+export const SCALE_THEME_MAP = Object.entries(THEME_MAP).reduce(
+  (acc, [key, value]) => ({
+    ...acc,
+    [key]: value + 'Scales',
+  }),
+  {},
+)
