@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.6](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.5...v0.1.6) (2019-09-16)
+
+
+### Bug Fixes
+
+* array scales propagate down ([bf3be90](https://github.com/asyarb/babel-plugin-style-props/commit/bf3be90))
+* ensure removal of scale props ([afbf96c](https://github.com/asyarb/babel-plugin-style-props/commit/afbf96c))
+* handle jsx spread attributes on jsx elements ([ba0a05c](https://github.com/asyarb/babel-plugin-style-props/commit/ba0a05c))
+* opt out of trailing commas ([bdb7d49](https://github.com/asyarb/babel-plugin-style-props/commit/bdb7d49))
+* responsive scale props in SC ([2f2fcbf](https://github.com/asyarb/babel-plugin-style-props/commit/2f2fcbf))
+
+
+### Features
+
+* document buildKeyedCssObjectPropeties ([22293c0](https://github.com/asyarb/babel-plugin-style-props/commit/22293c0))
+* emotion example ([ec63dfb](https://github.com/asyarb/babel-plugin-style-props/commit/ec63dfb))
+* filter empty responsive keys ([4091f9b](https://github.com/asyarb/babel-plugin-style-props/commit/4091f9b))
+* jsdoc context ([3ede88c](https://github.com/asyarb/babel-plugin-style-props/commit/3ede88c))
+* negative scales ([b55e574](https://github.com/asyarb/babel-plugin-style-props/commit/b55e574))
+* place back babel configs ([ddeec47](https://github.com/asyarb/babel-plugin-style-props/commit/ddeec47))
+* responsive scale prop merging in builders ([cb0ccec](https://github.com/asyarb/babel-plugin-style-props/commit/cb0ccec))
+* scale docs and theme reorg ([ff3d570](https://github.com/asyarb/babel-plugin-style-props/commit/ff3d570))
+* scale support ([d8ef28b](https://github.com/asyarb/babel-plugin-style-props/commit/d8ef28b))
+* setup for scale processing ([acfaa82](https://github.com/asyarb/babel-plugin-style-props/commit/acfaa82))
+
 ### [0.1.5](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.4...v0.1.5) (2019-09-13)
 
 ### [0.1.4](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.3...v0.1.4) (2019-09-13)
