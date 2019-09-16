@@ -366,7 +366,6 @@ describe('styled-components', () => {
         theme.fontWeights.normal.toString()
       )
       expect(json).toHaveStyleRule('margin', theme.space[5])
-      // explictly defined here beacuse css prop trims white space.
       expect(json).toHaveStyleRule(
         'box-shadow',
         'rgba(0,0,0,0.15) 0px 20px 40px'
@@ -381,7 +380,7 @@ describe('styled-components', () => {
     })
 
     it('handles style-scale props', () => {
-      const tree = customRender(<div mScale="xl" />)
+      const tree = customRender(<div mScale="xl" pScale={[null, null, 'l']} />)
       const json = tree.toJSON()
 
       expect(json).toMatchInlineSnapshot(`
@@ -398,12 +397,14 @@ describe('styled-components', () => {
         @media screen and (min-width:52em) {
           .c0 {
             margin: 3rem;
+            padding: 1.5rem;
           }
         }
 
         @media screen and (min-width:64em) {
           .c0 {
             margin: 4rem;
+            padding: 2rem;
           }
         }
 
@@ -710,31 +711,52 @@ describe('styled-components', () => {
       <div
         m={[null, '1rem', -4]}
         p="3rem"
-        py={['4rem', '5rem']}
-        marginBottom="3rem"
+        ptScale={['xl', null, 'l']}
         bg="#f0f"
         color="#fff"
+        lineHeight="copy"
+        fontWeight="normal"
+        boxShadow="card"
+        maxWidth="small"
       />
     )
     const json = tree.toJSON()
 
-    expect(json).toHaveStyleRule('margin', '1rem', {
-      media: 'screen and (min-width: 40em)'
-    })
-    expect(json).toHaveStyleRule('margin', '-.75rem', {
-      media: 'screen and (min-width: 52em)'
-    })
-    expect(json).toHaveStyleRule('padding', '3rem')
-    expect(json).toHaveStyleRule('padding-top', '4rem')
-    expect(json).toHaveStyleRule('padding-bottom', '4rem')
-    expect(json).toHaveStyleRule('padding-top', '5rem', {
-      media: 'screen and (min-width: 40em)'
-    })
-    expect(json).toHaveStyleRule('padding-bottom', '5rem', {
-      media: 'screen and (min-width: 40em)'
-    })
-    expect(json).toHaveStyleRule('margin-bottom', '3rem')
-    expect(json).toHaveStyleRule('background-color', '#f0f')
-    expect(json).toHaveStyleRule('color', '#fff')
+    expect(json).toMatchInlineSnapshot(`
+      .c0 {
+        padding-top: 1rem;
+        padding: 3rem;
+        background-color: #f0f;
+        color: #fff;
+        line-height: 1.5;
+        font-weight: 400;
+        box-shadow: rgba(0,0,0,0.15) 0px 20px 40px;
+        max-width: 40rem;
+      }
+
+      @media screen and (min-width:40em) {
+        .c0 {
+          padding-top: 2rem;
+          margin: 1rem;
+        }
+      }
+
+      @media screen and (min-width:52em) {
+        .c0 {
+          padding-top: 1.5rem;
+          margin: -.75rem;
+        }
+      }
+
+      @media screen and (min-width:64em) {
+        .c0 {
+          padding-top: 2rem;
+        }
+      }
+
+      <div
+        className="c0"
+      />
+    `)
   })
 })
