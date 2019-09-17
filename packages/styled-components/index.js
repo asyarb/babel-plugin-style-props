@@ -1,10 +1,9 @@
 import React from 'react'
 
+const linearScale = () => {}
+
 export const Hello = ({ ...props }) => {
-  return (
-    <div
-      mScale={linearScale('3rem', '2rem', { count: 4 })}
-      pScale={['1rem', null, '3rem', '4rem']}
-    />
-  )
+  const myScale = linearScale('3rem', '4rem', { count: 5 })
+
+  return <div pScale={[myScale, null, 'xl']} />
 }

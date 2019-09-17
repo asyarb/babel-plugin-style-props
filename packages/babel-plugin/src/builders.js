@@ -17,26 +17,36 @@ import {
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
+ * This function got reeeeallyy ugly from scale support. Needs refactoring.
  *
+ * @param {Object} context
  * @param {Object} value - babel AST to truthily use.
  * @param {Object} fallbackValue - babel AST to falsily use.
  * @param {Object} options
  * @returns The conditional fallback babel AST.
  */
 export const buildUndefinedConditionalFallback = (
+  context,
   value,
   fallbackValue,
   { withScales = false, mediaIndex = 0 } = {}
 ) => {
-  const fallback =
-    withScales && !isStaticNode(fallbackValue)
-      ? t.memberExpression(fallbackValue, t.numericLiteral(mediaIndex), true)
-      : fallbackValue
+  const { stylingLibrary } = context
+  const needsScaleFallback = withScales && !isStaticNode(fallbackValue)
+
+  const falseValue = needsScaleFallback
+    ? t.memberExpression(fallbackValue, t.numericLiteral(mediaIndex), true)
+    : fallbackValue
+
+  const trueValue =
+    needsScaleFallback && stylingLibrary !== 'styled-components'
+      ? t.memberExpression(value, t.numericLiteral(mediaIndex), true)
+      : value
 
   return t.conditionalExpression(
     t.binaryExpression('!==', value, t.identifier('undefined')),
-    value,
-    fallback
+    trueValue,
+    falseValue
   )
 }
 
@@ -129,7 +139,7 @@ export const buildThemeAwareExpression = (
     true
   )
 
-  if (withScales)
+  if (withScales && isStaticNode(attrBaseValue))
     themeExpression = t.memberExpression(
       themeExpression,
       t.numericLiteral(mediaIndex),
@@ -138,6 +148,7 @@ export const buildThemeAwareExpression = (
 
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
+      context,
       themeExpression,
       stylingLibraryAttrValue,
       { withScales, mediaIndex }
