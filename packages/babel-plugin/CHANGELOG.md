@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.6...v0.1.7) (2019-09-17)
+
+
+### Bug Fixes
+
+* scale fallbacks ([3c3dca6](https://github.com/asyarb/babel-plugin-style-props/commit/3c3dca6))
+
+
+### Features
+
+* cleanup sc code ([0e5f518](https://github.com/asyarb/babel-plugin-style-props/commit/0e5f518))
+* fix scales again ([f5cb695](https://github.com/asyarb/babel-plugin-style-props/commit/f5cb695))
+* undefined fallbacks for scale props ([296170d](https://github.com/asyarb/babel-plugin-style-props/commit/296170d))
+
 ### [0.1.6](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.5...v0.1.6) (2019-09-16)
 
 
