@@ -17,36 +17,27 @@ import {
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
- * This function got reeeeallyy ugly from scale support. Needs refactoring.
  *
- * @param {Object} context
+ * This function got REALLY ugly from scale support. Needs refactoring.
+ *
  * @param {Object} value - babel AST to truthily use.
  * @param {Object} fallbackValue - babel AST to falsily use.
  * @param {Object} options
  * @returns The conditional fallback babel AST.
  */
 export const buildUndefinedConditionalFallback = (
-  context,
   value,
   fallbackValue,
   { withScales = false, mediaIndex = 0 } = {}
 ) => {
-  const { stylingLibrary } = context
-  const needsScaleFallback = withScales && !isStaticNode(fallbackValue)
-
-  const falseValue = needsScaleFallback
-    ? t.memberExpression(fallbackValue, t.numericLiteral(mediaIndex), true)
-    : fallbackValue
-
-  const trueValue =
-    needsScaleFallback && stylingLibrary !== 'styled-components'
-      ? t.memberExpression(value, t.numericLiteral(mediaIndex), true)
-      : value
+  const truthyValue = withScales
+    ? t.memberExpression(value, t.numericLiteral(mediaIndex), true)
+    : value
 
   return t.conditionalExpression(
     t.binaryExpression('!==', value, t.identifier('undefined')),
-    trueValue,
-    falseValue
+    truthyValue,
+    fallbackValue
   )
 }
 
@@ -91,6 +82,8 @@ export const buildBaseValueAttr = attrValue => {
  * Given a css prop name and node, returns the equivalent theme aware
  * accessor expression.
  *
+ * This function got REALLY ugly from scale support. Needs refactoring.
+ *
  * @param {Object} context
  * @param {string} propName - Name of the prop being converted.
  * @param {Object} attrValue - Babel AST to convert.
@@ -117,17 +110,21 @@ export const buildThemeAwareExpression = (
   if (!themeKey) return attrValue
 
   const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
-  let stylingLibraryAttrValue = attrBaseValue // emotion
 
-  if (stylingLibrary === 'styled-components' && propsToPass[propName])
-    stylingLibraryAttrValue = t.memberExpression(
-      t.memberExpression(
-        t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
-        t.identifier(propName)
-      ),
-      t.numericLiteral(withScales ? scaleIndex : mediaIndex),
-      true
-    )
+  let stylingLibraryBaseValue = attrBaseValue // emotion
+
+  // NEEDS REFACTOR
+  if (stylingLibrary === 'styled-components' && propsToPass[propName]) {
+      stylingLibraryBaseValue = t.memberExpression(
+        t.memberExpression(
+          t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
+          t.identifier(propName)
+        ),
+        t.numericLiteral(withScales ? scaleIndex : mediaIndex),
+        true
+      )
+    }
+  }
 
   let themeExpression = t.memberExpression(
     t.memberExpression(
@@ -135,22 +132,22 @@ export const buildThemeAwareExpression = (
       t.stringLiteral(themeKey),
       true
     ),
-    stylingLibraryAttrValue,
+    stylingLibraryBaseValue,
     true
   )
 
-  if (withScales && isStaticNode(attrBaseValue))
-    themeExpression = t.memberExpression(
-      themeExpression,
+  if (withScales) {
+    stylingLibraryBaseValue = t.memberExpression(
+      stylingLibraryBaseValue,
       t.numericLiteral(mediaIndex),
       true
     )
+  }
 
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
-      context,
       themeExpression,
-      stylingLibraryAttrValue,
+      stylingLibraryBaseValue,
       { withScales, mediaIndex }
     )
 
