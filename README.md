@@ -415,7 +415,9 @@ const theme = {
 <p fontSizeScale="l" />
 ```
 
-> ⚠️ A `scale` prop can **only** accept arrays, or theme keys that correspond to
+> ⚠️ **Heads up!**
+>
+> A `scale` prop can **only** accept arrays, or theme keys that correspond to
 > arrays in your `theme`.
 
 If you intend to use raw CSS properties like `3rem`, use a plain style prop
