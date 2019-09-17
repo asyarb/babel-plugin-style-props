@@ -7,20 +7,36 @@ import {
   SCALE_ALIASES,
   INTERNAL_PROP_ID
 } from './constants'
-import { createMediaQuery, castArray, times, shouldSkipProp } from './utils'
+import {
+  createMediaQuery,
+  castArray,
+  times,
+  shouldSkipProp,
+  isStaticNode
+} from './utils'
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
  *
  * @param {Object} value - babel AST to truthily use.
  * @param {Object} fallbackValue - babel AST to falsily use.
+ * @param {Object} options
  * @returns The conditional fallback babel AST.
  */
-export const buildUndefinedConditionalFallback = (value, fallbackValue) => {
+export const buildUndefinedConditionalFallback = (
+  value,
+  fallbackValue,
+  { withScales = false, mediaIndex = 0 } = {}
+) => {
+  const fallback =
+    withScales && !isStaticNode(fallbackValue)
+      ? t.memberExpression(fallbackValue, t.numericLiteral(mediaIndex), true)
+      : fallbackValue
+
   return t.conditionalExpression(
     t.binaryExpression('!==', value, t.identifier('undefined')),
     value,
-    fallbackValue
+    fallback
   )
 }
 
@@ -123,7 +139,8 @@ export const buildThemeAwareExpression = (
   if (withUndefinedFallback)
     themeExpression = buildUndefinedConditionalFallback(
       themeExpression,
-      stylingLibraryAttrValue
+      stylingLibraryAttrValue,
+      { withScales, mediaIndex }
     )
 
   if (withNegativeTransform && isNegative)
@@ -158,7 +175,6 @@ export const buildCssObjectProp = (
     buildThemeAwareExpression(context, propName, attrValue, {
       mediaIndex,
       withScales,
-      withUndefinedFallback: !withScales,
       scaleIndex
     })
   )
