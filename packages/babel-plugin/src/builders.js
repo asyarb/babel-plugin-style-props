@@ -7,18 +7,11 @@ import {
   SCALE_ALIASES,
   INTERNAL_PROP_ID
 } from './constants'
-import {
-  createMediaQuery,
-  castArray,
-  times,
-  shouldSkipProp,
-  isStaticNode
-} from './utils'
+import { createMediaQuery, castArray, times, shouldSkipProp } from './utils'
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
  *
- * This function got REALLY ugly from scale support. Needs refactoring.
  *
  * @param {Object} value - babel AST to truthily use.
  * @param {Object} fallbackValue - babel AST to falsily use.
@@ -110,20 +103,17 @@ export const buildThemeAwareExpression = (
   if (!themeKey) return attrValue
 
   const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
-
   let stylingLibraryBaseValue = attrBaseValue // emotion
 
-  // NEEDS REFACTOR
   if (stylingLibrary === 'styled-components' && propsToPass[propName]) {
-      stylingLibraryBaseValue = t.memberExpression(
-        t.memberExpression(
-          t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
-          t.identifier(propName)
-        ),
-        t.numericLiteral(withScales ? scaleIndex : mediaIndex),
-        true
-      )
-    }
+    stylingLibraryBaseValue = t.memberExpression(
+      t.memberExpression(
+        t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
+        t.identifier(propName)
+      ),
+      t.numericLiteral(withScales ? scaleIndex : mediaIndex),
+      true
+    )
   }
 
   let themeExpression = t.memberExpression(
@@ -144,19 +134,21 @@ export const buildThemeAwareExpression = (
     )
   }
 
-  if (withUndefinedFallback)
+  if (withUndefinedFallback) {
     themeExpression = buildUndefinedConditionalFallback(
       themeExpression,
       stylingLibraryBaseValue,
       { withScales, mediaIndex }
     )
+  }
 
-  if (withNegativeTransform && isNegative)
+  if (withNegativeTransform && isNegative) {
     themeExpression = t.binaryExpression(
       '+',
       t.stringLiteral('-'),
       t.parenthesizedExpression(themeExpression)
     )
+  }
 
   return themeExpression
 }

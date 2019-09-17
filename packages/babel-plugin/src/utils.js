@@ -84,15 +84,3 @@ export const notStyleProps = (context, attrs) => {
  * @returns `true` if it is skippable, `false` otherwise.
  */
 export const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
-
-/**
- * Checks if the provided Babel node is a static value. E.g. `"test"`, `1`, `null`, etc.
- *
- * @param {Object} node - Babel node to check.
- * @returns `true` if it is static, `false` otherwise.
- */
-export const isStaticNode = node => {
-  return (
-    t.isStringLiteral(node) || t.isNumericLiteral(node) || t.isNullLiteral(node)
-  )
-}

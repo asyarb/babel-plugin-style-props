@@ -3,7 +3,8 @@ import React from 'react'
 const linearScale = () => {}
 
 export const Hello = ({ ...props }) => {
-  const myScale = 'l'
+  const myConst = 'l'
+  const myScale = linearScale('3rem', '4rem', { count: 4 })
 
-  return <div pScale={[myScale, null, 'xl']} />
+  return <div mtScale={[myConst, 'l', null, myScale]} />
 }
