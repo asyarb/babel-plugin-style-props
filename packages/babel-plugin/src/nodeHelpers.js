@@ -15,26 +15,6 @@ export const buildVariableDeclaration = (type, left, right) => {
 }
 
 /**
- * Builds a babel AST like the following: `testExpression !== undefined ? truthyValue : falseyValue`.
- *
- * @param {Object} testExpression - expression to check for `undefined`.
- * @param {Object} truthyValue - babel node for the truthy condition
- * @param {Object} falseyValue - babel node for the falsey condition
- * @returns The conditional AST.
- */
-export const buildUndefinedConditionalFallback = (
-  testExpression,
-  truthyValue,
-  falseyValue
-) => {
-  return t.conditionalExpression(
-    t.binaryExpression('!==', testExpression, t.identifier('undefined')),
-    truthyValue,
-    falseyValue
-  )
-}
-
-/**
  * Builds a babel AST like the following: `obj["firstKey"][secondKey]`.
  *
  * @param {Object} obj.

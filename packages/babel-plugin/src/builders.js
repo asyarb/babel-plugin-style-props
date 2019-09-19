@@ -16,38 +16,8 @@ import {
 } from './utils'
 import {
   buildVariableDeclaration,
-  buildUndefinedConditionalFallback,
   buildNestedComputedMemberExpression
 } from './nodeHelpers'
-
-/**
- * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
- *
- * @param {Object} value - babel AST to truthily use.
- * @param {Object} fallbackValue - babel AST to falsily use.
- * @param {Object} options
- * @returns The conditional fallback babel AST.
- */
-export const buildThemedConditionalFallback = (
-  value,
-  fallbackValue,
-  { withScales = false, isStatic = false, mediaIndex, baseThemeExpression } = {}
-) => {
-  let truthyValue = value
-  let falseyValue = fallbackValue
-
-  if (withScales)
-    truthyValue = t.memberExpression(value, t.numericLiteral(mediaIndex), true)
-  if (!isStatic && withScales) {
-    falseyValue = buildUndefinedConditionalFallback(
-      baseThemeExpression,
-      baseThemeExpression,
-      fallbackValue
-    )
-  }
-
-  return buildUndefinedConditionalFallback(value, truthyValue, falseyValue)
-}
 
 /**
  * Processes an attribute node and returns the value, stripping any
@@ -100,7 +70,6 @@ export const buildThemeAwareExpression = (
   propName,
   attrValue,
   {
-    withUndefinedFallback = true,
     withNegativeTransform = true,
     withScales = false,
     mediaIndex = 0,
@@ -111,6 +80,7 @@ export const buildThemeAwareExpression = (
 
   const scaleThemeKey = SCALE_THEME_MAP[propName]
   const baseThemeKey = THEME_MAP[propName] || variants[propName]
+  const isVariant = Boolean(variants[propName])
 
   if (!baseThemeKey && !scaleThemeKey) return attrValue
 
@@ -140,11 +110,7 @@ export const buildThemeAwareExpression = (
   }
 
   let themeExpressions = [
-    buildNestedComputedMemberExpression(
-      themeIdentifierPath,
-      scaleThemeKey,
-      stylingLibraryBaseValue
-    ),
+    null,
     buildNestedComputedMemberExpression(
       themeIdentifierPath,
       baseThemeKey,
@@ -152,18 +118,22 @@ export const buildThemeAwareExpression = (
     )
   ]
 
-  if (withUndefinedFallback) {
-    const [, baseThemeExpression] = themeExpressions
+  if (!isVariant)
+    themeExpressions = [
+      t.callExpression(t.identifier('__getDynamicValue'), [
+        t.identifier(themeIdentifierPath),
+        t.stringLiteral(scaleThemeKey),
+        t.stringLiteral(baseThemeKey),
+        stylingLibraryBaseValue,
+        t.numericLiteral(mediaIndex)
+      ]),
 
-    themeExpressions = themeExpressions.map(expression =>
-      buildThemedConditionalFallback(expression, stylingLibraryBaseValue, {
-        withScales,
-        isStatic,
-        mediaIndex,
-        baseThemeExpression
-      })
-    )
-  }
+      t.callExpression(t.identifier('__getStaticValue'), [
+        t.identifier(themeIdentifierPath),
+        t.stringLiteral(baseThemeKey),
+        stylingLibraryBaseValue
+      ])
+    ]
 
   if (withNegativeTransform && isNegative) {
     themeExpressions = themeExpressions.map(expression =>
@@ -344,7 +314,6 @@ export const buildCssObjectProperties = (
           baseResult.push(
             t.spreadElement(
               buildThemeAwareExpression(context, cssPropertyName, attrValue, {
-                withUndefinedFallback: false,
                 withNegativeTransform: false
               })
             )

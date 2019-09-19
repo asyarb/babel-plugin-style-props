@@ -46,9 +46,9 @@ Use theme aware style props on any JSX element.
 - Use values from your `<ThemeProvider>` and `theme`, or just use raw CSS units
   and properties.
 - Use arrays for responsive styles.
-- Performant. Equivalent to using `styled-components` or `emotion` directly.
+- Performant. Close to using `styled-components` or `emotion` directly.
 - Customizable variants.
-- Removes style props from rendered HTML.
+- Removes all style props from rendered HTML.
 
 ## Getting Started
 
