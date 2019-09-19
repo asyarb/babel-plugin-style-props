@@ -12,6 +12,7 @@ import {
   buildCssAttr,
   buildMergedCssAttr
 } from './builders'
+import pkg from '../package.json'
 
 /**
  * Primary visitor. Visits all JSX components transpiles any system
@@ -23,7 +24,8 @@ import {
  * to the generated `styled.div`, etc.
  */
 const jsxOpeningElementVisitor = {
-  JSXOpeningElement(path, { optionsContext }) {
+  JSXOpeningElement(path, state) {
+    const optionsContext = state.get('optionsContext')
     const allAttrs = path.node.attributes
     if (!allAttrs.length) return
 
@@ -86,6 +88,8 @@ const jsxOpeningElementVisitor = {
         )
       )
     }
+
+    state.set('fileHasStylePropsInJSX', true)
   }
 }
 
@@ -120,8 +124,31 @@ export default (_, opts) => {
   return {
     name: 'styled-props',
     visitor: {
-      Program(path) {
-        path.traverse(jsxOpeningElementVisitor, { optionsContext })
+      Program: {
+        enter(path, state) {
+          state.set('optionsContext', optionsContext)
+          path.traverse(jsxOpeningElementVisitor, state)
+        },
+        exit(path, state) {
+          if (!state.get('fileHasStylePropsInJSX')) return
+
+          path.unshiftContainer(
+            'body',
+            t.importDeclaration(
+              [
+                t.importSpecifier(
+                  t.identifier('__getStaticValue'),
+                  t.identifier('getStaticValue')
+                ),
+                t.importSpecifier(
+                  t.identifier('__getDynamicValue'),
+                  t.identifier('getDynamicValue')
+                )
+              ],
+              t.stringLiteral(pkg.name + '/getters')
+            )
+          )
+        }
       }
     }
   }
