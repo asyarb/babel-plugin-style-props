@@ -72,22 +72,18 @@ const propNames = [
   'paddingY'
 ]
 
-export const STYLE_PROPS = propNames.reduce(
-  (acc, key) => ({
-    ...acc,
-    [key]: true
-  }),
-  {}
-)
+export const STYLE_PROPS = propNames.reduce((acc, key) => {
+  acc[key] = true
+
+  return acc
+}, {})
 
 // TODO: Think about using regex Scale suffix instead of separate scale map.
-export const SCALE_BASEPROP_MAP = propNames.reduce(
-  (acc, key) => ({
-    ...acc,
-    [key + 'Scale']: key
-  }),
-  {}
-)
+export const SCALE_BASEPROP_MAP = propNames.reduce((acc, key) => {
+  acc[key + 'Scale'] = key
+
+  return acc
+}, {})
 
 export const THEME_MAP = {
   // SPACE
@@ -180,9 +176,10 @@ export const THEME_MAP = {
 }
 
 export const SCALE_THEME_MAP = Object.entries(THEME_MAP).reduce(
-  (acc, [key, value]) => ({
-    ...acc,
-    [key]: value + 'Scales'
-  }),
+  (acc, [key, value]) => {
+    acc[key] = value + 'Scales'
+
+    return acc
+  },
   {}
 )
