@@ -1,6 +1,6 @@
 import { types as t } from '@babel/core'
 
-import { STYLE_PROPS, SCALE_PROPS } from './constants'
+import { STYLE_PROPS, SCALE_BASEPROP_MAP } from './constants'
 
 /**
  * Casts a provided value as an array if it is not one.
@@ -51,7 +51,8 @@ export const onlyStyleProps = (context, attrs) => {
 export const onlyScaleProps = attrs => {
   return attrs.filter(
     attr =>
-      !t.isJSXSpreadAttribute(attr) && Boolean(SCALE_PROPS[attr.name.name])
+      !t.isJSXSpreadAttribute(attr) &&
+      Boolean(SCALE_BASEPROP_MAP[attr.name.name])
   )
 }
 
@@ -70,7 +71,7 @@ export const notStyleProps = (context, attrs) => {
 
     return !(
       Boolean(STYLE_PROPS[propName]) ||
-      Boolean(SCALE_PROPS[propName]) ||
+      Boolean(SCALE_BASEPROP_MAP[propName]) ||
       variants[propName]
     )
   })
@@ -84,3 +85,8 @@ export const notStyleProps = (context, attrs) => {
  * @returns `true` if it is skippable, `false` otherwise.
  */
 export const shouldSkipProp = attrValue => t.isNullLiteral(attrValue)
+
+export const isStaticAttr = attrValue =>
+  t.isStringLiteral(attrValue) ||
+  t.isNumericLiteral(attrValue) ||
+  t.isNullLiteral(attrValue)

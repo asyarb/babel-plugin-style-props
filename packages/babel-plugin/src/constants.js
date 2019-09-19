@@ -1,24 +1,23 @@
 import camelCase from 'lodash.camelcase'
 import cssProps from 'known-css-properties'
-import isPropValid from '@emotion/is-prop-valid'
 
 export const INTERNAL_PROP_ID = '__styleProps__'
 
 export const STYLING_LIBRARIES = {
   styledComponents: {
     identifier: 'p',
-    identifierPath: 'p.theme',
+    identifierPath: 'p.theme'
   },
   emotion: {
     identifier: '__theme__',
-    identifierPath: '__theme__',
-  },
+    identifierPath: '__theme__'
+  }
 }
 
 export const DEFAULT_OPTIONS = {
   breakpoints: ['40em', '52em', '64em'],
   stylingLibrary: null,
-  variants: {},
+  variants: {}
 }
 
 export const STYLE_ALIASES = {
@@ -42,42 +41,14 @@ export const STYLE_ALIASES = {
   mx: ['marginLeft', 'marginRight'],
   my: ['marginTop', 'marginBottom'],
   px: ['paddingLeft', 'paddingRight'],
-  py: ['paddingTop', 'paddingBottom'],
+  py: ['paddingTop', 'paddingBottom']
 }
 
-export const SCALE_ALIASES = Object.entries(STYLE_ALIASES).reduce(
-  (acc, [key, value]) => ({
-    ...acc,
-    [key + 'Scale']: value,
-  }),
-  {},
-)
-
-const cssProperties = cssProps.all
-  .filter(prop => !/^-/.test(prop))
-  .map(camelCase)
-  .filter(prop => !isPropValid(prop))
+const cssProperties = cssProps.all.map(camelCase)
 
 const propNames = [
   // props included in isPropValid
   ...cssProperties,
-
-  // Missing props from cssProperties
-  'color',
-  'width',
-  'height',
-  'fontFamily',
-  'fontSize',
-  'fontWeight',
-  'fontStyle',
-  'display',
-  'opacity',
-  'overflow',
-  'textDecoration',
-  'transform',
-  'cursor',
-  'filter',
-  'letterSpacing',
 
   // system specific props
   'bg',
@@ -98,23 +69,24 @@ const propNames = [
   'marginX',
   'marginY',
   'paddingX',
-  'paddingY',
+  'paddingY'
 ]
 
 export const STYLE_PROPS = propNames.reduce(
   (acc, key) => ({
     ...acc,
-    [key]: true,
+    [key]: true
   }),
-  {},
+  {}
 )
 
-export const SCALE_PROPS = propNames.reduce(
+// TODO: Think about using regex Scale suffix instead of separate scale map.
+export const SCALE_BASEPROP_MAP = propNames.reduce(
   (acc, key) => ({
     ...acc,
-    [key + 'Scale']: true,
+    [key + 'Scale']: key
   }),
-  {},
+  {}
 )
 
 export const THEME_MAP = {
@@ -204,13 +176,13 @@ export const THEME_MAP = {
 
   // SHADOW
   boxShadow: 'shadows',
-  textShadow: 'shadows',
+  textShadow: 'shadows'
 }
 
 export const SCALE_THEME_MAP = Object.entries(THEME_MAP).reduce(
   (acc, [key, value]) => ({
     ...acc,
-    [key]: value + 'Scales',
+    [key]: value + 'Scales'
   }),
-  {},
+  {}
 )

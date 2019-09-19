@@ -4,10 +4,16 @@ import {
   THEME_MAP,
   SCALE_THEME_MAP,
   STYLE_ALIASES,
-  SCALE_ALIASES,
+  SCALE_BASEPROP_MAP,
   INTERNAL_PROP_ID
 } from './constants'
-import { createMediaQuery, castArray, times, shouldSkipProp } from './utils'
+import {
+  createMediaQuery,
+  castArray,
+  times,
+  shouldSkipProp,
+  isStaticAttr
+} from './utils'
 
 /**
  * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
@@ -21,11 +27,13 @@ import { createMediaQuery, castArray, times, shouldSkipProp } from './utils'
 export const buildUndefinedConditionalFallback = (
   value,
   fallbackValue,
-  { withScales = false, mediaIndex = 0 } = {}
+  { withScales = false, isStatic = false, mediaIndex } = {}
 ) => {
-  const truthyValue = withScales
-    ? t.memberExpression(value, t.numericLiteral(mediaIndex), true)
-    : value
+  // WHERE SHIT NEEDS TO HAPPEN
+  const truthyValue =
+    withScales && isStatic
+      ? t.memberExpression(value, t.numericLiteral(mediaIndex), true)
+      : value
 
   return t.conditionalExpression(
     t.binaryExpression('!==', value, t.identifier('undefined')),
@@ -56,19 +64,30 @@ export const buildVariableDeclaration = (type, left, right) => {
  * @returns A tuple containing the base value and a boolean
  * indicating if the value was negative.
  */
-export const buildBaseValueAttr = attrValue => {
+export const buildBaseValueAttr = (
+  attrValue,
+  { withScales = false, mediaIndex = 0 } = {}
+) => {
   const isNegative =
     (t.isUnaryExpression(attrValue) && attrValue.operator === '-') ||
     (t.isStringLiteral(attrValue) && attrValue.value[0] === '-')
 
   let baseAttrValue = attrValue
 
+  const isStatic = isStaticAttr(baseAttrValue)
+
   if (isNegative && t.isUnaryExpression(attrValue))
     baseAttrValue = attrValue.argument
   if (isNegative && t.isStringLiteral(attrValue))
     baseAttrValue = t.stringLiteral(attrValue.value.substring(1))
+  if (!isStatic && withScales)
+    baseAttrValue = t.memberExpression(
+      baseAttrValue,
+      t.numericLiteral(mediaIndex),
+      true
+    )
 
-  return [baseAttrValue, isNegative]
+  return [baseAttrValue, isNegative, isStatic]
 }
 
 /**
@@ -102,7 +121,10 @@ export const buildThemeAwareExpression = (
     : THEME_MAP[propName] || variants[propName]
   if (!themeKey) return attrValue
 
-  const [attrBaseValue, isNegative] = buildBaseValueAttr(attrValue)
+  const [attrBaseValue, isNegative, isStatic] = buildBaseValueAttr(attrValue, {
+    withScales,
+    mediaIndex
+  })
   let stylingLibraryBaseValue = attrBaseValue // emotion
 
   if (stylingLibrary === 'styled-components' && propsToPass[propName]) {
@@ -126,19 +148,19 @@ export const buildThemeAwareExpression = (
     true
   )
 
-  if (withScales) {
+  /* if (withScales) {
     stylingLibraryBaseValue = t.memberExpression(
       stylingLibraryBaseValue,
       t.numericLiteral(mediaIndex),
       true
     )
-  }
+  } */
 
   if (withUndefinedFallback) {
     themeExpression = buildUndefinedConditionalFallback(
       themeExpression,
       stylingLibraryBaseValue,
-      { withScales, mediaIndex }
+      { withScales, isStatic, mediaIndex }
     )
   }
 
@@ -246,10 +268,11 @@ export const buildCssObjectProperties = (
   attrNodes.forEach(attrNode => {
     const attrName = attrNode.name.name
     const attrValue = attrNode.value
+    const baseAttrName = SCALE_BASEPROP_MAP[attrName] || attrName
 
-    const cssPropertyNames = withScales
-      ? castArray(SCALE_ALIASES[attrName])
-      : castArray(STYLE_ALIASES[attrName] || attrName)
+    const cssPropertyNames = castArray(
+      STYLE_ALIASES[baseAttrName] || baseAttrName
+    )
 
     if (t.isJSXExpressionContainer(attrValue)) {
       // e.g prop={}

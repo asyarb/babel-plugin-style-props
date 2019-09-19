@@ -1,10 +1,7 @@
 import React from 'react'
 
-const linearScale = () => {}
+export default () => {
+  const myScale = ['s', 'xl']
 
-export const Hello = ({ ...props }) => {
-  const myConst = 'l'
-  const myScale = linearScale('3rem', '4rem', { count: 4 })
-
-  return <div mtScale={[myConst, 'l', null, myScale]} />
+  return <div mScale={myScale}>Hello</div>
 }
