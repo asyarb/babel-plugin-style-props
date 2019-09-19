@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.8](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.7...v0.1.8) (2019-09-19)
+
+
+### Bug Fixes
+
+* styled component scales ([ed46089](https://github.com/asyarb/babel-plugin-style-props/commit/ed46089))
+
+
+### Features
+
+* dynamic scale array props ([2489960](https://github.com/asyarb/babel-plugin-style-props/commit/2489960))
+* scales with dynamic arrays progress ([eda1fc7](https://github.com/asyarb/babel-plugin-style-props/commit/eda1fc7))
+
 ### [0.1.7](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.6...v0.1.7) (2019-09-17)
 
 
