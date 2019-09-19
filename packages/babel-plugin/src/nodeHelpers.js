@@ -47,6 +47,8 @@ export const buildNestedComputedMemberExpression = (
   firstKey,
   secondKey
 ) => {
+  if (!firstKey || !secondKey || !obj) return
+
   return t.memberExpression(
     t.memberExpression(t.identifier(obj), t.stringLiteral(firstKey), true),
     secondKey,
