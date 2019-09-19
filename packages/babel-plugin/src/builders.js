@@ -87,7 +87,7 @@ export const buildThemedConditionalFallback = (
 
   if (withScales)
     truthyValue = t.memberExpression(value, t.numericLiteral(mediaIndex), true)
-  if (!isStatic) {
+  if (!isStatic && withScales) {
     falseyValue = buildUndefinedConditionalFallback(
       baseThemeExpression,
       baseThemeExpression,
@@ -179,7 +179,7 @@ export const buildThemeAwareExpression = (
       true
     )
 
-    if (!isStatic) {
+    if (!isStatic && withScales) {
       stylingLibraryBaseValue = t.memberExpression(
         stylingLibraryBaseValue,
         t.numericLiteral(mediaIndex),
