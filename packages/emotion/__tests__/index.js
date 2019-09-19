@@ -22,7 +22,7 @@ const customRender = children => {
 }
 
 describe('emotion', () => {
-  describe('parsing style props', () => {
+  describe('style props', () => {
     it('handles style props', () => {
       const tree = customRender(<div color="black" bg="white" />)
       const json = tree.toJSON()
@@ -382,8 +382,10 @@ describe('emotion', () => {
       expect(json).toHaveStyleRule('background-color', theme.colors.white)
       expect(json).toHaveStyleRule('row-gap', theme.space[5])
     })
+  })
 
-    it('handles style-scale props', () => {
+  describe('scale props', () => {
+    it('handles scale props', () => {
       const tree = customRender(<div mScale="xl" pScale={[null, null, 'l']} />)
       const json = tree.toJSON()
 
@@ -409,6 +411,35 @@ describe('emotion', () => {
           .emotion-0 {
             margin: 4rem;
             padding: 2rem;
+          }
+        }
+
+        <div
+          className="emotion-0"
+        />
+      `)
+    })
+
+    it('handles variables in scale props', () => {
+      const scale = ['xl', null, 'l', 'l']
+
+      const tree = customRender(<div mScale={scale} />)
+      const json = tree.toJSON()
+
+      expect(json).toMatchInlineSnapshot(`
+        .emotion-0 {
+          margin: 1rem;
+        }
+
+        @media screen and (min-width:52em) {
+          .emotion-0 {
+            margin: 1.5rem;
+          }
+        }
+
+        @media screen and (min-width:64em) {
+          .emotion-0 {
+            margin: 2rem;
           }
         }
 
