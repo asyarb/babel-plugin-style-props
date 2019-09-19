@@ -16,33 +16,6 @@ import {
 } from './utils'
 
 /**
- * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
- *
- *
- * @param {Object} value - babel AST to truthily use.
- * @param {Object} fallbackValue - babel AST to falsily use.
- * @param {Object} options
- * @returns The conditional fallback babel AST.
- */
-export const buildUndefinedConditionalFallback = (
-  value,
-  fallbackValue,
-  { withScales = false, isStatic = false, mediaIndex } = {}
-) => {
-  // WHERE SHIT NEEDS TO HAPPEN
-  const truthyValue =
-    withScales && isStatic
-      ? t.memberExpression(value, t.numericLiteral(mediaIndex), true)
-      : value
-
-  return t.conditionalExpression(
-    t.binaryExpression('!==', value, t.identifier('undefined')),
-    truthyValue,
-    fallbackValue
-  )
-}
-
-/**
  * Builds a babel AST for a variable declaration e.g. `const var = true`.
  *
  * @param {Object} type - enum of `const`, `let,` or `var`.
@@ -54,6 +27,75 @@ export const buildVariableDeclaration = (type, left, right) => {
   return t.variableDeclaration(type, [
     t.variableDeclarator(t.assignmentPattern(left, right))
   ])
+}
+
+/**
+ * Builds a babel AST like the following: `testExpression !== undefined ? truthyValue : falseyValue`.
+ *
+ * @param {Object} testExpression - expression to check for `undefined`.
+ * @param {Object} truthyValue - babel node for the truthy condition
+ * @param {Object} falseyValue - babel node for the falsey condition
+ * @returns The conditional AST.
+ */
+export const buildUndefinedConditionalFallback = (
+  testExpression,
+  truthyValue,
+  falseyValue
+) => {
+  return t.conditionalExpression(
+    t.binaryExpression('!==', testExpression, t.identifier('undefined')),
+    truthyValue,
+    falseyValue
+  )
+}
+
+/**
+ * Builds a babel AST like the following: `obj["firstKey"][secondKey]`.
+ *
+ * @param {Object} obj.
+ * @param {Object} firstKey
+ * @param {Object} secondKey
+ * @returns The nested member expression.
+ */
+export const buildNestedComputedMemberExpression = (
+  obj,
+  firstKey,
+  secondKey
+) => {
+  return t.memberExpression(
+    t.memberExpression(t.identifier(obj), t.stringLiteral(firstKey), true),
+    secondKey,
+    true
+  )
+}
+
+/**
+ * Builds a babel AST like the following: `value !== undefined ? value : fallbackValue`.
+ *
+ * @param {Object} value - babel AST to truthily use.
+ * @param {Object} fallbackValue - babel AST to falsily use.
+ * @param {Object} options
+ * @returns The conditional fallback babel AST.
+ */
+export const buildThemedConditionalFallback = (
+  value,
+  fallbackValue,
+  { withScales = false, isStatic = false, mediaIndex, baseThemeExpression } = {}
+) => {
+  let truthyValue = value
+  let falseyValue = fallbackValue
+
+  if (withScales)
+    truthyValue = t.memberExpression(value, t.numericLiteral(mediaIndex), true)
+  if (!isStatic) {
+    falseyValue = buildUndefinedConditionalFallback(
+      baseThemeExpression,
+      baseThemeExpression,
+      fallbackValue
+    )
+  }
+
+  return buildUndefinedConditionalFallback(value, truthyValue, falseyValue)
 }
 
 /**
@@ -116,17 +158,17 @@ export const buildThemeAwareExpression = (
 ) => {
   const { variants, stylingLibrary, propsToPass, themeIdentifierPath } = context
 
-  const themeKey = withScales
-    ? SCALE_THEME_MAP[propName]
-    : THEME_MAP[propName] || variants[propName]
-  if (!themeKey) return attrValue
+  const scaleThemeKey = SCALE_THEME_MAP[propName]
+  const baseThemeKey = THEME_MAP[propName] || variants[propName]
+
+  if (!baseThemeKey && !scaleThemeKey) return attrValue
 
   const [attrBaseValue, isNegative, isStatic] = buildBaseValueAttr(attrValue, {
     withScales,
     mediaIndex
   })
-  let stylingLibraryBaseValue = attrBaseValue // emotion
 
+  let stylingLibraryBaseValue = attrBaseValue // emotion
   if (stylingLibrary === 'styled-components' && propsToPass[propName]) {
     stylingLibraryBaseValue = t.memberExpression(
       t.memberExpression(
@@ -136,43 +178,55 @@ export const buildThemeAwareExpression = (
       t.numericLiteral(withScales ? scaleIndex : mediaIndex),
       true
     )
+
+    if (!isStatic) {
+      stylingLibraryBaseValue = t.memberExpression(
+        stylingLibraryBaseValue,
+        t.numericLiteral(mediaIndex),
+        true
+      )
+    }
   }
 
-  let themeExpression = t.memberExpression(
-    t.memberExpression(
-      t.identifier(themeIdentifierPath),
-      t.stringLiteral(themeKey),
-      true
+  let themeExpressions = [
+    buildNestedComputedMemberExpression(
+      themeIdentifierPath,
+      scaleThemeKey,
+      stylingLibraryBaseValue
     ),
-    stylingLibraryBaseValue,
-    true
-  )
-
-  /* if (withScales) {
-    stylingLibraryBaseValue = t.memberExpression(
-      stylingLibraryBaseValue,
-      t.numericLiteral(mediaIndex),
-      true
+    buildNestedComputedMemberExpression(
+      themeIdentifierPath,
+      baseThemeKey,
+      stylingLibraryBaseValue
     )
-  } */
+  ]
 
   if (withUndefinedFallback) {
-    themeExpression = buildUndefinedConditionalFallback(
-      themeExpression,
-      stylingLibraryBaseValue,
-      { withScales, isStatic, mediaIndex }
+    const [, baseThemeExpression] = themeExpressions
+
+    themeExpressions = themeExpressions.map(expression =>
+      buildThemedConditionalFallback(expression, stylingLibraryBaseValue, {
+        withScales,
+        isStatic,
+        mediaIndex,
+        baseThemeExpression
+      })
     )
   }
 
   if (withNegativeTransform && isNegative) {
-    themeExpression = t.binaryExpression(
-      '+',
-      t.stringLiteral('-'),
-      t.parenthesizedExpression(themeExpression)
+    themeExpressions = themeExpressions.map(expression =>
+      t.binaryExpression(
+        '+',
+        t.stringLiteral('-'),
+        t.parenthesizedExpression(expression)
+      )
     )
   }
 
-  return themeExpression
+  const [scaleThemeExpression, baseThemeExpression] = themeExpressions
+
+  return withScales ? scaleThemeExpression : baseThemeExpression
 }
 
 /**

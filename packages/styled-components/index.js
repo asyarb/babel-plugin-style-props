@@ -1,7 +1,7 @@
 import React from 'react'
 
 export default () => {
-  const myScale = ['s', 'xl']
+  const space = ['3rem', 'xl', null, 'l']
 
-  return <div mScale={myScale}>Hello</div>
+  return <div mScale={space}>Hello</div>
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 
 export default () => {
-  const colors = ['#f0f', 'xl', null, 'red.40']
+  const space = [0, 'xl', null, 'l']
 
-  return <div colorScale={colors}>Hello</div>
+  return <div mScale={space}>Hello</div>
 }
