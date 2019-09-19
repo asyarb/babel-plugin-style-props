@@ -53,6 +53,28 @@ export const buildBaseValueAttr = (
   return [baseAttrValue, isNegative, isStatic]
 }
 
+const _createStyleComponentsValue = (
+  context,
+  propName,
+  attrValue,
+  { isStatic, withScales, scaleIndex, mediaIndex }
+) => {
+  let value = t.memberExpression(
+    t.memberExpression(
+      t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
+      t.identifier(propName)
+    ),
+    t.numericLiteral(withScales ? scaleIndex : mediaIndex),
+    true
+  )
+
+  if (!isStatic && withScales) {
+    value = t.memberExpression(value, t.numericLiteral(mediaIndex), true)
+  }
+
+  return value
+}
+
 /**
  * Given a css prop name and node, returns the equivalent theme aware
  * accessor expression.
@@ -81,8 +103,16 @@ export const buildThemeAwareExpression = (
   const scaleThemeKey = SCALE_THEME_MAP[propName]
   const baseThemeKey = THEME_MAP[propName] || variants[propName]
   const isVariant = Boolean(variants[propName])
+  const isStyledComponents = stylingLibrary === 'styled-components'
 
-  if (!baseThemeKey && !scaleThemeKey) return attrValue
+  if (!baseThemeKey && !scaleThemeKey) {
+    if (isStyledComponents)
+      return _createStyleComponentsValue(context, propName, attrValue, {
+        mediaIndex
+      })
+
+    return attrValue
+  }
 
   const [attrBaseValue, isNegative, isStatic] = buildBaseValueAttr(attrValue, {
     withScales,
@@ -90,23 +120,18 @@ export const buildThemeAwareExpression = (
   })
 
   let stylingLibraryBaseValue = attrBaseValue // emotion
-  if (stylingLibrary === 'styled-components' && propsToPass[propName]) {
-    stylingLibraryBaseValue = t.memberExpression(
-      t.memberExpression(
-        t.memberExpression(t.identifier('p'), t.identifier(INTERNAL_PROP_ID)),
-        t.identifier(propName)
-      ),
-      t.numericLiteral(withScales ? scaleIndex : mediaIndex),
-      true
+  if (isStyledComponents && propsToPass[propName]) {
+    stylingLibraryBaseValue = _createStyleComponentsValue(
+      context,
+      propName,
+      attrBaseValue,
+      {
+        isStatic,
+        withScales,
+        scaleIndex,
+        mediaIndex
+      }
     )
-
-    if (!isStatic && withScales) {
-      stylingLibraryBaseValue = t.memberExpression(
-        stylingLibraryBaseValue,
-        t.numericLiteral(mediaIndex),
-        true
-      )
-    }
   }
 
   let themeExpressions = [

@@ -1,7 +1,5 @@
 import React from 'react'
 
-export default () => {
-  const scale = ['xl', null, 'l', 'l']
-
-  return <div mScale={scale} />
+export default ({ isTransparent, help }) => {
+  return <div position={[isTransparent ? 'absolute' : 'relative', help]} />
 }
