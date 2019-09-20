@@ -427,29 +427,22 @@ when necessary!
 #### Variables in styleScale props
 
 Any variable passed to a `styleScale` prop **must** be an array (or function
-returning an array). This array must also contain the same amount of items as
-`breakpoints.length + 1`.
-
-> This is different from static arrays where a `styleScale` prop will always
-> ensure you have enough items to fit your breakpoints.
+returning an array). This array also currently cannot contain `null` to skip
+over breakpoints. If you need to skip a breakpoint, just pass the same key again
+in the responsive array.
 
 Consider this example:
 
 ```jsx
-// in babel config:
-breakpoints: ['40em', '52em', '64em'],
 
 // This works:
-const myScale = ['xl', 'l', null, 'xl']
+const myScale = ['xl', 'l', 'l', 'xl']
 <div mScale={myScale} />
 
 // This does not work:
-const myBadScale = ['xl', 'l']
+const myBadScale = ['xl', 'l', null, 'xl']
 <div mScale={myBadScale} />
 ```
-
-Just like with normal style props, you can specify `null` between breakpoints to
-skip them if necessary.
 
 ##### Referencing theme values in styleScale props
 
