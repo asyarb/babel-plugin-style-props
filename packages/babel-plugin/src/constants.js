@@ -45,7 +45,7 @@ export const STYLE_ALIASES = {
   py: ['paddingTop', 'paddingBottom']
 }
 
-const cssBlacklist = x => !['src', 'x', 'y'].includes(x)
+const cssBlacklist = x => !['src', 'x', 'y', 'alt'].includes(x)
 const cssProperties = cssProps.all.filter(cssBlacklist).map(camelCase)
 
 const propNames = [
