@@ -126,9 +126,6 @@ const YourApp = () => (
 )
 ```
 
-In order for this plugin to work, you **must** specify a `theme` and
-`<ThemeProvider>`.
-
 #### Minimal theme
 
 For a barebones theme to start working with, see this
@@ -152,21 +149,21 @@ into CSS.
 // Your JSX
 <div color='red' px={5} />
 
-// Output JSX (simplified): `styled-components`
-<div
-  css={p => ({
-    color: p.theme.colors.red,
-    paddingLeft: p.theme.space[5],
-    paddingRight: p.theme.space[5],
-  })}
-/>
-
 // Output JSX (simplified): `emotion`
 <div
   css={theme => ({
     color: theme.colors.red,
     paddingLeft: theme.space[5],
     paddingRight: theme.space[5],
+  })}
+/>
+
+// Output JSX (simplified): `styled-components`
+<div
+  css={p => ({
+    color: p.theme.colors.red,
+    paddingLeft: p.theme.space[5],
+    paddingRight: p.theme.space[5],
   })}
 />
 ```
