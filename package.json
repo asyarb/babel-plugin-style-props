@@ -6,7 +6,8 @@
   ],
   "scripts": {
     "build": "cd packages/babel-plugin && yarn build",
-    "test": "cd packages/styled-components && yarn test && cd ../emotion && yarn test"
+    "test": "cd packages/styled-components && yarn test && cd ../emotion && yarn test",
+    "release": "cd packages/babel-plugin && yarn release"
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
