@@ -32,6 +32,7 @@ Use theme aware style props on any JSX element.
     - [Defining scales in your theme](#defining-scales-in-your-theme)
   - [Merges with existing `css` props.](#merges-with-existing-css-props)
     - [`css` prop syntax](#css-prop-syntax)
+  - [Stripping props from HTML and JSX](#stripping-props-from-html-and-jsx)
 - [Other gotchas](#other-gotchas)
   - [Breakpoints](#breakpoints)
   - [Nested theme properties](#nested-theme-properties)
@@ -48,7 +49,7 @@ Use theme aware style props on any JSX element.
 - Use arrays for responsive styles.
 - Performant. Close to using `styled-components` or `emotion` directly.
 - Customizable variants.
-- Removes all style props from rendered HTML.
+- Optionally removes all style props from rendered HTML.
 
 ## Getting Started
 
@@ -587,6 +588,31 @@ tagged template literals is **not supported**.
     color: red;
   `}
 />
+```
+
+### Stripping props from HTML and JSX
+
+If you would like this babel plugin to strip all style-props from your resulting
+code and HTML, specify `shouldStripProps` in your plugin options.
+
+```js
+// babel.config.js
+module.exports = {
+  presets: ['@babel/preset-env', '@babel/preset-react'],
+  plugins: [
+    [
+      'babel-plugin-style-props',
+      {
+        stylingLibrary: 'styled-components',
+        variants: {
+          boxStyle: 'boxStyles'
+          shouldStripProps: true
+        }
+      }
+    ],
+    'babel-plugin-styled-components'
+  ]
+}
 ```
 
 ## Other gotchas

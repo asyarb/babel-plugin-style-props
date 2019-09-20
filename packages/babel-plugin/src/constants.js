@@ -17,6 +17,7 @@ export const STYLING_LIBRARIES = {
 export const DEFAULT_OPTIONS = {
   breakpoints: ['40em', '52em', '64em'],
   stylingLibrary: null,
+  shouldStripProps: false,
   variants: {}
 }
 

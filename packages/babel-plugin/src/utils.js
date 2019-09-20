@@ -64,9 +64,11 @@ export const onlyScaleProps = attrs => {
  * @returns The array of non-system props.
  */
 export const notStyleProps = (context, attrs) => {
-  const { variants } = context
+  const { shouldStripProps, variants } = context
 
   return attrs.filter(attr => {
+    if (!shouldStripProps) return true
+
     const propName = attr.name.name
 
     return !(
