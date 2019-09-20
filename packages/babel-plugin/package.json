@@ -35,7 +35,6 @@
     "rimraf": "^3.0.0"
   },
   "dependencies": {
-    "@emotion/is-prop-valid": "^0.8.2",
     "known-css-properties": "^0.16.0",
     "lodash.camelcase": "^4.3.0"
   }
