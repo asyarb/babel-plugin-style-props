@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/asyarb/babel-plugin-style-props/compare/v0.2.0...v0.2.1) (2019-09-20)
+
+
+### Features
+
+* conditionally get dynamic scale values ([b8d0bc6](https://github.com/asyarb/babel-plugin-style-props/commit/b8d0bc6))
+* update deps ([f08e43e](https://github.com/asyarb/babel-plugin-style-props/commit/f08e43e))
+
 ## [0.2.0](https://github.com/asyarb/babel-plugin-style-props/compare/v0.1.11...v0.2.0) (2019-09-20)
 
 
