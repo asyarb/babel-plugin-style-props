@@ -1,27 +1,49 @@
 {
-  "name": "babel-system",
-  "private": true,
-  "workspaces": [
-    "packages/*"
+  "name": "babel-plugin-style-props",
+  "version": "0.3.0",
+  "description": "Use theme-aware style props on any JSX element.",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
   ],
   "scripts": {
-    "build": "cd packages/babel-plugin && yarn build",
-    "test": "cd packages/styled-components && yarn test && cd ../emotion && yarn test",
-    "release": "cd packages/babel-plugin && yarn release"
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test",
+    "prerelease": "yarn build",
+    "release": "standard-version"
   },
+  "homepage": "https://github.com/asyarb/babel-plugin-style-props",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/asyarb/babel-plugin-style-props.git"
+  },
+  "keywords": [
+    "style",
+    "props",
+    "babel",
+    "plugin"
+  ],
+  "author": "Anthony Yarbrough",
+  "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.6.0",
-    "@babel/preset-env": "^7.6.0",
-    "@commitlint/cli": "^8.2.0",
-    "@commitlint/config-conventional": "^8.2.0",
-    "babel-eslint": "^10.0.2",
-    "eslint": "^6.4.0",
-    "eslint-plugin-react": "^7.14.3",
+    "@babel/core": "^7.6.2",
+    "@babel/plugin-syntax-jsx": "^7.2.0",
+    "@babel/preset-env": "^7.6.2",
+    "@babel/types": "^7.6.1",
+    "@commitlint/cli": "^8.1.0",
+    "@commitlint/config-conventional": "^8.1.0",
+    "@types/jest": "^24.0.18",
+    "@types/lodash.camelcase": "^4.3.6",
+    "babel-eslint": "^10.0.3",
+    "babel-plugin-tester": "^7.0.1",
     "husky": "^3.0.5",
-    "jest": "^24.9.0",
-    "lerna": "^3.16.4",
     "prettier": "^1.18.2",
-    "standard-version": "^7.0.0"
+    "standard-version": "^7.0.0",
+    "tsdx": "^0.9.2",
+    "tslib": "^1.10.0",
+    "typescript": "^3.6.2"
   },
   "husky": {
     "hooks": {
@@ -32,5 +54,9 @@
     "extends": [
       "@commitlint/config-conventional"
     ]
+  },
+  "dependencies": {
+    "known-css-properties": "^0.16.0",
+    "lodash.camelcase": "^4.3.0"
   }
 }
