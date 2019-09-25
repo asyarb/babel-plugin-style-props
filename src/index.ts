@@ -36,7 +36,8 @@ const jsxOpeningElementVisitor = {
       path.node.attributes = [...nonStyleProps, ...spreadProps]
     }
 
-    console.log(namespacedObject)
+    if (namespacedObject) {
+    }
   },
 }
 

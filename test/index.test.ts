@@ -1,21 +1,24 @@
-import pluginTester from 'babel-plugin-tester'
-import babelConfig from '../babel.config'
+import { transformSync } from '@babel/core'
+import jsxSyntax from '@babel/plugin-syntax-jsx'
 import styleProps from '../src'
 
-pluginTester({
-  plugin: styleProps,
-  babelOptions: babelConfig,
-  snapshot: true,
+const plugins = [jsxSyntax, styleProps]
 
-  tests: {
-    'runs without dying': {
-      code: `
-        const Box = () => {
-          const boolean = false
+const parseCode = (example: string) => transformSync(example, { plugins })!.code
 
-          return <div mx={['3rem', null, '4rem']} lineHeight={boolean} />
-        }
-      `,
-    },
-  },
+describe('babel-plugin', () => {
+  it('doesnt crash', () => {
+    const example = `
+      const Example = () => {
+        return <div mx="3rem" />
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchInlineSnapshot(`
+      "const Example = () => {
+        return <div mx=\\"3rem\\" />;
+      };"
+    `)
+  })
 })
