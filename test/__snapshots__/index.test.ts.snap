@@ -10,8 +10,6 @@ const Box = () => {
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
-\\"use strict\\";
-
 const Box = () => {
   const boolean = false;
   return <div mx={['3rem', null, '4rem']} lineHeight={boolean} />;

@@ -37,6 +37,4 @@ examples
 # tsdx cache
 .rts2_cache_cjs
 .rts2_cache_esm
-
-# example code
-example
+.cache
