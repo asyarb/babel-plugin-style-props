@@ -1,6 +1,6 @@
-import { NodePath } from '@babel/core'
+import { NodePath, types as t } from '@babel/core'
 import { JSXOpeningElement, Program } from '@babel/types'
-import { buildNamespacedObject } from './builders'
+import { buildStylePropsArray } from './builders'
 import { DEFAULT_OPTIONS } from './constants'
 import { extractProps, extractStyleProps, notStyleProps } from './utils'
 
@@ -25,7 +25,7 @@ const jsxOpeningElementVisitor = {
     fileHasStyleProps = true
 
     // build our namespaced object...
-    const namespacedObject = buildNamespacedObject(
+    const stylePropsArray = buildStylePropsArray(
       context,
       scaleProps,
       styleProps
@@ -36,7 +36,12 @@ const jsxOpeningElementVisitor = {
       path.node.attributes = [...nonStyleProps, ...spreadProps]
     }
 
-    if (namespacedObject) {
+    if (stylePropsArray) {
+      const internalProp = t.jsxAttribute(
+        t.jsxIdentifier('__styleProps__'),
+        t.jsxExpressionContainer(stylePropsArray)
+      )
+      path.node.attributes.push(internalProp)
     }
   },
 }

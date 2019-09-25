@@ -1,75 +1,70 @@
 import { types as t } from '@babel/core'
-import { Expression, JSXEmptyExpression, SpreadElement } from '@babel/types'
+import { Expression, ObjectProperty } from '@babel/types'
 import { STYLE_ALIASES } from './constants'
 import { castArray, shouldSkipProp } from './utils'
 
-type ResultObject = {
-  [key: string]: null | Expression | SpreadElement | JSXEmptyExpression
+type StylePropExpression = null | Expression
+
+const processProp = (
+  cssPropertyNames: string[],
+  expression: StylePropExpression,
+  result: ObjectProperty[]
+) => {
+  cssPropertyNames.forEach(cssName => {
+    if (shouldSkipProp(expression)) return
+
+    result.push(t.objectProperty(t.identifier(cssName), expression!))
+  })
 }
 
-export const buildNamespacedObject = (
+export const buildStylePropsArray = (
   context: PluginContext,
   _scaleProps: t.JSXAttribute[],
   styleProps: t.JSXAttribute[]
 ) => {
   const { variants } = context
-  const baseResult = {} as ResultObject
-  const responsiveResults = [] as ResultObject[]
+  const baseResult = [] as ObjectProperty[]
+  const responsiveResults = [] as ObjectProperty[][]
 
   styleProps.forEach(prop => {
     const propName = prop.name.name as string
     const propValue = prop.value
-
     const cssPropertyNames = castArray(STYLE_ALIASES[propName] || propName)
 
     if (t.isJSXExpressionContainer(propValue)) {
-      // e.g. prop={}
-      const expression = propValue.expression
+      const expression = propValue.expression as StylePropExpression
 
       if (t.isArrayExpression(expression)) {
         // e.g. prop={['foo', null, 'bar']}
-        const elements = expression.elements
+        const elements = expression.elements as StylePropExpression[]
         elements.forEach((element, i) => {
-          let resultObj: ResultObject
+          let resultObj = baseResult
 
-          if (i === 0) resultObj = baseResult
-          else {
-            if (!responsiveResults[i - 1]) responsiveResults[i - 1] = {}
+          if (i !== 0) {
+            responsiveResults[i - 1] = responsiveResults[i - 1] || []
             resultObj = responsiveResults[i - 1]
           }
 
-          cssPropertyNames.forEach(cssName => {
-            if (shouldSkipProp(element)) return
-
-            resultObj[cssName] = element
-          })
+          processProp(cssPropertyNames, element, resultObj)
         })
       } else {
         // e.g. prop={text} prop={bool ? 'foo' : 'bar'}
-        cssPropertyNames.forEach(cssName => {
-          if (shouldSkipProp(expression)) return
-
-          baseResult[cssName] = expression
-        })
+        processProp(cssPropertyNames, expression, baseResult)
       }
     } else {
       // e.g. prop="test"
       const isVariant = Boolean(variants[propName])
+      if (isVariant) {
+      }
 
-      cssPropertyNames.forEach(cssName => {
-        if (shouldSkipProp(propValue)) return
-
-        if (isVariant) {
-          // do nothing for now?
-        } else {
-          baseResult[cssName] = propValue
-        }
-      })
+      processProp(cssPropertyNames, propValue, baseResult)
     }
   })
 
-  return {
-    baseResult,
-    ...responsiveResults,
-  }
+  const baseResultObj = t.objectExpression(baseResult)
+  const responsiveResultObjs = responsiveResults.map(properties =>
+    t.objectExpression(properties)
+  )
+
+  return t.arrayExpression([baseResultObj, ...responsiveResultObjs])
 }

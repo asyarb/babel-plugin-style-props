@@ -1,5 +1,21 @@
 import React from 'react'
 
-export const Example = () => {
-  return <div mx="3rem" />
+const Example = () => {
+  const size = '3rem'
+  return (
+    <div
+      styleProps={[
+        {
+          margin: size,
+        },
+        {},
+        {
+          margin: '4rem',
+        },
+        {
+          margin: '5rem',
+        },
+      ]}
+    />
+  )
 }
