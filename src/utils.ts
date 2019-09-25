@@ -1,5 +1,6 @@
 import { types as t } from '@babel/core'
 import { Expression, JSXEmptyExpression, SpreadElement } from '@babel/types'
+import { PluginContext } from '../types'
 import { SCALE_BASEPROP_MAP, STYLE_PROPS } from './constants'
 
 export const castArray = <T>(x: T | T[]) => (Array.isArray(x) ? x : [x])

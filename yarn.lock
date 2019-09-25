@@ -4480,6 +4480,21 @@ rimraf@^2.5.4, rimraf@^2.6.1, rimraf@^2.6.3:
   dependencies:
     glob "^7.1.3"
 
+rollup-plugin-progress@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-progress/-/rollup-plugin-progress-1.1.1.tgz#fcce2f915d545014ac89ea0927ee97cb48052f60"
+  integrity sha512-RIs2bnk/O2fylGN0F2w38U4PhAGIt8/N2noZ3i2tDOF0qg0PPZLKMMFp24MQUyND/w9nu61DRSanwpXOoJhxIA==
+  dependencies:
+    chalk "^2.4.2"
+
+rollup-plugin-sourcemaps@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-sourcemaps/-/rollup-plugin-sourcemaps-0.4.2.tgz#62125aa94087aadf7b83ef4dfaf629b473135e87"
+  integrity sha1-YhJaqUCHqt97g+9N+vYptHMTXoc=
+  dependencies:
+    rollup-pluginutils "^2.0.1"
+    source-map-resolve "^0.5.0"
+
 rollup-plugin-terser@^5.1.2:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/rollup-plugin-terser/-/rollup-plugin-terser-5.1.2.tgz#3e41256205cb75f196fc70d4634227d1002c255c"
@@ -4509,7 +4524,7 @@ rollup-pluginutils@2.8.1:
   dependencies:
     estree-walker "^0.6.1"
 
-rollup-pluginutils@^2.8.1:
+rollup-pluginutils@^2.0.1, rollup-pluginutils@^2.8.1:
   version "2.8.2"
   resolved "https://registry.yarnpkg.com/rollup-pluginutils/-/rollup-pluginutils-2.8.2.tgz#72f2af0748b592364dbd3389e600e5a9444a351e"
   integrity sha512-EEp9NhnUkwY8aif6bxgovPHMoMoNr2FulJziTndpt5H9RdwC47GSGuII9XxpSdzVGM0GWrNPHV6ie1LTNJPaLQ==

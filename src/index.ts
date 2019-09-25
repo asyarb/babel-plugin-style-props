@@ -1,5 +1,6 @@
 import { NodePath, types as t } from '@babel/core'
 import { JSXOpeningElement, Program } from '@babel/types'
+import { Babel, PluginOptions } from '../types'
 import { buildStylePropsArray } from './builders'
 import { DEFAULT_OPTIONS } from './constants'
 import { extractProps, extractStyleProps, notStyleProps } from './utils'

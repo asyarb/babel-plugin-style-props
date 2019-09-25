@@ -1,5 +1,6 @@
 import cssProps from 'known-css-properties'
 import camelCase from 'lodash.camelcase'
+import { PluginOptions } from '../types'
 
 export const DEFAULT_OPTIONS = {
   stripProps: false,

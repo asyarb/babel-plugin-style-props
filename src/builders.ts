@@ -1,5 +1,6 @@
 import { types as t } from '@babel/core'
 import { Expression, ObjectProperty } from '@babel/types'
+import { PluginContext } from '../types'
 import { STYLE_ALIASES } from './constants'
 import { castArray, shouldSkipProp } from './utils'
 
