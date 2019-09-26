@@ -1,11 +1,22 @@
 import { NodePath, types as t } from '@babel/core'
-import { JSXOpeningElement, Program } from '@babel/types'
+import {
+  ArrayExpression,
+  JSXExpressionContainer,
+  JSXOpeningElement,
+  Program,
+} from '@babel/types'
 import { Babel, PluginOptions } from '../types'
-import { buildStylePropsArray } from './builders'
-import { DEFAULT_OPTIONS } from './constants'
-import { extractProps, extractStyleProps, notStyleProps } from './utils'
-
-let fileHasStyleProps = false
+import {
+  buildStylePropsArrayExpression,
+  mergeStylePropArrayExpressions,
+} from './builders'
+import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
+import {
+  extractProps,
+  extractStyleProps,
+  notStyleProps,
+  stripInternalProp,
+} from './utils'
 
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path: NodePath<JSXOpeningElement>, options: PluginOptions) {
@@ -16,33 +27,49 @@ const jsxOpeningElementVisitor = {
       scopedProps: {},
       ...options,
     }
-    const { stripProps } = context
 
     const { explicitProps, spreadProps } = extractProps(allProps)
-    const { scaleProps, styleProps } = extractStyleProps(context, explicitProps)
+    const { scaleProps, styleProps, existingStylePropsObj } = extractStyleProps(
+      context,
+      explicitProps
+    )
 
     if (!scaleProps.length && !styleProps.length) return
 
-    fileHasStyleProps = true
-
-    // build our namespaced object...
-    const stylePropsArray = buildStylePropsArray(
+    const stylePropsArrayExpression = buildStylePropsArrayExpression(
       context,
       scaleProps,
       styleProps
     )
 
-    if (stripProps) {
-      const nonStyleProps = notStyleProps(context, explicitProps)
-      path.node.attributes = [...nonStyleProps, ...spreadProps]
+    if (context.stripProps) {
+      path.node.attributes = [
+        ...notStyleProps(context, explicitProps),
+        ...spreadProps,
+      ]
     }
 
-    if (stylePropsArray) {
-      const internalProp = t.jsxAttribute(
-        t.jsxIdentifier('__styleProps__'),
-        t.jsxExpressionContainer(stylePropsArray)
+    if (stylePropsArrayExpression) {
+      let stylePropValue = stylePropsArrayExpression
+
+      if (existingStylePropsObj) {
+        path.node.attributes = stripInternalProp(path.node.attributes)
+
+        const existingContainer = existingStylePropsObj.value as JSXExpressionContainer
+        const existingArrayExpression = existingContainer.expression as ArrayExpression
+
+        stylePropValue = mergeStylePropArrayExpressions(
+          stylePropsArrayExpression,
+          existingArrayExpression
+        )
+      }
+
+      const styleProp = t.jsxAttribute(
+        t.jsxIdentifier(STYLE_PROPS_ID),
+        t.jsxExpressionContainer(stylePropValue)
       )
-      path.node.attributes.push(internalProp)
+
+      path.node.attributes.push(styleProp)
     }
   },
 }
@@ -56,11 +83,6 @@ export default (_babel: Babel, opts: PluginOptions) => {
       Program: {
         enter(path: NodePath<Program>) {
           path.traverse(jsxOpeningElementVisitor, options)
-        },
-        exit() {
-          if (fileHasStyleProps) {
-            // do nothing
-          }
         },
       },
     },

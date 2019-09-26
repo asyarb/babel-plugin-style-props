@@ -1,5 +1,10 @@
 import { types as t } from '@babel/core'
-import { Expression, ObjectProperty } from '@babel/types'
+import {
+  ArrayExpression,
+  Expression,
+  ObjectExpression,
+  ObjectProperty,
+} from '@babel/types'
 import { PluginContext } from '../types'
 import { STYLE_ALIASES } from './constants'
 import { castArray, shouldSkipProp } from './utils'
@@ -18,7 +23,7 @@ const processProp = (
   })
 }
 
-export const buildStylePropsArray = (
+export const buildStylePropsArrayExpression = (
   context: PluginContext,
   _scaleProps: t.JSXAttribute[],
   styleProps: t.JSXAttribute[]
@@ -68,4 +73,33 @@ export const buildStylePropsArray = (
   )
 
   return t.arrayExpression([baseResultObj, ...responsiveResultObjs])
+}
+
+export const mergeStylePropArrayExpressions = (
+  newArrExpression: ArrayExpression,
+  existingArrExpression: ArrayExpression
+) => {
+  const existingStylePropsArr = existingArrExpression.elements as ObjectExpression[]
+  const newStylePropsArr = newArrExpression.elements as ObjectExpression[]
+
+  const numBreakpoints = Math.max(
+    existingStylePropsArr.length,
+    newStylePropsArr.length
+  )
+
+  const mergedProperties = [] as ObjectExpression[]
+  for (let i = 0; i < numBreakpoints; i++) {
+    const existingProperties = existingStylePropsArr[i]
+      ? existingStylePropsArr[i].properties
+      : []
+    const newProperties = newStylePropsArr[i]
+      ? newStylePropsArr[i].properties
+      : []
+
+    mergedProperties.push(
+      t.objectExpression([...existingProperties, ...newProperties])
+    )
+  }
+
+  return t.arrayExpression(mergedProperties)
 }

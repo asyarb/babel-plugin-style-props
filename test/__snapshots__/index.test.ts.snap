@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`style prop parsing does not strip non style props if \`shouldStrip\` is set 1`] = `
+"const Example = () => {
+  return <div shouldNotStrip={true} __styleProps__={[{
+    padding: '1rem'
+  }, {
+    padding: '2rem'
+  }, {
+    padding: '3rem'
+  }, {
+    padding: '4rem'
+  }]} />;
+};"
+`;
+
+exports[`style prop parsing handles expressions in style props 1`] = `
+"const Example = ({
+  isTest
+}) => {
+  return <div m={isTest ? '3rem' : '4rem'} __styleProps__={[{
+    margin: isTest ? '3rem' : '4rem'
+  }]} />;
+};"
+`;
+
+exports[`style prop parsing handles responsive style props 1`] = `
+"const Example = () => {
+  return <div m={['3rem', '4rem']} display='grid' pt={[null, '4rem', null, '6rem']} __styleProps__={[{
+    margin: '3rem',
+    display: 'grid'
+  }, {
+    margin: '4rem',
+    paddingTop: '4rem'
+  }, {}, {
+    paddingTop: '6rem'
+  }]} />;
+};"
+`;
+
+exports[`style prop parsing handles style props and places them in a new prop 1`] = `
+"const Example = () => {
+  return <div m='3rem' lineHeight={1.5} __styleProps__={[{
+    margin: '3rem',
+    lineHeight: 1.5
+  }]} />;
+};"
+`;
+
+exports[`style prop parsing handles style props on multiple elements 1`] = `
+"const Example = () => {
+  return <div m='1rem' __styleProps__={[{
+    margin: '1rem'
+  }]}>
+            <span p='2rem' __styleProps__={[{
+      padding: '2rem'
+    }]} />
+          </div>;
+};"
+`;
+
+exports[`style prop parsing handles variable usage in style props 1`] = `
+"const Example = ({
+  size
+}) => {
+  const variable = '3rem';
+
+  const myFunction = () => '4rem';
+
+  return <div m={[variable, size, myFunction()]} __styleProps__={[{
+    margin: variable
+  }, {
+    margin: size
+  }, {
+    margin: myFunction()
+  }]} />;
+};"
+`;
+
+exports[`style prop parsing merges parsed props with an existing __styleProps__ prop 1`] = `
+"const Example = () => {
+  return <div p={['1rem', '2rem', '3rem', '4rem']} __styleProps__={[{
+    margin: '1rem',
+    padding: '1rem'
+  }, {
+    padding: '2rem'
+  }, {
+    margin: '3rem',
+    padding: '3rem'
+  }, {
+    margin: '4rem',
+    padding: '4rem'
+  }]} />;
+};"
+`;
+
+exports[`style prop parsing strips style props if \`shouldStrip\` is set 1`] = `
+"const Example = () => {
+  return <div __styleProps__={[{
+    padding: '1rem'
+  }, {
+    padding: '2rem'
+  }, {
+    padding: '3rem'
+  }, {
+    padding: '4rem'
+  }]} />;
+};"
+`;
