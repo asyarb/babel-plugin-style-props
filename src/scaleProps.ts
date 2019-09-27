@@ -4,6 +4,14 @@ import { StylePropExpression } from '../types'
 import { STYLE_ALIASES } from './constants'
 import { castArray, times } from './utils'
 
+/**
+ * Normalizes a list of scale prop elements to no longer contain any null values. Null values will inherit the `firstLeft` non-null property.
+ *
+ * @example ['l', null, 'm'] => ['l', 'l', 'm']
+ *
+ * @param elements
+ * @returns The normalized scale elements array.
+ */
 const normalizeScale = (elements: StylePropExpression[]) => {
   const normalizedElements = times(i => {
     if (t.isNullLiteral(elements[i]) || elements[i] === undefined) {
@@ -58,6 +66,7 @@ export const processScaleProps = (
       const expression = propValue.expression as StylePropExpression
 
       if (t.isArrayExpression(expression)) {
+        // e.g. propScale={['foo', null, 'bar']}
         const elements = expression.elements as StylePropExpression[]
         const normalizedElements = normalizeScale(elements)
 
@@ -68,6 +77,7 @@ export const processScaleProps = (
           responsiveResults
         )
       } else {
+        // e.g. propScale={array}
         const normalizedExpression = normalizeScale(castArray(expression))
 
         processScaleProp(
@@ -78,6 +88,7 @@ export const processScaleProps = (
         )
       }
     } else {
+      // e.g. propScale="large"
       const normalizedProp = normalizeScale(castArray(propValue))
 
       processScaleProp(
