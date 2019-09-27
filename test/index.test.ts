@@ -129,3 +129,95 @@ describe('style prop parsing', () => {
     expect(code).toMatchSnapshot()
   })
 })
+
+describe('scale prop parsing', () => {
+  it('handles scale props', () => {
+    const example = `
+      const Example = () => {
+        return <div mScale='l' />
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+
+  it('handles responsive scale props', () => {
+    const example = `
+      const Example = () => {
+        return <div mScale={['l', null, 'm']} />
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+
+  it('handles variable arrays in scale props', () => {
+    const example = `
+      const Example = () => {
+        const array = ['l', 'l', 'm', 'm', 'xl']
+
+        return <div mScale={array} />
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+
+  it('merges scale props with an existing __styleProps__ prop', () => {
+    const example = `
+      const Example = () => {
+        return (
+          <div
+            pScale='l'
+            __styleProps__={[
+              {
+                margin: '1rem',
+              },
+              {},
+              {
+                margin: '3rem',
+              },
+              {
+                margin: '4rem',
+              }
+            ]} 
+          />
+        )
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+})
+
+describe('kitchen sink', () => {
+  it('handles a large amount of scale and style props', () => {
+    const example = `
+      const Example = () => {
+        const array = ['l', 'l', 'm', 'm', 'xl']
+        const variable = 'huge'
+
+        return (
+          <div 
+            display='flex'
+            mScale={array}
+            fontSize={['1rem', '2rem', null, '3rem']} 
+            color='green'
+            lineHeight={1.5} 
+            pyScale={['l', null, 'xxl']}
+            textTransform='uppercase'
+            fontFamily='system-ui'
+            maxWidth={variable}
+          />
+        )
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+})

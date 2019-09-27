@@ -1,5 +1,110 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`kitchen sink handles a large amount of scale and style props 1`] = `
+"const Example = () => {
+  const array = ['l', 'l', 'm', 'm', 'xl'];
+  const variable = 'huge';
+  return <div display='flex' mScale={array} fontSize={['1rem', '2rem', null, '3rem']} color='green' lineHeight={1.5} pyScale={['l', 'l', 'xxl', 'xxl', 'xxl']} textTransform='uppercase' fontFamily='system-ui' maxWidth={variable} __styleProps__={[{
+    display: 'flex',
+    fontSize: '1rem',
+    color: 'green',
+    lineHeight: 1.5,
+    textTransform: 'uppercase',
+    fontFamily: 'system-ui',
+    maxWidth: variable,
+    margin: array[0],
+    paddingTop: 'l'[0],
+    paddingBottom: 'l'[0]
+  }, {
+    fontSize: '2rem',
+    margin: array[1],
+    paddingTop: 'l'[1],
+    paddingBottom: 'l'[1]
+  }, {
+    margin: array[2],
+    paddingTop: 'xxl'[2],
+    paddingBottom: 'xxl'[2]
+  }, {
+    fontSize: '3rem',
+    margin: array[3],
+    paddingTop: 'xxl'[3],
+    paddingBottom: 'xxl'[3]
+  }, {
+    margin: array[4],
+    paddingTop: 'xxl'[4],
+    paddingBottom: 'xxl'[4]
+  }]} />;
+};"
+`;
+
+exports[`scale prop parsing handles responsive scale props 1`] = `
+"const Example = () => {
+  return <div mScale={['l', 'l', 'm', 'm', 'm']} __styleProps__={[{
+    margin: 'l'[0]
+  }, {
+    margin: 'l'[1]
+  }, {
+    margin: 'm'[2]
+  }, {
+    margin: 'm'[3]
+  }, {
+    margin: 'm'[4]
+  }]} />;
+};"
+`;
+
+exports[`scale prop parsing handles scale props 1`] = `
+"const Example = () => {
+  return <div mScale='l' __styleProps__={[{
+    margin: 'l'[0]
+  }, {
+    margin: 'l'[1]
+  }, {
+    margin: 'l'[2]
+  }, {
+    margin: 'l'[3]
+  }, {
+    margin: 'l'[4]
+  }]} />;
+};"
+`;
+
+exports[`scale prop parsing handles variable arrays in scale props 1`] = `
+"const Example = () => {
+  const array = ['l', 'l', 'm', 'm', 'xl'];
+  return <div mScale={array} __styleProps__={[{
+    margin: array[0]
+  }, {
+    margin: array[1]
+  }, {
+    margin: array[2]
+  }, {
+    margin: array[3]
+  }, {
+    margin: array[4]
+  }]} />;
+};"
+`;
+
+exports[`scale prop parsing merges scale props with an existing __styleProps__ prop 1`] = `
+"const Example = () => {
+  return <div pScale='l' __styleProps__={[{
+    margin: '1rem',
+    padding: 'l'[0]
+  }, {
+    padding: 'l'[1]
+  }, {
+    margin: '3rem',
+    padding: 'l'[2]
+  }, {
+    margin: '4rem',
+    padding: 'l'[3]
+  }, {
+    padding: 'l'[4]
+  }]} />;
+};"
+`;
+
 exports[`style prop parsing does not strip non style props if \`shouldStrip\` is set 1`] = `
 "const Example = () => {
   return <div shouldNotStrip={true} __styleProps__={[{

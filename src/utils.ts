@@ -18,6 +18,23 @@ import { SCALE_BASEPROP_MAP, STYLE_PROPS, STYLE_PROPS_ID } from './constants'
 export const castArray = <T>(x: T | T[]) => (Array.isArray(x) ? x : [x])
 
 /**
+ * Returns an array by returning the result of the provided `callback`
+ * `num` times.  The callback will receive the current iteration number
+ * as an arument.
+ *
+ * @param callback
+ * @param num
+ */
+export const times = <T>(callback: (index: number) => T, num: number) => {
+  const arr = []
+  for (let i = 0; i < num; i++) {
+    arr[i] = callback(i)
+  }
+
+  return arr
+}
+
+/**
  * Given a list of props, returns a list of all the explicit props, e.g. `prop="myProp"` and spread props e.g. `{...props}`.
  *
  * @param props
