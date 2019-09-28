@@ -5,12 +5,18 @@ import {
   ObjectExpression,
   Program,
 } from '@babel/types'
-import { buildObjectProperty, mergeStyleObjects } from 'builders'
 import { Babel, PluginOptions } from '../types'
+import { buildStyleObject } from './builders'
 import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
+import { mergeStyleObjects } from './mergers'
 import { processScaleProps } from './scaleProps'
 import { processStyleProps } from './styleProps'
-import { extractProps, extractStyleProps, notStyleProps } from './utils'
+import {
+  extractProps,
+  extractStyleProps,
+  notStyleProps,
+  stripInternalProp,
+} from './utils'
 
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path: NodePath<JSXOpeningElement>, options: PluginOptions) {
@@ -35,19 +41,15 @@ const jsxOpeningElementVisitor = {
     const base = processStyleProps(options, styleProps)
     const scales = processScaleProps(scaleProps)
 
-    const css = buildObjectProperty('css', t.objectExpression([base]))
-    const extensions = buildObjectProperty(
-      'extensions',
-      t.objectExpression([scales])
-    )
-
-    const styleObj = t.objectExpression([css, extensions])
+    let styleObj = buildStyleObject(base, scales)
 
     if (existingStyleProp) {
       const existingPropValue = existingStyleProp.value as JSXExpressionContainer
       const existingObj = existingPropValue.expression as ObjectExpression
 
-      mergeStyleObjects(existingObj, styleObj)
+      styleObj = mergeStyleObjects(existingObj, styleObj)
+
+      path.node.attributes = stripInternalProp(path.node.attributes)
     }
 
     const styleProp = t.jsxAttribute(

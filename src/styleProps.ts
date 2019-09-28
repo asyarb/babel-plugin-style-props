@@ -28,6 +28,7 @@ export const processStyleProps = (
     const { variants } = options
     const propName = prop.name.name as string
     const propValue = prop.value
+
     const cssPropertyNames = castArray(STYLE_ALIASES[propName] || propName)
 
     if (t.isJSXExpressionContainer(propValue)) {
@@ -52,8 +53,7 @@ export const processStyleProps = (
       }
     } else {
       // e.g. prop="test"
-      const isVariant = Boolean(variants[propName])
-      if (isVariant) {
+      if (Boolean(variants[propName])) {
         // TODO
       }
 
@@ -66,7 +66,8 @@ export const processStyleProps = (
     t.objectExpression(properties)
   )
 
-  const resultArr = t.arrayExpression([baseResultObj, ...responsiveResultObjs])
-
-  return buildObjectProperty('base', resultArr)
+  return buildObjectProperty(
+    'base',
+    t.arrayExpression([baseResultObj, ...responsiveResultObjs])
+  )
 }

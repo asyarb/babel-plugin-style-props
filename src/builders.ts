@@ -1,14 +1,20 @@
 import { types as t } from '@babel/core'
-import { Expression, ObjectExpression } from '@babel/types'
+import { Expression, ObjectProperty } from '@babel/types'
 
 export const buildObjectProperty = (
   identifier: string,
   expression: Expression
 ) => t.objectProperty(t.identifier(identifier), expression)
 
-export const mergeStyleObjects = (
-  existingObj: ObjectExpression,
-  newObj: ObjectExpression
+export const buildStyleObject = (
+  base: ObjectProperty,
+  scales: ObjectProperty
 ) => {
-  console.log({ existingObj, newObj })
+  const css = buildObjectProperty('css', t.objectExpression([base]))
+  const extensions = buildObjectProperty(
+    'extensions',
+    t.objectExpression([scales])
+  )
+
+  return t.objectExpression([css, extensions])
 }

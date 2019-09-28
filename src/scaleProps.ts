@@ -24,6 +24,7 @@ export const processScaleProps = (scaleProps: JSXAttribute[]) => {
     const propName = prop.name.name as string
     const basePropName = propName.replace('Scale', '')
     const propValue = prop.value
+
     const cssPropertyNames = castArray(
       STYLE_ALIASES[basePropName] || basePropName
     )
@@ -34,23 +35,18 @@ export const processScaleProps = (scaleProps: JSXAttribute[]) => {
       if (t.isArrayExpression(expression)) {
         // e.g. propScale={['foo', null, 'bar']}
         const elements = expression.elements as StylePropExpression[]
-
         processScaleProp(cssPropertyNames, elements, result)
       } else {
         // e.g. propScale={array}
         const normalizedExpression = castArray(expression)
-
         processScaleProp(cssPropertyNames, normalizedExpression, result)
       }
     } else {
       // e.g. propScale="large"
       const normalizedProp = castArray(propValue)
-
       processScaleProp(cssPropertyNames, normalizedProp, result)
     }
   })
 
-  const resultObj = t.objectExpression(result)
-
-  return buildObjectProperty('scales', resultObj)
+  return buildObjectProperty('scales', t.objectExpression(result))
 }
