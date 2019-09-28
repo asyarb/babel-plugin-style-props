@@ -6,8 +6,8 @@ import {
   JSXSpreadAttribute,
   SpreadElement,
 } from '@babel/types'
-import { PluginContext } from '../types'
-import { SCALE_BASEPROP_MAP, STYLE_PROPS, STYLE_PROPS_ID } from './constants'
+import { PluginOptions } from '../types'
+import { PROP_NAMES, STYLE_PROPS_ID } from './constants'
 
 /**
  * Given a value, casts the value to an array if it is not one.
@@ -16,23 +16,6 @@ import { SCALE_BASEPROP_MAP, STYLE_PROPS, STYLE_PROPS_ID } from './constants'
  * @returns The casted array.
  */
 export const castArray = <T>(x: T | T[]) => (Array.isArray(x) ? x : [x])
-
-/**
- * Returns an array by returning the result of the provided `callback`
- * `num` times.  The callback will receive the current iteration number
- * as an arument.
- *
- * @param callback
- * @param num
- */
-export const times = <T>(callback: (index: number) => T, num: number) => {
-  const arr = []
-  for (let i = 0; i < num; i++) {
-    arr[i] = callback(i)
-  }
-
-  return arr
-}
 
 /**
  * Given a list of props, returns a list of all the explicit props, e.g. `prop="myProp"` and spread props e.g. `{...props}`.
@@ -55,49 +38,54 @@ export const extractProps = (props: (JSXAttribute | JSXSpreadAttribute)[]) => {
 /**
  * Given a list of **explicit** props, returns a list of all style props e.g. `mx=""` and scale props e.g. `mxScale=""`
  *
- * @param context
+ * @param options
  * @param props
  * @returns An object containing `styleProps` and `scaleProps`.
  */
 export const extractStyleProps = (
-  context: PluginContext,
+  options: PluginOptions,
   props: t.JSXAttribute[]
 ) => {
-  const { variants } = context
+  const { variants } = options
   const styleProps = [] as JSXAttribute[]
   const scaleProps = [] as JSXAttribute[]
-  let existingStylePropsObj: JSXAttribute | undefined
+  let existingStyleProp: JSXAttribute | undefined
 
   props.forEach(prop => {
     const propName = prop.name.name as string
+    const isScaleProp = propName.endsWith('Scale')
+    const basePropName = propName.replace('Scale', '')
 
-    if (propName === STYLE_PROPS_ID) existingStylePropsObj = prop
-    else if (STYLE_PROPS[propName] || variants[propName]) styleProps.push(prop)
-    else if (SCALE_BASEPROP_MAP[propName]) scaleProps.push(prop)
+    if (propName === STYLE_PROPS_ID) existingStyleProp = prop
+    else if (variants[basePropName]) styleProps.push(prop)
+    else if (PROP_NAMES.includes(basePropName)) {
+      if (isScaleProp) scaleProps.push(prop)
+      else styleProps.push(prop)
+    }
   })
 
-  return { styleProps, scaleProps, existingStylePropsObj }
+  return { styleProps, scaleProps, existingStyleProp }
 }
 
 /**
  * Given a list of **explicit** props, returns a list of all non-style props.
  *
- * @param context
+ * @param options
  * @param props
  * @returns An object containing the `nonStyleProps`.
  */
 export const notStyleProps = (
-  context: PluginContext,
+  options: PluginOptions,
   props: JSXAttribute[]
 ) => {
-  const { variants } = context
+  const { variants } = options
 
   return props.filter(prop => {
     const propName = prop.name.name as string
+    const basePropName = propName.replace('Scale', '')
 
-    if (STYLE_PROPS[propName]) return false
+    if (PROP_NAMES.includes(basePropName)) return false
     if (variants[propName]) return false
-    if (SCALE_BASEPROP_MAP[propName]) return false
 
     return true
   })

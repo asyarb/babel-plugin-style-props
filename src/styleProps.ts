@@ -1,6 +1,7 @@
 import { types as t } from '@babel/core'
 import { JSXAttribute, ObjectProperty } from '@babel/types'
-import { PluginContext, StylePropExpression } from '../types'
+import { buildObjectProperty } from 'builders'
+import { PluginOptions, StylePropExpression } from '../types'
 import { STYLE_ALIASES } from './constants'
 import { castArray, shouldSkipProp } from './utils'
 
@@ -12,18 +13,19 @@ const processProp = (
   cssPropertyNames.forEach(cssName => {
     if (shouldSkipProp(expression)) return
 
-    result.push(t.objectProperty(t.identifier(cssName), expression!))
+    result.push(buildObjectProperty(cssName, expression!))
   })
 }
 
 export const processStyleProps = (
-  context: PluginContext,
-  styleProps: JSXAttribute[],
-  baseResult: ObjectProperty[],
-  responsiveResults: ObjectProperty[][]
+  options: PluginOptions,
+  styleProps: JSXAttribute[]
 ) => {
+  const baseResult = [] as ObjectProperty[]
+  const responsiveResults = [] as ObjectProperty[][]
+
   styleProps.forEach(prop => {
-    const { variants } = context
+    const { variants } = options
     const propName = prop.name.name as string
     const propValue = prop.value
     const cssPropertyNames = castArray(STYLE_ALIASES[propName] || propName)
@@ -58,4 +60,13 @@ export const processStyleProps = (
       processProp(cssPropertyNames, propValue, baseResult)
     }
   })
+
+  const baseResultObj = t.objectExpression(baseResult)
+  const responsiveResultObjs = responsiveResults.map(properties =>
+    t.objectExpression(properties)
+  )
+
+  const resultArr = t.arrayExpression([baseResultObj, ...responsiveResultObjs])
+
+  return buildObjectProperty('base', resultArr)
 }

@@ -1,76 +1,61 @@
 import { NodePath, types as t } from '@babel/core'
 import {
-  ArrayExpression,
   JSXExpressionContainer,
   JSXOpeningElement,
+  ObjectExpression,
   Program,
 } from '@babel/types'
+import { buildObjectProperty, mergeStyleObjects } from 'builders'
 import { Babel, PluginOptions } from '../types'
-import {
-  buildStylePropsArrayExpression,
-  mergeStylePropArrayExpressions,
-} from './builders'
 import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
-import {
-  extractProps,
-  extractStyleProps,
-  notStyleProps,
-  stripInternalProp,
-} from './utils'
+import { processScaleProps } from './scaleProps'
+import { processStyleProps } from './styleProps'
+import { extractProps, extractStyleProps, notStyleProps } from './utils'
 
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path: NodePath<JSXOpeningElement>, options: PluginOptions) {
     const allProps = path.node.attributes
     if (!allProps.length) return
 
-    const context = {
-      scopedProps: {},
-      ...options,
-    }
-
     const { explicitProps, spreadProps } = extractProps(allProps)
-    const { scaleProps, styleProps, existingStylePropsObj } = extractStyleProps(
-      context,
+    const { scaleProps, styleProps, existingStyleProp } = extractStyleProps(
+      options,
       explicitProps
     )
 
     if (!scaleProps.length && !styleProps.length) return
 
-    const stylePropsArrayExpression = buildStylePropsArrayExpression(
-      context,
-      scaleProps,
-      styleProps
-    )
-
-    if (context.stripProps) {
+    if (options.stripProps) {
       path.node.attributes = [
-        ...notStyleProps(context, explicitProps),
+        ...notStyleProps(options, explicitProps),
         ...spreadProps,
       ]
     }
 
-    if (stylePropsArrayExpression) {
-      let stylePropValue = stylePropsArrayExpression
+    const base = processStyleProps(options, styleProps)
+    const scales = processScaleProps(scaleProps)
 
-      if (existingStylePropsObj) {
-        path.node.attributes = stripInternalProp(path.node.attributes)
+    const css = buildObjectProperty('css', t.objectExpression([base]))
+    const extensions = buildObjectProperty(
+      'extensions',
+      t.objectExpression([scales])
+    )
 
-        const existingContainer = existingStylePropsObj.value as JSXExpressionContainer
-        const existingArrayExpression = existingContainer.expression as ArrayExpression
+    const styleObj = t.objectExpression([css, extensions])
 
-        stylePropValue = mergeStylePropArrayExpressions(
-          stylePropsArrayExpression,
-          existingArrayExpression
-        )
-      }
+    if (existingStyleProp) {
+      const existingPropValue = existingStyleProp.value as JSXExpressionContainer
+      const existingObj = existingPropValue.expression as ObjectExpression
 
-      const styleProp = t.jsxAttribute(
-        t.jsxIdentifier(STYLE_PROPS_ID),
-        t.jsxExpressionContainer(stylePropValue)
-      )
-
-      path.node.attributes.push(styleProp)
+      mergeStyleObjects(existingObj, styleObj)
     }
+
+    const styleProp = t.jsxAttribute(
+      t.jsxIdentifier(STYLE_PROPS_ID),
+      t.jsxExpressionContainer(styleObj)
+    )
+
+    path.node.attributes.push(styleProp)
   },
 }
 

@@ -12,9 +12,3 @@ export interface PluginOptions {
     [key: string]: string
   }
 }
-
-export interface PluginContext extends PluginOptions {
-  scopedProps: {
-    [key: string]: any[]
-  }
-}

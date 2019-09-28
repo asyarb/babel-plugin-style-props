@@ -36,7 +36,7 @@ export const STYLE_ALIASES = {
 const cssBlacklist = (x: string) => !['src', 'x', 'y', 'alt'].includes(x)
 const cssProperties = cssProps.all.filter(cssBlacklist).map(camelCase)
 
-const propNames = [
+export const PROP_NAMES = [
   ...cssProperties,
 
   // style specific props
@@ -60,16 +60,3 @@ const propNames = [
   'paddingX',
   'paddingY',
 ]
-
-export const STYLE_PROPS = propNames.reduce((acc, key) => {
-  acc[key] = true
-
-  return acc
-}, {})
-
-// TODO: Think about using regex Scale suffix instead of separate scale map.
-export const SCALE_BASEPROP_MAP = propNames.reduce((acc, key) => {
-  acc[key + 'Scale'] = key
-
-  return acc
-}, {})

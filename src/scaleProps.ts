@@ -1,59 +1,25 @@
 import { types as t } from '@babel/core'
 import { JSXAttribute, ObjectProperty } from '@babel/types'
+import { buildObjectProperty } from 'builders'
 import { StylePropExpression } from '../types'
 import { STYLE_ALIASES } from './constants'
-import { castArray, times } from './utils'
-
-/**
- * Normalizes a list of scale prop elements to no longer contain any null values. Null values will inherit the `firstLeft` non-null property.
- *
- * @example ['l', null, 'm'] => ['l', 'l', 'm']
- *
- * @param elements
- * @returns The normalized scale elements array.
- */
-const normalizeScale = (elements: StylePropExpression[]) => {
-  const normalizedElements = times(i => {
-    if (t.isNullLiteral(elements[i]) || elements[i] === undefined) {
-      elements[i] = elements[i - 1] || t.nullLiteral()
-    }
-
-    return elements[i]
-  }, 5)
-
-  return normalizedElements
-}
+import { castArray } from './utils'
 
 const processScaleProp = (
   cssPropertyNames: string[],
   normalizedPropArr: StylePropExpression[],
-  baseResult: ObjectProperty[],
-  responsiveResults: ObjectProperty[][]
+  result: ObjectProperty[]
 ) => {
-  normalizedPropArr.forEach((element, i) => {
-    let resultObj = baseResult
-
-    if (i !== 0) {
-      responsiveResults[i - 1] = responsiveResults[i - 1] || []
-      resultObj = responsiveResults[i - 1]
-    }
-
-    cssPropertyNames.forEach(cssName => {
-      resultObj.push(
-        t.objectProperty(
-          t.identifier(cssName),
-          t.memberExpression(element!, t.numericLiteral(i), true)
-        )
-      )
-    })
+  cssPropertyNames.forEach(cssName => {
+    result.push(
+      buildObjectProperty(cssName, t.arrayExpression(normalizedPropArr))
+    )
   })
 }
 
-export const processScaleProps = (
-  scaleProps: JSXAttribute[],
-  baseResult: ObjectProperty[],
-  responsiveResults: ObjectProperty[][]
-) => {
+export const processScaleProps = (scaleProps: JSXAttribute[]) => {
+  const result = [] as ObjectProperty[]
+
   scaleProps.forEach(prop => {
     const propName = prop.name.name as string
     const basePropName = propName.replace('Scale', '')
@@ -68,35 +34,23 @@ export const processScaleProps = (
       if (t.isArrayExpression(expression)) {
         // e.g. propScale={['foo', null, 'bar']}
         const elements = expression.elements as StylePropExpression[]
-        const normalizedElements = normalizeScale(elements)
 
-        processScaleProp(
-          cssPropertyNames,
-          normalizedElements,
-          baseResult,
-          responsiveResults
-        )
+        processScaleProp(cssPropertyNames, elements, result)
       } else {
         // e.g. propScale={array}
-        const normalizedExpression = normalizeScale(castArray(expression))
+        const normalizedExpression = castArray(expression)
 
-        processScaleProp(
-          cssPropertyNames,
-          normalizedExpression,
-          baseResult,
-          responsiveResults
-        )
+        processScaleProp(cssPropertyNames, normalizedExpression, result)
       }
     } else {
       // e.g. propScale="large"
-      const normalizedProp = normalizeScale(castArray(propValue))
+      const normalizedProp = castArray(propValue)
 
-      processScaleProp(
-        cssPropertyNames,
-        normalizedProp,
-        baseResult,
-        responsiveResults
-      )
+      processScaleProp(cssPropertyNames, normalizedProp, result)
     }
   })
+
+  const resultObj = t.objectExpression(result)
+
+  return buildObjectProperty('scales', resultObj)
 }

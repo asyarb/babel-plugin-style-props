@@ -1,13 +1,29 @@
 import React from 'react'
 
 export const Example = () => {
-  const size = ['3rem', '4rem', null]
   return (
     <div
-      mScale={['l', null, 'r']}
-      pScale={size}
-      colorScale="red"
-      borderBottom="1px solid"
+      lineHeight={[1, 1.5]}
+      colorScale={['red', 'blue']}
+      hello={true}
+      __styleProps__={{
+        css: {
+          base: [
+            {
+              margin: 'l',
+            },
+            {},
+            {
+              margin: 'xl',
+            },
+          ],
+        },
+        extensions: {
+          scales: {
+            padding: ['l', null, 'xl'],
+          },
+        },
+      }}
     />
   )
 }
