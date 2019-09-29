@@ -1,7 +1,7 @@
 import { types as t } from '@babel/core'
 import { JSXAttribute, ObjectProperty } from '@babel/types'
-import { buildObjectProperty } from 'builders'
 import { PluginOptions, StylePropExpression } from '../types'
+import { buildObjectProperty } from './builders'
 import { STYLE_ALIASES } from './constants'
 import { castArray, shouldSkipProp } from './utils'
 

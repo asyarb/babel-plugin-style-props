@@ -108,18 +108,24 @@ describe('style prop parsing', () => {
         return (
           <div
             p={['1rem', '2rem', '3rem', '4rem']}
-            __styleProps__={[
-              {
-                margin: '1rem',
+            __styleProps__={{
+              css: {
+                base: [
+                  {
+                    margin: 'l',
+                  },
+                  {},
+                  {
+                    margin: 'xl',
+                  },
+                ],
               },
-              {},
-              {
-                margin: '3rem',
+              extensions: {
+                scales: {
+                  color: ['primary', null, 'secondary'],
+                },
               },
-              {
-                margin: '4rem',
-              }
-            ]} 
+            }}
           />
         )
       }
@@ -171,19 +177,25 @@ describe('scale prop parsing', () => {
       const Example = () => {
         return (
           <div
-            pScale='l'
-            __styleProps__={[
-              {
-                margin: '1rem',
+            mScale='l'
+            __styleProps__={{
+              css: {
+                base: [
+                  {
+                    color: 'red',
+                  },
+                  {},
+                  {
+                    color: 'blue',
+                  },
+                ],
               },
-              {},
-              {
-                margin: '3rem',
+              extensions: {
+                scales: {
+                  padding: ['l', null, 'xl'],
+                },
               },
-              {
-                margin: '4rem',
-              }
-            ]} 
+            }} 
           />
         )
       }

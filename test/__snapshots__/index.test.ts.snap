@@ -4,118 +4,117 @@ exports[`kitchen sink handles a large amount of scale and style props 1`] = `
 "const Example = () => {
   const array = ['l', 'l', 'm', 'm', 'xl'];
   const variable = 'huge';
-  return <div display='flex' mScale={array} fontSize={['1rem', '2rem', null, '3rem']} color='green' lineHeight={1.5} pyScale={['l', 'l', 'xxl', 'xxl', 'xxl']} textTransform='uppercase' fontFamily='system-ui' maxWidth={variable} __styleProps__={[{
-    display: 'flex',
-    fontSize: '1rem',
-    color: 'green',
-    lineHeight: 1.5,
-    textTransform: 'uppercase',
-    fontFamily: 'system-ui',
-    maxWidth: variable,
-    margin: array[0],
-    paddingTop: 'l'[0],
-    paddingBottom: 'l'[0]
-  }, {
-    fontSize: '2rem',
-    margin: array[1],
-    paddingTop: 'l'[1],
-    paddingBottom: 'l'[1]
-  }, {
-    margin: array[2],
-    paddingTop: 'xxl'[2],
-    paddingBottom: 'xxl'[2]
-  }, {
-    fontSize: '3rem',
-    margin: array[3],
-    paddingTop: 'xxl'[3],
-    paddingBottom: 'xxl'[3]
-  }, {
-    margin: array[4],
-    paddingTop: 'xxl'[4],
-    paddingBottom: 'xxl'[4]
-  }]} />;
+  return <div display='flex' mScale={array} fontSize={['1rem', '2rem', null, '3rem']} color='green' lineHeight={1.5} pyScale={['l', null, 'xxl']} textTransform='uppercase' fontFamily='system-ui' maxWidth={variable} __styleProps__={{
+    css: {
+      base: [{
+        display: 'flex',
+        fontSize: '1rem',
+        color: 'green',
+        lineHeight: 1.5,
+        textTransform: 'uppercase',
+        fontFamily: 'system-ui',
+        maxWidth: variable
+      }, {
+        fontSize: '2rem'
+      }, {}, {
+        fontSize: '3rem'
+      }]
+    },
+    extensions: {
+      scales: {
+        margin: [array],
+        paddingTop: ['l', null, 'xxl'],
+        paddingBottom: ['l', null, 'xxl']
+      }
+    }
+  }} />;
 };"
 `;
 
 exports[`scale prop parsing handles responsive scale props 1`] = `
 "const Example = () => {
-  return <div mScale={['l', 'l', 'm', 'm', 'm']} __styleProps__={[{
-    margin: 'l'[0]
-  }, {
-    margin: 'l'[1]
-  }, {
-    margin: 'm'[2]
-  }, {
-    margin: 'm'[3]
-  }, {
-    margin: 'm'[4]
-  }]} />;
+  return <div mScale={['l', null, 'm']} __styleProps__={{
+    css: {
+      base: [{}]
+    },
+    extensions: {
+      scales: {
+        margin: ['l', null, 'm']
+      }
+    }
+  }} />;
 };"
 `;
 
 exports[`scale prop parsing handles scale props 1`] = `
 "const Example = () => {
-  return <div mScale='l' __styleProps__={[{
-    margin: 'l'[0]
-  }, {
-    margin: 'l'[1]
-  }, {
-    margin: 'l'[2]
-  }, {
-    margin: 'l'[3]
-  }, {
-    margin: 'l'[4]
-  }]} />;
+  return <div mScale='l' __styleProps__={{
+    css: {
+      base: [{}]
+    },
+    extensions: {
+      scales: {
+        margin: ['l']
+      }
+    }
+  }} />;
 };"
 `;
 
 exports[`scale prop parsing handles variable arrays in scale props 1`] = `
 "const Example = () => {
   const array = ['l', 'l', 'm', 'm', 'xl'];
-  return <div mScale={array} __styleProps__={[{
-    margin: array[0]
-  }, {
-    margin: array[1]
-  }, {
-    margin: array[2]
-  }, {
-    margin: array[3]
-  }, {
-    margin: array[4]
-  }]} />;
+  return <div mScale={array} __styleProps__={{
+    css: {
+      base: [{}]
+    },
+    extensions: {
+      scales: {
+        margin: [array]
+      }
+    }
+  }} />;
 };"
 `;
 
 exports[`scale prop parsing merges scale props with an existing __styleProps__ prop 1`] = `
 "const Example = () => {
-  return <div pScale='l' __styleProps__={[{
-    margin: '1rem',
-    padding: 'l'[0]
-  }, {
-    padding: 'l'[1]
-  }, {
-    margin: '3rem',
-    padding: 'l'[2]
-  }, {
-    margin: '4rem',
-    padding: 'l'[3]
-  }, {
-    padding: 'l'[4]
-  }]} />;
+  return <div mScale='l' __styleProps__={{
+    css: {
+      base: [{
+        color: 'red'
+      }, {}, {
+        color: 'blue'
+      }]
+    },
+    extensions: {
+      scales: {
+        padding: ['l', null, 'xl'],
+        margin: ['l']
+      }
+    }
+  }} />;
 };"
 `;
 
 exports[`style prop parsing does not strip non style props if \`shouldStrip\` is set 1`] = `
 "const Example = () => {
-  return <div shouldNotStrip={true} __styleProps__={[{
-    padding: '1rem'
-  }, {
-    padding: '2rem'
-  }, {
-    padding: '3rem'
-  }, {
-    padding: '4rem'
-  }]} />;
+  return <div shouldNotStrip={true} __styleProps__={{
+    css: {
+      base: [{
+        padding: '1rem'
+      }, {
+        padding: '2rem'
+      }, {
+        padding: '3rem'
+      }, {
+        padding: '4rem'
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
 };"
 `;
 
@@ -123,43 +122,78 @@ exports[`style prop parsing handles expressions in style props 1`] = `
 "const Example = ({
   isTest
 }) => {
-  return <div m={isTest ? '3rem' : '4rem'} __styleProps__={[{
-    margin: isTest ? '3rem' : '4rem'
-  }]} />;
+  return <div m={isTest ? '3rem' : '4rem'} __styleProps__={{
+    css: {
+      base: [{
+        margin: isTest ? '3rem' : '4rem'
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
 };"
 `;
 
 exports[`style prop parsing handles responsive style props 1`] = `
 "const Example = () => {
-  return <div m={['3rem', '4rem']} display='grid' pt={[null, '4rem', null, '6rem']} __styleProps__={[{
-    margin: '3rem',
-    display: 'grid'
-  }, {
-    margin: '4rem',
-    paddingTop: '4rem'
-  }, {}, {
-    paddingTop: '6rem'
-  }]} />;
+  return <div m={['3rem', '4rem']} display='grid' pt={[null, '4rem', null, '6rem']} __styleProps__={{
+    css: {
+      base: [{
+        margin: '3rem',
+        display: 'grid'
+      }, {
+        margin: '4rem',
+        paddingTop: '4rem'
+      }, {}, {
+        paddingTop: '6rem'
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
 };"
 `;
 
 exports[`style prop parsing handles style props and places them in a new prop 1`] = `
 "const Example = () => {
-  return <div m='3rem' lineHeight={1.5} __styleProps__={[{
-    margin: '3rem',
-    lineHeight: 1.5
-  }]} />;
+  return <div m='3rem' lineHeight={1.5} __styleProps__={{
+    css: {
+      base: [{
+        margin: '3rem',
+        lineHeight: 1.5
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
 };"
 `;
 
 exports[`style prop parsing handles style props on multiple elements 1`] = `
 "const Example = () => {
-  return <div m='1rem' __styleProps__={[{
-    margin: '1rem'
-  }]}>
-            <span p='2rem' __styleProps__={[{
-      padding: '2rem'
-    }]} />
+  return <div m='1rem' __styleProps__={{
+    css: {
+      base: [{
+        margin: '1rem'
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }}>
+            <span p='2rem' __styleProps__={{
+      css: {
+        base: [{
+          padding: '2rem'
+        }]
+      },
+      extensions: {
+        scales: {}
+      }
+    }} />
           </div>;
 };"
 `;
@@ -172,43 +206,65 @@ exports[`style prop parsing handles variable usage in style props 1`] = `
 
   const myFunction = () => '4rem';
 
-  return <div m={[variable, size, myFunction()]} __styleProps__={[{
-    margin: variable
-  }, {
-    margin: size
-  }, {
-    margin: myFunction()
-  }]} />;
+  return <div m={[variable, size, myFunction()]} __styleProps__={{
+    css: {
+      base: [{
+        margin: variable
+      }, {
+        margin: size
+      }, {
+        margin: myFunction()
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
 };"
 `;
 
 exports[`style prop parsing merges parsed props with an existing __styleProps__ prop 1`] = `
 "const Example = () => {
-  return <div p={['1rem', '2rem', '3rem', '4rem']} __styleProps__={[{
-    margin: '1rem',
-    padding: '1rem'
-  }, {
-    padding: '2rem'
-  }, {
-    margin: '3rem',
-    padding: '3rem'
-  }, {
-    margin: '4rem',
-    padding: '4rem'
-  }]} />;
+  return <div p={['1rem', '2rem', '3rem', '4rem']} __styleProps__={{
+    css: {
+      base: [{
+        margin: 'l',
+        padding: '1rem'
+      }, {
+        padding: '2rem'
+      }, {
+        margin: 'xl',
+        padding: '3rem'
+      }, {
+        padding: '4rem'
+      }]
+    },
+    extensions: {
+      scales: {
+        color: ['primary', null, 'secondary']
+      }
+    }
+  }} />;
 };"
 `;
 
 exports[`style prop parsing strips style props if \`shouldStrip\` is set 1`] = `
 "const Example = () => {
-  return <div __styleProps__={[{
-    padding: '1rem'
-  }, {
-    padding: '2rem'
-  }, {
-    padding: '3rem'
-  }, {
-    padding: '4rem'
-  }]} />;
+  return <div __styleProps__={{
+    css: {
+      base: [{
+        padding: '1rem'
+      }, {
+        padding: '2rem'
+      }, {
+        padding: '3rem'
+      }, {
+        padding: '4rem'
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
 };"
 `;
