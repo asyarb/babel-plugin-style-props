@@ -24,10 +24,14 @@ const jsxOpeningElementVisitor = {
     if (!allProps.length) return
 
     const { explicitProps, spreadProps } = extractProps(allProps)
-    const { scaleProps, styleProps, existingStyleProp } = extractStyleProps(
-      options,
-      explicitProps
-    )
+    const {
+      scaleProps,
+      styleProps,
+      hoverProps,
+      focusProps,
+      activeProps,
+      existingStyleProp,
+    } = extractStyleProps(options, explicitProps)
 
     if (!scaleProps.length && !styleProps.length) return
 
@@ -38,10 +42,16 @@ const jsxOpeningElementVisitor = {
       ]
     }
 
-    const base = processStyleProps(options, styleProps)
+    const base = processStyleProps(styleProps, options, 'base')
+    const hover = processStyleProps(hoverProps, options, 'hover')
+    const focus = processStyleProps(focusProps, options, 'focus')
+    const active = processStyleProps(activeProps, options, 'active')
     const scales = processScaleProps(scaleProps)
 
-    let styleObj = buildStyleObject(base, scales)
+    let styleObj = buildStyleObject({
+      css: [base, hover, focus, active],
+      extensions: [scales],
+    })
 
     if (existingStyleProp) {
       const existingPropValue = existingStyleProp.value as JSXExpressionContainer

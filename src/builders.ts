@@ -6,15 +6,18 @@ export const buildObjectProperty = (
   expression: Expression
 ) => t.objectProperty(t.identifier(identifier), expression)
 
-export const buildStyleObject = (
-  base: ObjectProperty,
-  scales: ObjectProperty
-) => {
-  const css = buildObjectProperty('css', t.objectExpression([base]))
-  const extensions = buildObjectProperty(
+export const buildStyleObject = ({
+  css,
+  extensions,
+}: {
+  css: ObjectProperty[]
+  extensions: ObjectProperty[]
+}) => {
+  const cssKey = buildObjectProperty('css', t.objectExpression(css))
+  const extensionsKey = buildObjectProperty(
     'extensions',
-    t.objectExpression([scales])
+    t.objectExpression(extensions)
   )
 
-  return t.objectExpression([css, extensions])
+  return t.objectExpression([cssKey, extensionsKey])
 }

@@ -3,7 +3,7 @@ import { JSXAttribute, ObjectProperty } from '@babel/types'
 import { PluginOptions, StylePropExpression } from '../types'
 import { buildObjectProperty } from './builders'
 import { STYLE_ALIASES } from './constants'
-import { castArray, shouldSkipProp } from './utils'
+import { castArray, extractPropBaseName, shouldSkipProp } from './utils'
 
 const processProp = (
   cssPropertyNames: string[],
@@ -18,18 +18,22 @@ const processProp = (
 }
 
 export const processStyleProps = (
+  styleProps: JSXAttribute[],
   options: PluginOptions,
-  styleProps: JSXAttribute[]
+  type: string
 ) => {
+  const { variants } = options
   const baseResult = [] as ObjectProperty[]
   const responsiveResults = [] as ObjectProperty[][]
 
   styleProps.forEach(prop => {
-    const { variants } = options
     const propName = prop.name.name as string
+    const { propBaseName } = extractPropBaseName(propName)
     const propValue = prop.value
 
-    const cssPropertyNames = castArray(STYLE_ALIASES[propName] || propName)
+    const cssPropertyNames = castArray(
+      STYLE_ALIASES[propBaseName] || propBaseName
+    )
 
     if (t.isJSXExpressionContainer(propValue)) {
       const expression = propValue.expression as StylePropExpression
@@ -67,7 +71,7 @@ export const processStyleProps = (
   )
 
   return buildObjectProperty(
-    'base',
+    type,
     t.arrayExpression([baseResultObj, ...responsiveResultObjs])
   )
 }
