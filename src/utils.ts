@@ -18,6 +18,39 @@ import { PROP_NAMES, STYLE_PROPS_ID } from './constants'
 export const castArray = <T>(x: T | T[]) => (Array.isArray(x) ? x : [x])
 
 /**
+ * Given a prop's name, extracts the base name of the prop.
+ *
+ * @example `extractPropBaseName('mxScale') => `mx``
+ *
+ * @param propName
+ *
+ * @returns The base prop name.
+ */
+export const extractPropBaseName = (propName: string) => {
+  let propBaseName = propName
+  let isScale = false
+  let isHover = false
+  let isFocus = false
+  let isActive = false
+
+  if (propName.endsWith('Scale')) {
+    propBaseName = propName.replace('Scale', '')
+    isScale = true
+  } else if (propName.endsWith('Hover')) {
+    propBaseName = propName.replace('Hover', '')
+    isHover = true
+  } else if (propName.endsWith('Focus')) {
+    propBaseName = propName.replace('Focus', '')
+    isFocus = true
+  } else if (propName.endsWith('Active')) {
+    propBaseName = propName.replace('Active', '')
+    isActive = true
+  }
+
+  return { propBaseName, isScale, isHover, isFocus, isActive }
+}
+
+/**
  * Given a list of props, returns a list of all the explicit props, e.g. `prop="myProp"` and spread props e.g. `{...props}`.
  *
  * @param props
@@ -44,7 +77,7 @@ export const extractProps = (props: (JSXAttribute | JSXSpreadAttribute)[]) => {
  */
 export const extractStyleProps = (
   options: PluginOptions,
-  props: t.JSXAttribute[]
+  props: JSXAttribute[]
 ) => {
   const { variants } = options
   const styleProps = [] as JSXAttribute[]
@@ -53,13 +86,12 @@ export const extractStyleProps = (
 
   props.forEach(prop => {
     const propName = prop.name.name as string
-    const isScaleProp = propName.endsWith('Scale')
-    const basePropName = propName.replace('Scale', '')
+    const { propBaseName, isScale } = extractPropBaseName(propName)
 
     if (propName === STYLE_PROPS_ID) existingStyleProp = prop
-    else if (variants[basePropName]) styleProps.push(prop)
-    else if (PROP_NAMES.includes(basePropName)) {
-      if (isScaleProp) scaleProps.push(prop)
+    else if (variants[propBaseName]) styleProps.push(prop)
+    else if (PROP_NAMES.includes(propBaseName)) {
+      if (isScale) scaleProps.push(prop)
       else styleProps.push(prop)
     }
   })
@@ -82,9 +114,9 @@ export const notStyleProps = (
 
   return props.filter(prop => {
     const propName = prop.name.name as string
-    const basePropName = propName.replace('Scale', '')
+    const { propBaseName } = extractPropBaseName(propName)
 
-    if (PROP_NAMES.includes(basePropName)) return false
+    if (PROP_NAMES.includes(propBaseName)) return false
     if (variants[propName]) return false
 
     return true
