@@ -70,5 +70,5 @@ export const mergeStyleObjects = (
   const { mergedBase } = mergeCss(existingCss, newCss)
   const { mergedScales } = mergeExtensions(existingExtensions, newExtensions)
 
-  return buildStyleObject(mergedBase, mergedScales)
+  return buildStyleObject({ css: [mergedBase], extensions: [mergedScales] })
 }
