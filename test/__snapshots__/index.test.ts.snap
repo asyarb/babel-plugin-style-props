@@ -4,7 +4,7 @@ exports[`kitchen sink handles a large amount of scale and style props 1`] = `
 "const Example = () => {
   const array = ['l', 'l', 'm', 'm', 'xl'];
   const variable = 'huge';
-  return <div display='flex' mScale={array} fontSize={['1rem', '2rem', null, '3rem']} color='green' lineHeight={1.5} pyScale={['l', null, 'xxl']} textTransform='uppercase' fontFamily='system-ui' maxWidth={variable} __styleProps__={{
+  return <div display='flex' mScale={array} fontSize={['1rem', '2rem', null, '3rem']} color='green' colorHover='red' colorFocus={['red', 'green', 'blue']} lineHeight={1.5} pyScale={['l', null, 'xxl']} textTransform='uppercase' fontFamily='system-ui' maxWidth={variable} __styleProps__={{
     css: {
       base: [{
         display: 'flex',
@@ -18,7 +18,18 @@ exports[`kitchen sink handles a large amount of scale and style props 1`] = `
         fontSize: '2rem'
       }, {}, {
         fontSize: '3rem'
-      }]
+      }],
+      hover: [{
+        color: 'red'
+      }],
+      focus: [{
+        color: 'red'
+      }, {
+        color: 'green'
+      }, {
+        color: 'blue'
+      }],
+      active: [{}]
     },
     extensions: {
       scales: {
@@ -31,11 +42,116 @@ exports[`kitchen sink handles a large amount of scale and style props 1`] = `
 };"
 `;
 
+exports[`modifiers handles modifier props 1`] = `
+"const Example = () => {
+  return <div color='red' colorHover='blue' colorFocus='green' colorActive='purple' __styleProps__={{
+    css: {
+      base: [{
+        color: 'red'
+      }],
+      hover: [{
+        color: 'blue'
+      }],
+      focus: [{
+        color: 'green'
+      }],
+      active: [{
+        color: 'purple'
+      }]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
+};"
+`;
+
+exports[`modifiers handles responsive modifier props 1`] = `
+"const Example = () => {
+  return <div colorHover={['red', null, 'green']} __styleProps__={{
+    css: {
+      base: [{}],
+      hover: [{
+        color: 'red'
+      }, {}, {
+        color: 'green'
+      }],
+      focus: [{}],
+      active: [{}]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
+};"
+`;
+
+exports[`modifiers supports merging with an existing __styleProps__ with modifier props 1`] = `
+"const Example = () => {
+  const color = 'red';
+  return <div m='3rem' mHover='4rem' mFocus={['5rem', '6rem']} mActive={['6rem', '7rem', null, '8rem']} __styleProps__={{
+    css: {
+      base: [{
+        color: 'red',
+        margin: '3rem'
+      }],
+      hover: [{
+        color: 'blue',
+        margin: '4rem'
+      }],
+      focus: [{
+        color: 'purple',
+        margin: '5rem'
+      }, {
+        margin: '6rem'
+      }],
+      active: [{
+        color: 'green',
+        margin: '6rem'
+      }, {
+        margin: '7rem'
+      }, {}, {
+        margin: '8rem'
+      }]
+    },
+    extensions: {
+      scales: {
+        padding: ['xl']
+      }
+    }
+  }} />;
+};"
+`;
+
+exports[`modifiers supports variable usage in modifier props 1`] = `
+"const Example = () => {
+  const color = 'red';
+  return <div colorHover={[color, null, 'green']} __styleProps__={{
+    css: {
+      base: [{}],
+      hover: [{
+        color: color
+      }, {}, {
+        color: 'green'
+      }],
+      focus: [{}],
+      active: [{}]
+    },
+    extensions: {
+      scales: {}
+    }
+  }} />;
+};"
+`;
+
 exports[`scale prop parsing handles responsive scale props 1`] = `
 "const Example = () => {
   return <div mScale={['l', null, 'm']} __styleProps__={{
     css: {
-      base: [{}]
+      base: [{}],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {
@@ -50,7 +166,10 @@ exports[`scale prop parsing handles scale props 1`] = `
 "const Example = () => {
   return <div mScale='l' __styleProps__={{
     css: {
-      base: [{}]
+      base: [{}],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {
@@ -66,7 +185,10 @@ exports[`scale prop parsing handles variable arrays in scale props 1`] = `
   const array = ['l', 'l', 'm', 'm', 'xl'];
   return <div mScale={array} __styleProps__={{
     css: {
-      base: [{}]
+      base: [{}],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {
@@ -83,13 +205,20 @@ exports[`scale prop parsing merges scale props with an existing __styleProps__ p
     css: {
       base: [{
         color: 'red'
-      }, {}, {
+      }],
+      hover: [{
         color: 'blue'
+      }],
+      focus: [{
+        color: 'purple'
+      }],
+      active: [{
+        color: 'green'
       }]
     },
     extensions: {
       scales: {
-        padding: ['l', null, 'xl'],
+        padding: ['xl'],
         margin: ['l']
       }
     }
@@ -109,7 +238,10 @@ exports[`style prop parsing does not strip non style props if \`shouldStrip\` is
         padding: '3rem'
       }, {
         padding: '4rem'
-      }]
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {}
@@ -126,7 +258,10 @@ exports[`style prop parsing handles expressions in style props 1`] = `
     css: {
       base: [{
         margin: isTest ? '3rem' : '4rem'
-      }]
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {}
@@ -147,7 +282,10 @@ exports[`style prop parsing handles responsive style props 1`] = `
         paddingTop: '4rem'
       }, {}, {
         paddingTop: '6rem'
-      }]
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {}
@@ -163,7 +301,10 @@ exports[`style prop parsing handles style props and places them in a new prop 1`
       base: [{
         margin: '3rem',
         lineHeight: 1.5
-      }]
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {}
@@ -178,7 +319,10 @@ exports[`style prop parsing handles style props on multiple elements 1`] = `
     css: {
       base: [{
         margin: '1rem'
-      }]
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {}
@@ -188,7 +332,10 @@ exports[`style prop parsing handles style props on multiple elements 1`] = `
       css: {
         base: [{
           padding: '2rem'
-        }]
+        }],
+        hover: [{}],
+        focus: [{}],
+        active: [{}]
       },
       extensions: {
         scales: {}
@@ -214,7 +361,10 @@ exports[`style prop parsing handles variable usage in style props 1`] = `
         margin: size
       }, {
         margin: myFunction()
-      }]
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {}
@@ -228,20 +378,28 @@ exports[`style prop parsing merges parsed props with an existing __styleProps__ 
   return <div p={['1rem', '2rem', '3rem', '4rem']} __styleProps__={{
     css: {
       base: [{
-        margin: 'l',
+        color: 'red',
         padding: '1rem'
       }, {
         padding: '2rem'
       }, {
-        margin: 'xl',
         padding: '3rem'
       }, {
         padding: '4rem'
+      }],
+      hover: [{
+        color: 'blue'
+      }],
+      focus: [{
+        color: 'purple'
+      }],
+      active: [{
+        color: 'green'
       }]
     },
     extensions: {
       scales: {
-        color: ['primary', null, 'secondary']
+        margin: ['xl']
       }
     }
   }} />;
@@ -260,7 +418,10 @@ exports[`style prop parsing strips style props if \`shouldStrip\` is set 1`] = `
         padding: '3rem'
       }, {
         padding: '4rem'
-      }]
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}]
     },
     extensions: {
       scales: {}

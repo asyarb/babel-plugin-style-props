@@ -112,17 +112,28 @@ describe('style prop parsing', () => {
               css: {
                 base: [
                   {
-                    margin: 'l',
+                    color: 'red',
                   },
-                  {},
+                ],
+                hover: [
                   {
-                    margin: 'xl',
+                    color: 'blue',
+                  },
+                ],
+                focus: [
+                  {
+                    color: 'purple',
+                  },
+                ],
+                active: [
+                  {
+                    color: 'green',
                   },
                 ],
               },
               extensions: {
                 scales: {
-                  color: ['primary', null, 'secondary'],
+                  margin: ['xl'],
                 },
               },
             }}
@@ -184,18 +195,115 @@ describe('scale prop parsing', () => {
                   {
                     color: 'red',
                   },
-                  {},
+                ],
+                hover: [
                   {
                     color: 'blue',
+                  },
+                ],
+                focus: [
+                  {
+                    color: 'purple',
+                  },
+                ],
+                active: [
+                  {
+                    color: 'green',
                   },
                 ],
               },
               extensions: {
                 scales: {
-                  padding: ['l', null, 'xl'],
+                  padding: ['xl'],
                 },
               },
             }} 
+          />
+        )
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+})
+
+describe('modifiers', () => {
+  it('handles modifier props', () => {
+    const example = `
+      const Example = () => {
+        return <div color='red' colorHover='blue' colorFocus='green' colorActive='purple' />
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+
+  it('handles responsive modifier props', () => {
+    const example = `
+      const Example = () => {
+        return <div colorHover={['red', null, 'green']} />
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+
+  it('supports variable usage in modifier props', () => {
+    const example = `
+      const Example = () => {
+        const color = 'red'
+
+        return <div colorHover={[color, null, 'green']} />
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+
+  it('supports merging with an existing __styleProps__ with modifier props', () => {
+    const example = `
+      const Example = () => {
+        const color = 'red'
+
+        return (
+          <div
+            m='3rem'
+            mHover='4rem'
+            mFocus={['5rem', '6rem']}
+            mActive={['6rem', '7rem', null, '8rem']} 
+            __styleProps__={{
+              css: {
+                base: [
+                  {
+                    color: 'red',
+                  },
+                ],
+                hover: [
+                  {
+                    color: 'blue',
+                  },
+                ],
+                focus: [
+                  {
+                    color: 'purple',
+                  },
+                ],
+                active: [
+                  {
+                    color: 'green',
+                  },
+                ],
+              },
+              extensions: {
+                scales: {
+                  padding: ['xl'],
+                },
+              },
+            }}
           />
         )
       }
@@ -219,6 +327,8 @@ describe('kitchen sink', () => {
             mScale={array}
             fontSize={['1rem', '2rem', null, '3rem']} 
             color='green'
+            colorHover='red'
+            colorFocus={['red', 'green', 'blue']}
             lineHeight={1.5} 
             pyScale={['l', null, 'xxl']}
             textTransform='uppercase'

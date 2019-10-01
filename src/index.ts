@@ -33,7 +33,14 @@ const jsxOpeningElementVisitor = {
       existingStyleProp,
     } = extractStyleProps(options, explicitProps)
 
-    if (!scaleProps.length && !styleProps.length) return
+    if (
+      !scaleProps.length &&
+      !styleProps.length &&
+      !hoverProps.length &&
+      !focusProps.length &&
+      !activeProps.length
+    )
+      return
 
     if (options.stripProps) {
       path.node.attributes = [
