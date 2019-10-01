@@ -5,9 +5,21 @@ export const Example = () => {
     <div
       color="red"
       colorHover="blue"
-      colorFocus="green"
-      colorActive="pink"
-      mxScale="xl"
+      __styleProps__={{
+        css: {
+          base: [
+            {
+              margin: 'red',
+            },
+          ],
+          hover: [{}],
+          focus: [{}],
+          active: [{}],
+        },
+        extensions: {
+          scales: {},
+        },
+      }}
     />
   )
 }

@@ -2,15 +2,13 @@ import { types as t } from '@babel/core'
 import { ArrayExpression, ObjectExpression, ObjectProperty } from '@babel/types'
 import { buildObjectProperty, buildStyleObject } from './builders'
 
-const mergeCss = (existingCss: ObjectProperty, newCss: ObjectProperty) => {
-  const existingValue = existingCss.value as ObjectExpression
-  const newValue = newCss.value as ObjectExpression
-
-  const [existingBase] = existingValue.properties as ObjectProperty[]
-  const [newBase] = newValue.properties as ObjectProperty[]
-
-  const existingObjs = existingBase.value as ArrayExpression
-  const newObjs = newBase.value as ArrayExpression
+const mergeCssProps = (
+  existingProps: ObjectProperty,
+  newProps: ObjectProperty,
+  type: string
+) => {
+  const existingObjs = existingProps.value as ArrayExpression
+  const newObjs = newProps.value as ArrayExpression
 
   const existingEls = existingObjs.elements as ObjectExpression[]
   const newEls = newObjs.elements as ObjectExpression[]
@@ -25,9 +23,34 @@ const mergeCss = (existingCss: ObjectProperty, newCss: ObjectProperty) => {
       t.objectExpression([...existingProperties, ...newProperties])
     )
   }
-  const mergedBase = buildObjectProperty('base', t.arrayExpression(mergedEls))
+  const mergedProps = buildObjectProperty(type, t.arrayExpression(mergedEls))
 
-  return { mergedBase }
+  return mergedProps
+}
+
+const mergeCss = (existingCss: ObjectProperty, newCss: ObjectProperty) => {
+  const existingValue = existingCss.value as ObjectExpression
+  const newValue = newCss.value as ObjectExpression
+
+  const [
+    existingBase,
+    existingHover,
+    existingFocus,
+    existingActive,
+  ] = existingValue.properties as ObjectProperty[]
+  const [
+    newBase,
+    newHover,
+    newFocus,
+    newActive,
+  ] = newValue.properties as ObjectProperty[]
+
+  return {
+    mergedBase: mergeCssProps(existingBase, newBase, 'base'),
+    mergedHover: mergeCssProps(existingHover, newHover, 'hover'),
+    mergedFocus: mergeCssProps(existingFocus, newFocus, 'focus'),
+    mergedActive: mergeCssProps(existingActive, newActive, 'active'),
+  }
 }
 
 const mergeExtensions = (
@@ -67,8 +90,14 @@ export const mergeStyleObjects = (
   ] = existingObj.properties as ObjectProperty[]
   const [newCss, newExtensions] = newObj.properties as ObjectProperty[]
 
-  const { mergedBase } = mergeCss(existingCss, newCss)
+  const { mergedBase, mergedHover, mergedFocus, mergedActive } = mergeCss(
+    existingCss,
+    newCss
+  )
   const { mergedScales } = mergeExtensions(existingExtensions, newExtensions)
 
-  return buildStyleObject({ css: [mergedBase], extensions: [mergedScales] })
+  return buildStyleObject({
+    css: [mergedBase, mergedHover, mergedFocus, mergedActive],
+    extensions: [mergedScales],
+  })
 }
