@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1-alpha.0](https://github.com/asyarb/babel-plugin-style-props/compare/v0.2.2...v0.3.1-alpha.0) (2019-10-08)
+
+
+### Bug Fixes
+
+* dont ignore source code lol ([4e65a7f](https://github.com/asyarb/babel-plugin-style-props/commit/4e65a7f))
+* ensure running if only modifier props are used ([4e8e4fa](https://github.com/asyarb/babel-plugin-style-props/commit/4e8e4fa))
+* merger style object call ([ea2c4fc](https://github.com/asyarb/babel-plugin-style-props/commit/ea2c4fc))
+* remove old config ([c17158e](https://github.com/asyarb/babel-plugin-style-props/commit/c17158e))
+* update git ignore to not ignore lock files ([32c040b](https://github.com/asyarb/babel-plugin-style-props/commit/32c040b))
+
+
+### Features
+
+* begin ts and agnostic rewrite ([4a1f7d0](https://github.com/asyarb/babel-plugin-style-props/commit/4a1f7d0))
+* config ([22f00f4](https://github.com/asyarb/babel-plugin-style-props/commit/22f00f4))
+* eslint ([4459344](https://github.com/asyarb/babel-plugin-style-props/commit/4459344))
+* extrat prop base name ([7545151](https://github.com/asyarb/babel-plugin-style-props/commit/7545151))
+* merge new existing object shapes correctly ([117a671](https://github.com/asyarb/babel-plugin-style-props/commit/117a671))
+* merging for modifier props ([2c80396](https://github.com/asyarb/babel-plugin-style-props/commit/2c80396))
+* modifier props ([f6707b9](https://github.com/asyarb/babel-plugin-style-props/commit/f6707b9))
+* namespaced css and scales ([5421fbc](https://github.com/asyarb/babel-plugin-style-props/commit/5421fbc))
+* namespaced separation of props ([7921bf2](https://github.com/asyarb/babel-plugin-style-props/commit/7921bf2))
+* remove specialized helper ([6d6a84d](https://github.com/asyarb/babel-plugin-style-props/commit/6d6a84d))
+* scales support ([bef2097](https://github.com/asyarb/babel-plugin-style-props/commit/bef2097))
+* styleprop merging and tests ([07b9270](https://github.com/asyarb/babel-plugin-style-props/commit/07b9270))
+* working array object ([f141ed4](https://github.com/asyarb/babel-plugin-style-props/commit/f141ed4))
+* working sample output ([522be02](https://github.com/asyarb/babel-plugin-style-props/commit/522be02))
+* working type bundling ([a33257a](https://github.com/asyarb/babel-plugin-style-props/commit/a33257a))
+
 ### [0.2.2](https://github.com/asyarb/babel-plugin-style-props/compare/v0.2.1...v0.2.2) (2019-09-20)
 
 
