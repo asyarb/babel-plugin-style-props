@@ -60,24 +60,42 @@ const mergeExtensions = (
   const existingValue = existingExtensions.value as ObjectExpression
   const newValue = newExtensions.value as ObjectExpression
 
-  const [existingScales] = existingValue.properties as ObjectProperty[]
-  const [newScales] = newValue.properties as ObjectProperty[]
+  const [
+    existingScales,
+    existingVariants,
+  ] = existingValue.properties as ObjectProperty[]
+  const [newScales, newVariants] = newValue.properties as ObjectProperty[]
 
   const {
     properties: existingScaleProperties,
   } = existingScales.value as ObjectExpression
   const { properties: newScaleProperties } = newScales.value as ObjectExpression
+  const {
+    properties: existingVariantProperties,
+  } = existingVariants.value as ObjectExpression
+  const {
+    properties: newVariantProperties,
+  } = newVariants.value as ObjectExpression
 
   const mergedScaleProperties = [
     ...existingScaleProperties,
     ...newScaleProperties,
   ]
+  const mergedVariantProperties = [
+    ...existingVariantProperties,
+    ...newVariantProperties,
+  ]
+
   const mergedScales = buildObjectProperty(
     'scales',
     t.objectExpression(mergedScaleProperties)
   )
+  const mergedVariants = buildObjectProperty(
+    'variants',
+    t.objectExpression(mergedVariantProperties)
+  )
 
-  return { mergedScales }
+  return { mergedScales, mergedVariants }
 }
 
 export const mergeStyleObjects = (
@@ -94,10 +112,13 @@ export const mergeStyleObjects = (
     existingCss,
     newCss
   )
-  const { mergedScales } = mergeExtensions(existingExtensions, newExtensions)
+  const { mergedScales, mergedVariants } = mergeExtensions(
+    existingExtensions,
+    newExtensions
+  )
 
   return buildStyleObject({
     css: [mergedBase, mergedHover, mergedFocus, mergedActive],
-    extensions: [mergedScales],
+    extensions: [mergedScales, mergedVariants],
   })
 }
