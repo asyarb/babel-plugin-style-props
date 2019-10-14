@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1-alpha.1](https://github.com/asyarb/babel-plugin-style-props/compare/v0.3.1-alpha.0...v0.3.1-alpha.1) (2019-10-14)
+
+
+### Features
+
+* variants ([9ad5910](https://github.com/asyarb/babel-plugin-style-props/commit/9ad5910))
+
 ### [0.3.1-alpha.0](https://github.com/asyarb/babel-plugin-style-props/compare/v0.2.2...v0.3.1-alpha.0) (2019-10-08)
 
 
