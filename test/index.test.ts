@@ -3,7 +3,10 @@ import jsxSyntax from '@babel/plugin-syntax-jsx'
 import styleProps from '../src'
 
 const plugins = [jsxSyntax, styleProps]
-const pluginsWithPropRemoval = [jsxSyntax, [styleProps, { stripProps: true }]]
+const pluginsWithPropRemoval = [
+  jsxSyntax,
+  [styleProps, { stripProps: true, variants: { boxStyle: 'boxStyles' } }],
+]
 
 const parseCode = (example: string, plug?: PluginItem[]) =>
   transformSync(example, { plugins: plug || plugins })!.code
@@ -135,6 +138,9 @@ describe('style prop parsing', () => {
                 scales: {
                   margin: ['xl'],
                 },
+                variants: {
+                  boxStyles: 'primary'
+                }
               },
             }}
           />
@@ -215,6 +221,9 @@ describe('scale prop parsing', () => {
               extensions: {
                 scales: {
                   padding: ['xl'],
+                },
+                variants: {
+                  boxStyles: 'primary',
                 },
               },
             }} 
@@ -302,10 +311,26 @@ describe('modifiers', () => {
                 scales: {
                   padding: ['xl'],
                 },
+                variants: {
+                  boxStyles: 'primary',
+                }
               },
             }}
           />
         )
+      }
+    `
+    const code = parseCode(example)
+
+    expect(code).toMatchSnapshot()
+  })
+})
+
+describe('variants', () => {
+  it('handles variants from plugin options', () => {
+    const example = `
+      const Example = () => {
+        return <div boxStyle="primary" />
       }
     `
     const code = parseCode(example)

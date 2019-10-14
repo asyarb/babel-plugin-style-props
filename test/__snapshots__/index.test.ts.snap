@@ -120,6 +120,9 @@ exports[`modifiers supports merging with an existing __styleProps__ with modifie
     extensions: {
       scales: {
         padding: ['xl']
+      },
+      variants: {
+        boxStyles: 'primary'
       }
     }
   }} />;
@@ -227,6 +230,9 @@ exports[`scale prop parsing merges scale props with an existing __styleProps__ p
       scales: {
         padding: ['xl'],
         margin: ['l']
+      },
+      variants: {
+        boxStyles: 'primary'
       }
     }
   }} />;
@@ -414,6 +420,9 @@ exports[`style prop parsing merges parsed props with an existing __styleProps__ 
     extensions: {
       scales: {
         margin: ['xl']
+      },
+      variants: {
+        boxStyles: 'primary'
       }
     }
   }} />;
@@ -442,5 +451,11 @@ exports[`style prop parsing strips style props if \`shouldStrip\` is set 1`] = `
       variants: {}
     }
   }} />;
+};"
+`;
+
+exports[`variants handles variants from plugin options 1`] = `
+"const Example = () => {
+  return <div boxStyle=\\"primary\\" />;
 };"
 `;
