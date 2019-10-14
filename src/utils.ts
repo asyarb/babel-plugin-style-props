@@ -87,6 +87,7 @@ export const extractStyleProps = (
   const hoverProps = [] as JSXAttribute[]
   const focusProps = [] as JSXAttribute[]
   const activeProps = [] as JSXAttribute[]
+  const variantProps = [] as JSXAttribute[]
 
   props.forEach(prop => {
     const propName = prop.name.name as string
@@ -99,7 +100,7 @@ export const extractStyleProps = (
     } = extractPropBaseName(propName)
 
     if (propName === STYLE_PROPS_ID) existingStyleProp = prop
-    else if (variants[propBaseName]) styleProps.push(prop)
+    else if (variants[propBaseName]) variantProps.push(prop)
     else if (PROP_NAMES.includes(propBaseName)) {
       if (isScale) scaleProps.push(prop)
       else if (isHover) hoverProps.push(prop)
@@ -115,6 +116,7 @@ export const extractStyleProps = (
     hoverProps,
     focusProps,
     activeProps,
+    variantProps,
     existingStyleProp,
   }
 }

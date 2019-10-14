@@ -36,7 +36,8 @@ exports[`kitchen sink handles a large amount of scale and style props 1`] = `
         margin: [array],
         paddingTop: ['l', null, 'xxl'],
         paddingBottom: ['l', null, 'xxl']
-      }
+      },
+      variants: {}
     }
   }} />;
 };"
@@ -60,7 +61,8 @@ exports[`modifiers handles modifier props 1`] = `
       }]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -80,7 +82,8 @@ exports[`modifiers handles responsive modifier props 1`] = `
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -138,7 +141,8 @@ exports[`modifiers supports variable usage in modifier props 1`] = `
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -156,7 +160,8 @@ exports[`scale prop parsing handles responsive scale props 1`] = `
     extensions: {
       scales: {
         margin: ['l', null, 'm']
-      }
+      },
+      variants: {}
     }
   }} />;
 };"
@@ -174,7 +179,8 @@ exports[`scale prop parsing handles scale props 1`] = `
     extensions: {
       scales: {
         margin: ['l']
-      }
+      },
+      variants: {}
     }
   }} />;
 };"
@@ -193,7 +199,8 @@ exports[`scale prop parsing handles variable arrays in scale props 1`] = `
     extensions: {
       scales: {
         margin: [array]
-      }
+      },
+      variants: {}
     }
   }} />;
 };"
@@ -244,7 +251,8 @@ exports[`style prop parsing does not strip non style props if \`shouldStrip\` is
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -264,7 +272,8 @@ exports[`style prop parsing handles expressions in style props 1`] = `
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -288,7 +297,8 @@ exports[`style prop parsing handles responsive style props 1`] = `
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -307,7 +317,8 @@ exports[`style prop parsing handles style props and places them in a new prop 1`
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -325,7 +336,8 @@ exports[`style prop parsing handles style props on multiple elements 1`] = `
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }}>
             <span p='2rem' __styleProps__={{
@@ -338,7 +350,8 @@ exports[`style prop parsing handles style props on multiple elements 1`] = `
         active: [{}]
       },
       extensions: {
-        scales: {}
+        scales: {},
+        variants: {}
       }
     }} />
           </div>;
@@ -367,7 +380,8 @@ exports[`style prop parsing handles variable usage in style props 1`] = `
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"
@@ -424,7 +438,8 @@ exports[`style prop parsing strips style props if \`shouldStrip\` is set 1`] = `
       active: [{}]
     },
     extensions: {
-      scales: {}
+      scales: {},
+      variants: {}
     }
   }} />;
 };"

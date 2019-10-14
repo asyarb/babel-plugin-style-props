@@ -17,6 +17,7 @@ import {
   notStyleProps,
   stripInternalProp,
 } from './utils'
+import { processVariantProps } from './variantProps'
 
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path: NodePath<JSXOpeningElement>, options: PluginOptions) {
@@ -30,6 +31,7 @@ const jsxOpeningElementVisitor = {
       hoverProps,
       focusProps,
       activeProps,
+      variantProps,
       existingStyleProp,
     } = extractStyleProps(options, explicitProps)
 
@@ -38,6 +40,7 @@ const jsxOpeningElementVisitor = {
       !styleProps.length &&
       !hoverProps.length &&
       !focusProps.length &&
+      !variantProps.length &&
       !activeProps.length
     )
       return
@@ -53,11 +56,12 @@ const jsxOpeningElementVisitor = {
     const hover = processStyleProps(hoverProps, options, 'hover')
     const focus = processStyleProps(focusProps, options, 'focus')
     const active = processStyleProps(activeProps, options, 'active')
+    const variants = processVariantProps(variantProps, options)
     const scales = processScaleProps(scaleProps)
 
     let styleObj = buildStyleObject({
       css: [base, hover, focus, active],
-      extensions: [scales],
+      extensions: [scales, variants],
     })
 
     if (existingStyleProp) {
