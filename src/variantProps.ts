@@ -1,6 +1,7 @@
 import { types as t } from '@babel/core'
 import { Expression, JSXAttribute } from '@babel/types'
-import { PluginOptions } from '../types'
+
+import { PluginOptions } from './'
 
 export const processVariantProps = (
   props: JSXAttribute[],

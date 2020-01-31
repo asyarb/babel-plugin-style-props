@@ -6,7 +6,8 @@ import {
   JSXSpreadAttribute,
   SpreadElement,
 } from '@babel/types'
-import { PluginOptions } from '../types'
+
+import { PluginOptions } from './'
 import { PROP_NAMES, STYLE_PROPS_ID } from './constants'
 
 /**

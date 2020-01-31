@@ -1,11 +1,11 @@
 import { NodePath, types as t } from '@babel/core'
+import * as BabelTypes from '@babel/types'
 import {
   JSXExpressionContainer,
   JSXOpeningElement,
   ObjectExpression,
   Program,
 } from '@babel/types'
-import { Babel, PluginOptions } from '../types'
 import { buildStyleObject } from './builders'
 import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
 import { mergeStyleObjects } from './mergers'
@@ -18,6 +18,17 @@ import {
   stripInternalProp,
 } from './utils'
 import { processVariantProps } from './variantProps'
+
+export interface Babel {
+  types: typeof BabelTypes
+}
+export type StylePropExpression = BabelTypes.Expression | null
+export interface PluginOptions {
+  stripProps: boolean
+  variants: {
+    [key: string]: string
+  }
+}
 
 const jsxOpeningElementVisitor = {
   JSXOpeningElement(path: NodePath<JSXOpeningElement>, options: PluginOptions) {

@@ -2,9 +2,10 @@ import progress from 'rollup-plugin-progress'
 import sourceMaps from 'rollup-plugin-sourcemaps'
 import { terser } from 'rollup-plugin-terser'
 import typescript from 'rollup-plugin-typescript2'
+
 import pkg from './package.json'
 
-const __PROD__ = process.env.NODE_ENV === 'production'
+const IS_PROD = process.env.NODE_ENV === 'production'
 
 export default {
   input: 'src/index.ts',
@@ -18,9 +19,13 @@ export default {
   external: [...Object.keys(pkg.dependencies || {}), '@babel/core'],
   plugins: [
     progress(),
-    typescript(),
+    typescript({
+      typescript: require('typescript'),
+      clean: IS_PROD,
+      objectHashIgnoreUnknownHack: true,
+    }),
     sourceMaps(),
-    __PROD__ &&
+    IS_PROD &&
       terser({
         sourcemap: true,
         output: { comments: false },
@@ -31,5 +36,5 @@ export default {
         },
         warnings: true,
       }),
-  ],
+  ].filter(Boolean),
 }

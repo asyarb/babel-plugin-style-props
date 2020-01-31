@@ -1,5 +1,6 @@
 import { PluginItem, transformSync } from '@babel/core'
 import jsxSyntax from '@babel/plugin-syntax-jsx'
+
 import styleProps from '../src'
 
 const plugins = [jsxSyntax, styleProps]

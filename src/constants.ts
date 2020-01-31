@@ -1,6 +1,7 @@
 import cssProps from 'known-css-properties'
 import camelCase from 'lodash.camelcase'
-import { PluginOptions } from '../types'
+
+import { PluginOptions } from './'
 
 export const STYLE_PROPS_ID = '__styleProps__'
 
