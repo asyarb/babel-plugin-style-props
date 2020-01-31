@@ -34,7 +34,7 @@ src/__tests__
 flow-typed
 coverage
 decls
-examples
+example
 
 # tsdx cache
 .rts2_cache_cjs
