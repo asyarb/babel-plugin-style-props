@@ -129,10 +129,11 @@ module.exports = {
 
 ### The performance problem
 
-Writing and generating styles is a pattern that has been becoming increasingly
-common in React. A library named `styled-system` popularized this approach of
-generating styles based on props and has been seeing increased adoption in many
-design system implementations.
+Writing and generating styles in JS is a pattern that has been becoming
+increasingly common in React. A library named `styled-system` in conjunction
+with libraries like `styled-components` and `emotion` popularized the approach
+of generating styles based on props. Creating design systems utilizing the above
+libraries has been seeing increased adoption in many implementations.
 
 However, `styled-system` comes with the cost of a fairly non-trivial runtime. On
 every render for an element, it needs to iterate over every style prop,
@@ -140,28 +141,25 @@ determine the appropriate theme keys and scales to utilize, access the theme
 context's scales and values in a safe manner (specifially using `dlv`, a
 relatively slow and recursive deep property accessor), generate style objects
 from those theme values or fallbacks, and _finally_ have those objects parsed by
-an underlying CSS-in-JS runtime to generate the final styles. To make things
-worse, anytime a component re-renders _all_ of the above needs to happen
-_again_.
+an underlying CSS-in-JS runtime to generate the final styles.
 
 In small isolated cases, this can be okay, but when sites or applications have
-hundreds of components, each using multiple style props, performance
-unfortunately _will_ suffer. This is especially noticable in key scenarios such
-as rehydration or when rerenders are quickly occurring somewhere high in the
-React tree.
+hundreds of components, each using multiple style props, performance suffers.
+This is especially noticable in key scenarios such as rehydration or when
+rerenders are quickly occurring somewhere high in the React tree.
 
 ### Enter babel
 
 This plugin originated from the hope of achieving the same API that
-`styled-system` is able to achieve, but with a much lower runtime cost. By
-utilizing babel, we can statically analyze style props and do most of the work
-`styled-system` is doing upfront.
+`styled-system` is able to achieve, but with a much lower or even eliminated
+runtime cost. By utilizing babel, we can statically analyze style props and do
+most of the work `styled-system` is doing at transpile time.
 
-At build time, we can:
+At transpile time, we can:
 
 - Iterate over every style prop
 - Determine the appropriate keys and scales to utilize
-- Reduce the cost of safe property access through documented conventions
+- Reduce the cost of safe theme property access through documented conventions
 - Pre-generate style objects
 
 By doing all the above, all that is left at runtime is to have the underlying
@@ -176,21 +174,19 @@ architected in the way that it is. If we were just trying to achieve similar
 performance to just using `emotion`, why not bundle that into one plugin? Why
 split into this plugin and have a second plugin that runs afterward?
 
-The answer to that is, well, why not?
+The answer to that is extensibility and flexibility.
 
 By using this approach, we aren't limited to just utilizing a CSS-in-JS solution
-such as `emotion` as a consumer of style props. By architecting our plugin
-ecosystem in this manner, we open the door for any alternative implementation
-based on the values that come from style props.
+such as `emotion` as a consumer of style props. By architecting our plugin in
+this manner, we open the door for any alternative implementation based on the
+values that come from style props.
 
 To just put ideas of what could be possible using this approach:
 
 - We could map style props to existing functional CSS frameworks like Tailwind
   CSS to reduce runtime even further.
+- We could map style props to a zero-runtime CSS-in-JS library like `linaria`.
 - We could generate class names at build time based on style props.
 - We could perform partial static extraction on known staic properties, and rely
   on a runtime for dynamic expressions.
-- Generate react-native styles based on style props
-
-And all of that from a single unified API. Using a new solution is just a matter
-of changing your adapter.
+- Generate React Native styles based on style props.
