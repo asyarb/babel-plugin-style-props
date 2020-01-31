@@ -4,7 +4,7 @@ The base babel plugin for processing style props on JSX elements.
 
 ```jsx
 <h1 mt={0} mb={4} color="primary" textDecoration="underline">
-  Hello
+  Hello World!
 </h1>
 ```
 
@@ -22,7 +22,7 @@ The base babel plugin for processing style props on JSX elements.
 ## What does this plugin do?
 
 This is the base style props plugin that parses style props on JSX elements and
-adds them to that element under the `__styleProps__` JSXAttribute.
+places them under a `__styleProps__` JSXAttribute.
 
 On its own, this plugin **does not** generate any CSS styles. This plugin only
 parses style props and formats them in a standardized format. Doing this allows
@@ -172,7 +172,7 @@ using a library like `emotion` directly!
 You may be wondering: the above justification doesn't explain why this plugin is
 architected in the way that it is. If we were just trying to achieve similar
 performance to just using `emotion`, why not bundle that into one plugin? Why
-split into this plugin and have a second plugin that runs afterward?
+split this plugin and have a second plugin that runs afterward?
 
 The answer to that is extensibility and flexibility.
 
