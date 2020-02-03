@@ -13,7 +13,8 @@ import { PROP_NAMES, STYLE_PROPS_ID } from './constants'
 /**
  * Given a value, casts the value to an array if it is not one.
  *
- * @param x
+ * @param x - The value to cast to an array.
+ *
  * @returns The casted array.
  */
 export const castArray = <T>(x: T | T[]) => (Array.isArray(x) ? x : [x])
@@ -23,7 +24,7 @@ export const castArray = <T>(x: T | T[]) => (Array.isArray(x) ? x : [x])
  *
  * @example `extractPropBaseName('mxScale') => `mx``
  *
- * @param propName
+ * @param propName - Prop name to extract the base name from.
  *
  * @returns The base prop name.
  */
@@ -54,7 +55,8 @@ export const extractPropBaseName = (propName: string) => {
 /**
  * Given a list of props, returns a list of all the explicit props, e.g. `prop="myProp"` and spread props e.g. `{...props}`.
  *
- * @param props
+ * @param props - A list of props from a JSXElement.
+ *
  * @returns An object containing `explicitProps` and `spreadProps`.
  */
 export const extractProps = (props: (JSXAttribute | JSXSpreadAttribute)[]) => {
@@ -72,8 +74,9 @@ export const extractProps = (props: (JSXAttribute | JSXSpreadAttribute)[]) => {
 /**
  * Given a list of **explicit** props, returns a list of all style props e.g. `mx=""` and scale props e.g. `mxScale=""`
  *
- * @param options
- * @param props
+ * @param options - The babel plugin options.
+ * @param props - List of props to extract from.
+ *
  * @returns An object containing `styleProps` and `scaleProps`.
  */
 export const extractStyleProps = (
@@ -125,8 +128,9 @@ export const extractStyleProps = (
 /**
  * Given a list of **explicit** props, returns a list of all non-style props.
  *
- * @param options
- * @param props
+ * @param options - The babel plugin options.
+ * @param props - The list of props to extract non-style props from.
+ *
  * @returns An object containing the `nonStyleProps`.
  */
 export const notStyleProps = (
@@ -149,8 +153,9 @@ export const notStyleProps = (
 /**
  * Given a list of props, returns a new list with the `__styleProp__` prop removed.
  *
- * @param props
- * @returns An array with the internal prop removed.
+ * @param props - The list of props to filter.
+ *
+ * @returns An array with the internal styleProp prop removed.
  */
 export const stripInternalProp = (
   props: (JSXAttribute | JSXSpreadAttribute)[]

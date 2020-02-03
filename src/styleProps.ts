@@ -1,10 +1,17 @@
 import { types as t } from '@babel/core'
 import { JSXAttribute, ObjectProperty } from '@babel/types'
 
-import { PluginOptions, StylePropExpression } from './'
+import { StylePropExpression } from './'
 import { buildObjectProperty } from './builders'
 import { STYLE_ALIASES } from './constants'
 import { castArray, extractPropBaseName, shouldSkipProp } from './utils'
+
+export enum STYLE_PROP_TYPE {
+  BASE = 'base',
+  HOVER = 'hover',
+  FOCUS = 'focus',
+  ACTIVE = 'active',
+}
 
 const processProp = (
   cssPropertyNames: string[],
@@ -20,10 +27,8 @@ const processProp = (
 
 export const processStyleProps = (
   styleProps: JSXAttribute[],
-  options: PluginOptions,
-  type: string
+  type: STYLE_PROP_TYPE
 ) => {
-  const { variants } = options
   const baseResult = [] as ObjectProperty[]
   const responsiveResults = [] as ObjectProperty[][]
 
@@ -58,10 +63,6 @@ export const processStyleProps = (
       }
     } else {
       // e.g. prop="test"
-      if (Boolean(variants[propName])) {
-        // TODO
-      }
-
       processProp(cssPropertyNames, propValue, baseResult)
     }
   })

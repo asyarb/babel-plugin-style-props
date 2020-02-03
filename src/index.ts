@@ -10,7 +10,7 @@ import { buildStyleObject } from './builders'
 import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
 import { mergeStyleObjects } from './mergers'
 import { processScaleProps } from './scaleProps'
-import { processStyleProps } from './styleProps'
+import { processStyleProps, STYLE_PROP_TYPE } from './styleProps'
 import {
   extractProps,
   extractStyleProps,
@@ -63,10 +63,10 @@ const jsxOpeningElementVisitor = {
       ]
     }
 
-    const base = processStyleProps(styleProps, options, 'base')
-    const hover = processStyleProps(hoverProps, options, 'hover')
-    const focus = processStyleProps(focusProps, options, 'focus')
-    const active = processStyleProps(activeProps, options, 'active')
+    const base = processStyleProps(styleProps, STYLE_PROP_TYPE.BASE)
+    const hover = processStyleProps(hoverProps, STYLE_PROP_TYPE.HOVER)
+    const focus = processStyleProps(focusProps, STYLE_PROP_TYPE.FOCUS)
+    const active = processStyleProps(activeProps, STYLE_PROP_TYPE.ACTIVE)
     const variants = processVariantProps(variantProps, options)
     const scales = processScaleProps(scaleProps)
 
