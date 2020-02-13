@@ -5,9 +5,14 @@ import {
   JSXOpeningElement,
   ObjectExpression,
   Program,
+  JSXIdentifier,
 } from '@babel/types'
 import { buildStyleObject } from './builders'
-import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
+import {
+  DEFAULT_OPTIONS,
+  STYLE_PROPS_ID,
+  HTML_TAG_BLACKLIST,
+} from './constants'
 import { mergeStyleObjects } from './mergers'
 import { processScaleProps } from './scaleProps'
 import { processStyleProps, STYLE_PROP_TYPE } from './styleProps'
@@ -34,6 +39,9 @@ const jsxOpeningElementVisitor = {
   JSXOpeningElement(path: NodePath<JSXOpeningElement>, options: PluginOptions) {
     const allProps = path.node.attributes
     if (!allProps.length) return
+
+    const name = (path.node.name as JSXIdentifier).name
+    if (HTML_TAG_BLACKLIST.includes(name)) return
 
     const { explicitProps, spreadProps } = extractProps(allProps)
     const {

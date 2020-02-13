@@ -61,3 +61,15 @@ export const PROP_NAMES = [
   'paddingX',
   'paddingY',
 ]
+
+export const HTML_TAG_BLACKLIST = [
+  'head',
+  'link',
+  'meta',
+  'style',
+  'title',
+  'base',
+  'script',
+  'noscript',
+  'source',
+]
