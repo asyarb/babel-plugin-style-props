@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-style-props",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Use theme-aware style props on any JSX element.",
   "main": "dist/index.js",
   "typings": "dist/src/index.d.ts",

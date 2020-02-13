@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.2](https://github.com/asyarb/babel-plugin-style-props/compare/v0.3.1...v0.3.2) (2020-02-13)
+
+
+### Features
+
+* dont process meta tags ([5b86892](https://github.com/asyarb/babel-plugin-style-props/commit/5b86892542e541708aa8e12c90943fc6c737f890))
+
+
+### Bug Fixes
+
+* remove erroneous todo statement ([78fb1ee](https://github.com/asyarb/babel-plugin-style-props/commit/78fb1ee7e338df15c488f49db1bc5b13248f07a8))
+
 ### [0.3.1](https://github.com/asyarb/babel-plugin-style-props/compare/v0.3.1-alpha.2...v0.3.1) (2020-01-31)
 
 
