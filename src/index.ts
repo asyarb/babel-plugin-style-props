@@ -8,19 +8,14 @@ import {
   JSXIdentifier,
 } from '@babel/types'
 import { buildStyleObject } from './builders'
-import {
-  DEFAULT_OPTIONS,
-  STYLE_PROPS_ID,
-  HTML_TAG_BLACKLIST,
-} from './constants'
+import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
 import { mergeStyleObjects } from './mergers'
 import { processScaleProps } from './scaleProps'
 import { processStyleProps, STYLE_PROP_TYPE } from './styleProps'
 import {
-  extractProps,
   extractStyleProps,
-  notStyleProps,
   stripInternalProp,
+  extractScopedProp,
 } from './utils'
 import { processVariantProps } from './variantProps'
 
@@ -29,7 +24,9 @@ export interface Babel {
 }
 export type StylePropExpression = BabelTypes.Expression | null
 export interface PluginOptions {
-  stripProps: boolean
+  prop: string
+  psuedoClases: { [key: string]: RegExp }
+  themeMap: { [key: string]: string }
   variants: {
     [key: string]: string
   }
@@ -40,10 +37,8 @@ const jsxOpeningElementVisitor = {
     const allProps = path.node.attributes
     if (!allProps.length) return
 
-    const name = (path.node.name as JSXIdentifier).name
-    if (HTML_TAG_BLACKLIST.includes(name)) return
+    const scopedProp = extractScopedProp(allProps, options.prop)
 
-    const { explicitProps, spreadProps } = extractProps(allProps)
     const {
       scaleProps,
       styleProps,
@@ -63,13 +58,6 @@ const jsxOpeningElementVisitor = {
       !activeProps.length
     )
       return
-
-    if (options.stripProps) {
-      path.node.attributes = [
-        ...notStyleProps(options, explicitProps),
-        ...spreadProps,
-      ]
-    }
 
     const base = processStyleProps(styleProps, STYLE_PROP_TYPE.BASE)
     const hover = processStyleProps(hoverProps, STYLE_PROP_TYPE.HOVER)

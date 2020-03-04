@@ -6,7 +6,14 @@ import { PluginOptions } from './'
 export const STYLE_PROPS_ID = '__styleProps__'
 
 export const DEFAULT_OPTIONS = {
-  stripProps: false,
+  prop: 'sx',
+  psuedoClases: {
+    hover: /Hover$/,
+  },
+  themeMap: {
+    // TODO: Add full map.
+    color: 'colors',
+  },
   variants: {},
 } as PluginOptions
 
@@ -60,16 +67,4 @@ export const PROP_NAMES = [
   'marginY',
   'paddingX',
   'paddingY',
-]
-
-export const HTML_TAG_BLACKLIST = [
-  'head',
-  'link',
-  'meta',
-  'style',
-  'title',
-  'base',
-  'script',
-  'noscript',
-  'source',
 ]

@@ -17,7 +17,7 @@ import { PROP_NAMES, STYLE_PROPS_ID } from './constants'
  *
  * @returns The casted array.
  */
-export const castArray = <T>(x: T | T[]) => (Array.isArray(x) ? x : [x])
+export const castArray = <T>(x: T | T[]): T[] => (Array.isArray(x) ? x : [x])
 
 /**
  * Given a prop's name, extracts the base name of the prop.
@@ -53,22 +53,24 @@ export const extractPropBaseName = (propName: string) => {
 }
 
 /**
- * Given a list of props, returns a list of all the explicit props, e.g. `prop="myProp"` and spread props e.g. `{...props}`.
+ * Given a list of all props, returns the appropriate scoped prop that contains
+ * all the style props.
  *
- * @param props - A list of props from a JSXElement.
+ * @param props - The list of props from a JSXElement.
+ * @param scopedPropName - The name of the prop to look for in the list.
  *
- * @returns An object containing `explicitProps` and `spreadProps`.
+ * @returns The JSXAttribute whose name is `scopedPropName`, `undefined` otherwise.
  */
-export const extractProps = (props: (JSXAttribute | JSXSpreadAttribute)[]) => {
-  const explicitProps = [] as JSXAttribute[]
-  const spreadProps = [] as JSXSpreadAttribute[]
+export const extractScopedProp = (
+  props: (JSXAttribute | JSXSpreadAttribute)[],
+  scopedPropName: string
+) => {
+  return props.find(prop => {
+    if (t.isJSXSpreadAttribute(prop)) return false
+    if (prop.name.name !== scopedPropName) return false
 
-  props.forEach(prop => {
-    if (t.isJSXSpreadAttribute(prop)) spreadProps.push(prop)
-    else explicitProps.push(prop)
+    return true
   })
-
-  return { explicitProps, spreadProps }
 }
 
 /**
@@ -123,31 +125,6 @@ export const extractStyleProps = (
     variantProps,
     existingStyleProp,
   }
-}
-
-/**
- * Given a list of **explicit** props, returns a list of all non-style props.
- *
- * @param options - The babel plugin options.
- * @param props - The list of props to extract non-style props from.
- *
- * @returns An object containing the `nonStyleProps`.
- */
-export const notStyleProps = (
-  options: PluginOptions,
-  props: JSXAttribute[]
-) => {
-  const { variants } = options
-
-  return props.filter(prop => {
-    const propName = prop.name.name as string
-    const { propBaseName } = extractPropBaseName(propName)
-
-    if (PROP_NAMES.includes(propBaseName)) return false
-    if (variants[propName]) return false
-
-    return true
-  })
 }
 
 /**
