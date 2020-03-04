@@ -1,6 +1,5 @@
 import progress from 'rollup-plugin-progress'
 import sourceMaps from 'rollup-plugin-sourcemaps'
-import { terser } from 'rollup-plugin-terser'
 import typescript from 'rollup-plugin-typescript2'
 
 import pkg from './package.json'
@@ -25,16 +24,5 @@ export default {
       objectHashIgnoreUnknownHack: true,
     }),
     sourceMaps(),
-    IS_PROD &&
-      terser({
-        sourcemap: true,
-        output: { comments: false },
-        compress: {
-          keep_infinity: true,
-          pure_getters: true,
-          passes: 2,
-        },
-        warnings: true,
-      }),
   ].filter(Boolean),
 }
