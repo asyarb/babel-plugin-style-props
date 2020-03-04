@@ -4,11 +4,19 @@ import {
   JSXAttribute,
   JSXEmptyExpression,
   JSXSpreadAttribute,
+  JSXExpressionContainer,
   SpreadElement,
+  ObjectExpression,
+  ObjectProperty,
+  Identifier,
 } from '@babel/types'
 
 import { PluginOptions } from './'
-import { PROP_NAMES, STYLE_PROPS_ID } from './constants'
+import {
+  VALID_STYLE_NAMES,
+  INJECTED_PROP_NAME,
+  STYLE_ALIASES,
+} from './constants'
 
 /**
  * Given a value, casts the value to an array if it is not one.
@@ -20,37 +28,14 @@ import { PROP_NAMES, STYLE_PROPS_ID } from './constants'
 export const castArray = <T>(x: T | T[]): T[] => (Array.isArray(x) ? x : [x])
 
 /**
- * Given a prop's name, extracts the base name of the prop.
+ * Given any style, returns `true` if the prop should be skipped
+ * for style-prop processing, `false` otherwise.
  *
- * @example `extractPropBaseName('mxScale') => `mx``
- *
- * @param propName - Prop name to extract the base name from.
- *
- * @returns The base prop name.
+ * @param prop
  */
-export const extractPropBaseName = (propName: string) => {
-  let propBaseName = propName
-  let isScale = false
-  let isHover = false
-  let isFocus = false
-  let isActive = false
-
-  if (propName.endsWith('Scale')) {
-    propBaseName = propName.replace('Scale', '')
-    isScale = true
-  } else if (propName.endsWith('Hover')) {
-    propBaseName = propName.replace('Hover', '')
-    isHover = true
-  } else if (propName.endsWith('Focus')) {
-    propBaseName = propName.replace('Focus', '')
-    isFocus = true
-  } else if (propName.endsWith('Active')) {
-    propBaseName = propName.replace('Active', '')
-    isActive = true
-  }
-
-  return { propBaseName, isScale, isHover, isFocus, isActive }
-}
+export const shouldSkipStyle = (
+  prop: null | Expression | SpreadElement | JSXEmptyExpression
+) => t.isNullLiteral(prop)
 
 /**
  * Given a list of all props, returns the appropriate scoped prop that contains
@@ -65,66 +50,117 @@ export const extractScopedProp = (
   props: (JSXAttribute | JSXSpreadAttribute)[],
   scopedPropName: string
 ) => {
-  return props.find(prop => {
-    if (t.isJSXSpreadAttribute(prop)) return false
-    if (prop.name.name !== scopedPropName) return false
+  let scopedProp: JSXAttribute | undefined
+  let existingProp: JSXAttribute | undefined
 
-    return true
+  props.forEach(prop => {
+    if (t.isJSXSpreadAttribute(prop)) return
+
+    if (prop.name.name !== scopedPropName) scopedProp = prop
+    if (prop.name.name === INJECTED_PROP_NAME) existingProp = prop
   })
+
+  return { scopedProp, existingProp }
 }
 
 /**
- * Given a list of **explicit** props, returns a list of all style props e.g. `mx=""` and scale props e.g. `mxScale=""`
+ * Given a style's name, extracts the base name.
  *
- * @param options - The babel plugin options.
- * @param props - List of props to extract from.
+ * @example `getBaseStyleName('colorHover') => `color``
  *
- * @returns An object containing `styleProps` and `scaleProps`.
+ * @param styleName - Style name to extract the base name from.
+ *
+ * @returns The base style name.
  */
-export const extractStyleProps = (
-  options: PluginOptions,
-  props: JSXAttribute[]
+const extractBaseStyleInfo = (styleName: string, options: PluginOptions) => {
+  const { psuedoClases } = options
+
+  type BaseStyle = {
+    name: string
+    type: keyof PluginOptions['psuedoClases'] | 'base'
+  }
+
+  let baseStyle: BaseStyle = {
+    name: styleName,
+    type: 'base',
+  }
+
+  // A `for of` loop allows us to break early if we find a match.
+  for (const [key, regExp] of Object.entries(psuedoClases)) {
+    if (!styleName.match(regExp)) continue
+
+    // We found a match, so replace and break early.
+    baseStyle.name = styleName.replace(regExp, '')
+    baseStyle.type = key
+    break
+  }
+
+  return baseStyle
+}
+
+type Styles = {
+  [key: string]: ObjectProperty['value']
+}
+type GroupedStyles = {
+  [key: string]: Styles
+}
+
+export const normalizeAndGroupStyles = (
+  scopedProp: JSXAttribute,
+  options: PluginOptions
 ) => {
-  const { variants } = options
-  let existingStyleProp: JSXAttribute | undefined
+  const { psuedoClases } = options
 
-  const styleProps = [] as JSXAttribute[]
-  const scaleProps = [] as JSXAttribute[]
-  const hoverProps = [] as JSXAttribute[]
-  const focusProps = [] as JSXAttribute[]
-  const activeProps = [] as JSXAttribute[]
-  const variantProps = [] as JSXAttribute[]
+  const scopedPropValue = scopedProp.value as JSXExpressionContainer
+  const scopedPropObj = scopedPropValue.expression as ObjectExpression
+  const allStyleProperties = scopedPropObj.properties
 
-  props.forEach(prop => {
-    const propName = prop.name.name as string
-    const {
-      propBaseName,
-      isScale,
-      isHover,
-      isFocus,
-      isActive,
-    } = extractPropBaseName(propName)
+  // Initializes our collection.
+  let groupedStyles = Object.keys(psuedoClases).reduce(
+    (acc, key) => {
+      acc[key] = {}
 
-    if (propName === STYLE_PROPS_ID) existingStyleProp = prop
-    else if (variants[propBaseName]) variantProps.push(prop)
-    else if (PROP_NAMES.includes(propBaseName)) {
-      if (isScale) scaleProps.push(prop)
-      else if (isHover) hoverProps.push(prop)
-      else if (isFocus) focusProps.push(prop)
-      else if (isActive) activeProps.push(prop)
-      else styleProps.push(prop)
-    }
+      return acc
+    },
+    { base: {} } as GroupedStyles
+  )
+
+  allStyleProperties.forEach(style => {
+    if (!t.isObjectProperty(style)) return
+
+    const key: Identifier = style.key
+    const value = style.value
+    const rawStyleName = key.name as string
+
+    const { name, type: styleType } = extractBaseStyleInfo(
+      rawStyleName,
+      options
+    )
+    if (!VALID_STYLE_NAMES.includes(name)) return
+
+    const cssProperties = castArray(STYLE_ALIASES[name] ?? name)
+
+    cssProperties.forEach(cssProperty => {
+      groupedStyles[styleType][cssProperty] = value
+    })
   })
 
-  return {
-    styleProps,
-    scaleProps,
-    hoverProps,
-    focusProps,
-    activeProps,
-    variantProps,
-    existingStyleProp,
-  }
+  return groupedStyles
+}
+
+/**
+ * Provided the style prop, returns a list of all styles e.g. `mx`, scale styles e.g. `mxScale`, variants, and psuedoClass styles.
+ *
+ * @param scopedProp - The scoped style prop.
+ * @param options - The babel plugin options.
+ *
+ * @returns An object containing namespaced objects for each style type.
+ */
+export const responsifyStyles = (
+  groupedStyles: GroupedStyles,
+  options: PluginOptions
+) => {
+  // TODO:
 }
 
 /**
@@ -139,18 +175,9 @@ export const stripInternalProp = (
 ) => {
   return props.filter(prop => {
     if (t.isJSXSpreadAttribute(prop)) return true
-    if (t.isJSXAttribute(prop) && prop.name.name !== STYLE_PROPS_ID) return true
+    if (t.isJSXAttribute(prop) && prop.name.name !== INJECTED_PROP_NAME)
+      return true
 
     return false
   })
 }
-
-/**
- * Given any prop, returns `true` if the prop should be skipped
- * for style-prop processing, `false` otherwise.
- *
- * @param prop
- */
-export const shouldSkipProp = (
-  prop: null | Expression | SpreadElement | JSXEmptyExpression
-) => t.isNullLiteral(prop)

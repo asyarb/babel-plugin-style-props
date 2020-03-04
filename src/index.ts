@@ -2,22 +2,18 @@ import { NodePath, types as t } from '@babel/core'
 import * as BabelTypes from '@babel/types'
 import {
   JSXExpressionContainer,
-  JSXOpeningElement,
   ObjectExpression,
+  JSXOpeningElement,
   Program,
-  JSXIdentifier,
 } from '@babel/types'
-import { buildStyleObject } from './builders'
-import { DEFAULT_OPTIONS, STYLE_PROPS_ID } from './constants'
+import { DEFAULT_OPTIONS, INJECTED_PROP_NAME } from './constants'
 import { mergeStyleObjects } from './mergers'
-import { processScaleProps } from './scaleProps'
-import { processStyleProps, STYLE_PROP_TYPE } from './styleProps'
 import {
-  extractStyleProps,
   stripInternalProp,
   extractScopedProp,
+  normalizeAndGroupStyles,
+  responsifyStyles,
 } from './utils'
-import { processVariantProps } from './variantProps'
 
 export interface Babel {
   types: typeof BabelTypes
@@ -26,7 +22,6 @@ export type StylePropExpression = BabelTypes.Expression | null
 export interface PluginOptions {
   prop: string
   psuedoClases: { [key: string]: RegExp }
-  themeMap: { [key: string]: string }
   variants: {
     [key: string]: string
   }
@@ -37,52 +32,29 @@ const jsxOpeningElementVisitor = {
     const allProps = path.node.attributes
     if (!allProps.length) return
 
-    const scopedProp = extractScopedProp(allProps, options.prop)
-
-    const {
-      scaleProps,
-      styleProps,
-      hoverProps,
-      focusProps,
-      activeProps,
-      variantProps,
-      existingStyleProp,
-    } = extractStyleProps(options, explicitProps)
-
-    if (
-      !scaleProps.length &&
-      !styleProps.length &&
-      !hoverProps.length &&
-      !focusProps.length &&
-      !variantProps.length &&
-      !activeProps.length
+    const { scopedProp, existingProp } = extractScopedProp(
+      allProps,
+      options.prop
     )
-      return
+    if (!scopedProp) return
 
-    const base = processStyleProps(styleProps, STYLE_PROP_TYPE.BASE)
-    const hover = processStyleProps(hoverProps, STYLE_PROP_TYPE.HOVER)
-    const focus = processStyleProps(focusProps, STYLE_PROP_TYPE.FOCUS)
-    const active = processStyleProps(activeProps, STYLE_PROP_TYPE.ACTIVE)
-    const variants = processVariantProps(variantProps, options)
-    const scales = processScaleProps(scaleProps)
+    const groupedStyleObj = normalizeAndGroupStyles(scopedProp, options)
 
-    let styleObj = buildStyleObject({
-      css: [base, hover, focus, active],
-      extensions: [scales, variants],
-    })
+    // TODO: Give this a less stupid name lol
+    let responsiveStyleObj = responsifyStyles(groupedStyleObj, options)
 
-    if (existingStyleProp) {
-      const existingPropValue = existingStyleProp.value as JSXExpressionContainer
+    if (existingProp) {
+      const existingPropValue = existingProp.value as JSXExpressionContainer
       const existingObj = existingPropValue.expression as ObjectExpression
 
-      styleObj = mergeStyleObjects(existingObj, styleObj)
+      responsiveStyleObj = mergeStyleObjects(existingObj, responsiveStyleObj)
 
       path.node.attributes = stripInternalProp(path.node.attributes)
     }
 
     const styleProp = t.jsxAttribute(
-      t.jsxIdentifier(STYLE_PROPS_ID),
-      t.jsxExpressionContainer(styleObj)
+      t.jsxIdentifier(INJECTED_PROP_NAME),
+      t.jsxExpressionContainer(responsiveStyleObj)
     )
 
     path.node.attributes.push(styleProp)
