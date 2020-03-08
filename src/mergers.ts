@@ -1,7 +1,7 @@
 import { types as t } from '@babel/core'
 import { ArrayExpression, ObjectExpression, ObjectProperty } from '@babel/types'
 
-import { buildObjectProperty, buildStyleObject } from './builders'
+import { buildObjectProperty, buildInjectableObject } from './builders'
 
 const mergeCssProps = (
   existingProps: ObjectProperty,
@@ -99,7 +99,7 @@ const mergeExtensions = (
   return { mergedScales, mergedVariants }
 }
 
-export const mergeStyleObjects = (
+export const mergeInjectableObjects = (
   existingObj: ObjectExpression,
   newObj: ObjectExpression
 ) => {
@@ -118,7 +118,7 @@ export const mergeStyleObjects = (
     newExtensions
   )
 
-  return buildStyleObject({
+  return buildInjectableObject({
     css: [mergedBase, mergedHover, mergedFocus, mergedActive],
     extensions: [mergedScales, mergedVariants],
   })

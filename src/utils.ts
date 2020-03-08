@@ -17,6 +17,7 @@ import {
   INJECTED_PROP_NAME,
   STYLE_ALIASES,
 } from './constants'
+import { buildObjectProperty } from './builders'
 
 /**
  * Given a value, casts the value to an array if it is not one.
@@ -26,6 +27,22 @@ import {
  * @returns The casted array.
  */
 export const castArray = <T>(x: T | T[]): T[] => (Array.isArray(x) ? x : [x])
+
+/**
+ * Creates an array containing all but the first element of an array.
+ *
+ * @param array - The array to get the tail of.
+ *
+ * @returns A new array containing the tail elements.
+ */
+
+export const tail = <T>(array: T[]) => {
+  if (!Array.isArray(array)) return []
+
+  const [, ...x] = array
+
+  return x
+}
 
 /**
  * Given any style, returns `true` if the prop should be skipped
@@ -46,9 +63,9 @@ export const shouldSkipStyle = (
  *
  * @returns The JSXAttribute whose name is `scopedPropName`, `undefined` otherwise.
  */
-export const extractScopedProp = (
+export const extractInternalProps = (
   props: (JSXAttribute | JSXSpreadAttribute)[],
-  scopedPropName: string
+  options: PluginOptions
 ) => {
   let scopedProp: JSXAttribute | undefined
   let existingProp: JSXAttribute | undefined
@@ -56,8 +73,14 @@ export const extractScopedProp = (
   props.forEach(prop => {
     if (t.isJSXSpreadAttribute(prop)) return
 
-    if (prop.name.name !== scopedPropName) scopedProp = prop
-    if (prop.name.name === INJECTED_PROP_NAME) existingProp = prop
+    if (prop.name.name === options.prop) {
+      scopedProp = prop
+      return
+    }
+    if (prop.name.name === INJECTED_PROP_NAME) {
+      existingProp = prop
+      return
+    }
   })
 
   return { scopedProp, existingProp }
@@ -98,11 +121,11 @@ const extractBaseStyleInfo = (styleName: string, options: PluginOptions) => {
   return baseStyle
 }
 
-type Styles = {
+type NormalizedStyles = {
   [key: string]: ObjectProperty['value']
 }
 type GroupedStyles = {
-  [key: string]: Styles
+  [key: string]: NormalizedStyles
 }
 
 export const normalizeAndGroupStyles = (
@@ -148,6 +171,8 @@ export const normalizeAndGroupStyles = (
   return groupedStyles
 }
 
+type PsuedoResponsiveObj = { [key: string]: ObjectExpression[] }
+
 /**
  * Provided the style prop, returns a list of all styles e.g. `mx`, scale styles e.g. `mxScale`, variants, and psuedoClass styles.
  *
@@ -156,28 +181,58 @@ export const normalizeAndGroupStyles = (
  *
  * @returns An object containing namespaced objects for each style type.
  */
-export const responsifyStyles = (
-  groupedStyles: GroupedStyles,
-  options: PluginOptions
-) => {
-  // TODO:
+export const responsifyStyles = (groupedStylesObj: GroupedStyles) => {
+  const groupedStyles = Object.entries(groupedStylesObj)
+
+  const responsivePsuedoGroups = groupedStyles.reduce((acc, [key, value]) => {
+    const styles = Object.entries(value)
+
+    let mobile = [] as ObjectProperty[]
+    let responsive = [] as ObjectProperty[][]
+
+    styles.forEach(([cssKey, cssValue]) => {
+      if (t.isArrayExpression(cssValue)) {
+        cssValue.elements.forEach((el, idx) => {
+          responsive[idx] = responsive[idx] ?? []
+
+          const element = el as Expression
+          if (shouldSkipStyle(element)) return
+
+          const styleProperty = buildObjectProperty(cssKey, element)
+
+          if (idx === 0) {
+            mobile.push(styleProperty)
+            return
+          }
+
+          responsive[idx].push(styleProperty)
+        })
+      } else {
+        if (shouldSkipStyle(cssValue as Expression)) return
+
+        mobile.push(buildObjectProperty(cssKey, cssValue as Expression))
+      }
+    })
+
+    const mobileObjExpression = t.objectExpression(mobile)
+    const responsiveExpressions = responsive.map(styles =>
+      t.objectExpression(styles)
+    )
+
+    acc[key] = [mobileObjExpression, ...tail(responsiveExpressions)]
+
+    return acc
+  }, {} as PsuedoResponsiveObj)
+
+  return responsivePsuedoGroups
 }
 
-/**
- * Given a list of props, returns a new list with the `__styleProp__` prop removed.
- *
- * @param props - The list of props to filter.
- *
- * @returns An array with the internal styleProp prop removed.
- */
-export const stripInternalProp = (
-  props: (JSXAttribute | JSXSpreadAttribute)[]
-) => {
-  return props.filter(prop => {
-    if (t.isJSXSpreadAttribute(prop)) return true
-    if (t.isJSXAttribute(prop) && prop.name.name !== INJECTED_PROP_NAME)
-      return true
+export const buildFinalObjectExp = (responsiveStyles: PsuedoResponsiveObj) => {
+  const responsiveProperties = Object.entries(responsiveStyles).map(
+    ([key, value]) => {
+      return buildObjectProperty(key, t.arrayExpression(value))
+    }
+  )
 
-    return false
-  })
+  return t.objectExpression(responsiveProperties)
 }

@@ -6,7 +6,7 @@ export const buildObjectProperty = (
   expression: Expression
 ) => t.objectProperty(t.identifier(identifier), expression)
 
-export const buildStyleObject = ({
+export const buildInjectableObject = ({
   css,
   extensions,
 }: {

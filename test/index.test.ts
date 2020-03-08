@@ -12,12 +12,36 @@ describe('style prop parsing', () => {
   it.only('handles style props and places them in a new prop', () => {
     const example = `
       const Example = () => {
-        return <div sx={{ m: '3rem', lineHeight: [1.5, 2, null, 1], pFocus: '4rem', colorHover: 'red' }} />
+        return <div sx={{ mb: '3rem', lineHeight: [1.5, 2, null, 4], pFocus: [1, null, null, 4] }} />
       }
     `
     const code = parseCode(example)
 
-    expect(true).toBe(true)
+    expect(code).toMatchInlineSnapshot(`
+      "const Example = () => {
+        return <div sx={{
+          mb: '3rem',
+          lineHeight: [1.5, 2, null, 4],
+          pFocus: [1, null, null, 4]
+        }} __styleProps__={{
+          base: [{
+            marginBottom: '3rem',
+            lineHeight: 1.5
+          }, {
+            lineHeight: 2
+          }, {}, {
+            lineHeight: 4
+          }],
+          hover: [{}],
+          focus: [{
+            padding: 1
+          }, {}, {}, {
+            padding: 4
+          }],
+          active: [{}]
+        }} />;
+      };"
+    `)
   })
 })
 
