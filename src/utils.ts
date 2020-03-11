@@ -18,31 +18,7 @@ import {
   STYLE_ALIASES,
 } from './constants'
 import { buildObjectProperty } from './builders'
-
-/**
- * Given a value, casts the value to an array if it is not one.
- *
- * @param x - The value to cast to an array.
- *
- * @returns The casted array.
- */
-export const castArray = <T>(x: T | T[]): T[] => (Array.isArray(x) ? x : [x])
-
-/**
- * Creates an array containing all but the first element of an array.
- *
- * @param array - The array to get the tail of.
- *
- * @returns A new array containing the tail elements.
- */
-
-export const tail = <T>(array: T[]) => {
-  if (!Array.isArray(array)) return []
-
-  const [, ...x] = array
-
-  return x
-}
+import { castArray, tail } from './helpers'
 
 /**
  * Given any style, returns `true` if the prop should be skipped
@@ -128,7 +104,7 @@ type GroupedStyles = {
   [key: string]: NormalizedStyles
 }
 
-export const normalizeAndGroupStyles = (
+export const normalizeStyleNames = (
   scopedProp: JSXAttribute,
   options: PluginOptions
 ) => {
@@ -171,68 +147,108 @@ export const normalizeAndGroupStyles = (
   return groupedStyles
 }
 
-type PsuedoResponsiveObj = { [key: string]: ObjectExpression[] }
+const processStyle = (
+  key: string,
+  value: ObjectProperty['value'],
+  mobile: ObjectProperty[],
+  responsive: ObjectProperty[][]
+) => {
+  if (t.isArrayExpression(value)) {
+    value.elements.forEach((el, idx) => {
+      responsive[idx] = responsive[idx] ?? []
+
+      const element = el as Expression
+      if (shouldSkipStyle(element)) return
+
+      const styleProperty = buildObjectProperty(key, element)
+
+      if (idx === 0) {
+        mobile.push(styleProperty)
+        return
+      }
+
+      responsive[idx].push(styleProperty)
+    })
+  } else {
+    if (shouldSkipStyle(value as Expression)) return
+
+    mobile.push(buildObjectProperty(key, value as Expression))
+  }
+}
+
+const processScaleStyle = (
+  key: string,
+  value: ObjectProperty['value'],
+  mobile: ObjectProperty[]
+) => {
+  if (t.isArrayExpression(value)) {
+    mobile.push(buildObjectProperty(key, value as Expression))
+
+    return
+  }
+
+  mobile.push(
+    buildObjectProperty(key, t.arrayExpression([value as Expression]))
+  )
+}
+
+type ResponsiveStyles = { [key: string]: ObjectExpression[] }
 
 /**
- * Provided the style prop, returns a list of all styles e.g. `mx`, scale styles e.g. `mxScale`, variants, and psuedoClass styles.
+ * Provided a style prop, returns an object whose keys represent the
+ * named psuedo classes. Each key contains an array whose items represent
+ * styles at a breakpoint.
+ *
+ * @example { base: [{ margin: 1 }, {}, { padding: 3 }] }
  *
  * @param scopedProp - The scoped style prop.
  * @param options - The babel plugin options.
  *
- * @returns An object containing namespaced objects for each style type.
+ * @returns The responsive object.
  */
-export const responsifyStyles = (groupedStylesObj: GroupedStyles) => {
-  const groupedStyles = Object.entries(groupedStylesObj)
+export const createKeyedResponsiveStyles = (
+  groupedStylesObj: GroupedStyles
+) => {
+  const responsivePsuedoGroups = Object.entries(groupedStylesObj).reduce(
+    (acc, [key, value]) => {
+      const styles = Object.entries(value)
 
-  const responsivePsuedoGroups = groupedStyles.reduce((acc, [key, value]) => {
-    const styles = Object.entries(value)
+      let mobile = [] as ObjectProperty[]
+      let responsive = [] as ObjectProperty[][]
 
-    let mobile = [] as ObjectProperty[]
-    let responsive = [] as ObjectProperty[][]
+      styles.forEach(([cssKey, cssValue]) => {
+        if (key === 'scales') processScaleStyle(cssKey, cssValue, mobile)
+        else processStyle(cssKey, cssValue, mobile, responsive)
+      })
 
-    styles.forEach(([cssKey, cssValue]) => {
-      if (t.isArrayExpression(cssValue)) {
-        cssValue.elements.forEach((el, idx) => {
-          responsive[idx] = responsive[idx] ?? []
+      const mobileObjExpression = t.objectExpression(mobile)
+      const responsiveExpressions = responsive.map(styles =>
+        t.objectExpression(styles)
+      )
 
-          const element = el as Expression
-          if (shouldSkipStyle(element)) return
+      // We use tail here since we never use the first element of
+      // `responsiveExpressions`
+      acc[key] = [mobileObjExpression, ...tail(responsiveExpressions)]
 
-          const styleProperty = buildObjectProperty(cssKey, element)
-
-          if (idx === 0) {
-            mobile.push(styleProperty)
-            return
-          }
-
-          responsive[idx].push(styleProperty)
-        })
-      } else {
-        if (shouldSkipStyle(cssValue as Expression)) return
-
-        mobile.push(buildObjectProperty(cssKey, cssValue as Expression))
-      }
-    })
-
-    const mobileObjExpression = t.objectExpression(mobile)
-    const responsiveExpressions = responsive.map(styles =>
-      t.objectExpression(styles)
-    )
-
-    acc[key] = [mobileObjExpression, ...tail(responsiveExpressions)]
-
-    return acc
-  }, {} as PsuedoResponsiveObj)
+      return acc
+    },
+    {} as ResponsiveStyles
+  )
 
   return responsivePsuedoGroups
 }
 
-export const buildFinalObjectExp = (responsiveStyles: PsuedoResponsiveObj) => {
-  const responsiveProperties = Object.entries(responsiveStyles).map(
-    ([key, value]) => {
-      return buildObjectProperty(key, t.arrayExpression(value))
-    }
-  )
+/**
+ * Provided keyed and grouped repsonsive styles, creates an injectable prop
+ *
+ * @param responsiveStyles - The responsive styles.
+ *
+ * @returns An object expression representing the responsive styles.
+ */
+export const buildInjectableProp = (responsiveStyles: ResponsiveStyles) => {
+  const responsiveProperties = Object.entries(
+    responsiveStyles
+  ).map(([key, value]) => buildObjectProperty(key, t.arrayExpression(value)))
 
   return t.objectExpression(responsiveProperties)
 }

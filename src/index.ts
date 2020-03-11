@@ -1,12 +1,13 @@
 import { NodePath, types as t } from '@babel/core'
 import * as BabelTypes from '@babel/types'
 import { JSXOpeningElement, Program } from '@babel/types'
+
 import { DEFAULT_OPTIONS, INJECTED_PROP_NAME } from './constants'
 import {
   extractInternalProps,
-  normalizeAndGroupStyles,
-  responsifyStyles,
-  buildFinalObjectExp,
+  normalizeStyleNames,
+  createKeyedResponsiveStyles,
+  buildInjectableProp,
 } from './utils'
 
 export interface Babel {
@@ -29,27 +30,26 @@ const jsxOpeningElementVisitor = {
     const { scopedProp, existingProp } = extractInternalProps(allProps, options)
     if (!scopedProp) return
 
-    const groupedStyleObj = normalizeAndGroupStyles(scopedProp, options)
-    let responsiveStyleObj = responsifyStyles(groupedStyleObj)
-    const finalObject = buildFinalObjectExp(responsiveStyleObj)
+    const normalizedStyles = normalizeStyleNames(scopedProp, options)
+    const responsiveStyles = createKeyedResponsiveStyles(normalizedStyles)
+    const injectableExpression = buildInjectableProp(responsiveStyles)
 
     const styleProp = t.jsxAttribute(
       t.jsxIdentifier(INJECTED_PROP_NAME),
-      t.jsxExpressionContainer(finalObject)
+      t.jsxExpressionContainer(injectableExpression)
     )
 
+    if (existingProp) {
+      // TODO:
+    }
+
     path.node.attributes.push(styleProp)
-
-    // if (existingProp) {
-    //   const existingPropValue = existingProp.value as JSXExpressionContainer
-    //   const existingObj = existingPropValue.expression as ObjectExpression
-
-    //   responsiveStyleObj = mergeInjectableObjects(existingObj, responsiveStyleObj)
   },
 }
 
 export default (_babel: Babel, opts: PluginOptions) => {
   const options = { ...DEFAULT_OPTIONS, ...opts }
+  options.psuedoClases.scales = /Scale$/
 
   return {
     name: 'style-props',
