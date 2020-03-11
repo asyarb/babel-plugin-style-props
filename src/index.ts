@@ -7,8 +7,8 @@ import {
   extractInternalProps,
   normalizeStyleNames,
   createKeyedResponsiveStyles,
-  buildInjectableProp,
 } from './utils'
+import { buildInjectableProp } from './builders'
 
 export interface Babel {
   types: typeof BabelTypes

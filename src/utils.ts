@@ -192,7 +192,7 @@ const processScaleStyle = (
   )
 }
 
-type ResponsiveStyles = { [key: string]: ObjectExpression[] }
+export type ResponsiveStyles = { [key: string]: ObjectExpression[] }
 
 /**
  * Provided a style prop, returns an object whose keys represent the
@@ -236,19 +236,4 @@ export const createKeyedResponsiveStyles = (
   )
 
   return responsivePsuedoGroups
-}
-
-/**
- * Provided keyed and grouped repsonsive styles, creates an injectable prop
- *
- * @param responsiveStyles - The responsive styles.
- *
- * @returns An object expression representing the responsive styles.
- */
-export const buildInjectableProp = (responsiveStyles: ResponsiveStyles) => {
-  const responsiveProperties = Object.entries(
-    responsiveStyles
-  ).map(([key, value]) => buildObjectProperty(key, t.arrayExpression(value)))
-
-  return t.objectExpression(responsiveProperties)
 }
