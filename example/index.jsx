@@ -1,3 +1,12 @@
 export const Example = () => {
-  return <div sx={{ m: '-large', boxStyle: 'med' }} />
+  return (
+    <div
+      sx={{
+        color: ['red', 'blue'],
+        colorHover: 'blue',
+        colorFocus: 'purple',
+        pScale: 'xl',
+      }}
+    />
+  )
 }

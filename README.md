@@ -1,9 +1,9 @@
 # Babel Plugin Style Props <!-- omit in toc -->
 
-The base babel plugin for processing style props on JSX elements.
+The base babel plugin for processing enhanced style props on JSX elements.
 
 ```jsx
-<h1 mt={0} mb={4} color="primary" textDecoration="underline">
+<h1 sx={{ mt: 0, mb: 4, color: 'primary', textDecoration: 'underline' }}>
   Hello World!
 </h1>
 ```
@@ -13,72 +13,71 @@ The base babel plugin for processing style props on JSX elements.
 - [Getting Started](#getting-started)
   - [Installation](#installation)
   - [Configure Babel](#configure-babel)
-    - [Removing style props](#removing-style-props)
+    - [Configuration Options](#configuration-options)
 - [Why?](#why)
   - [The performance problem](#the-performance-problem)
-  - [Enter babel](#enter-babel)
-  - [Going even further](#going-even-further)
+  - [Enter Babel](#enter-babel)
+  - [Taking Things Further](#taking-things-further)
 
 ## What does this plugin do?
 
-This is the base style props plugin that parses style props on JSX elements and
-places them under a `__styleProps__` JSXAttribute.
+This is the base plugin that parses style props on JSX elements and injects them
+as a new `__styleProps__` prop.
 
 On its own, this plugin **does not** generate any CSS styles. This plugin only
-parses style props and formats them in a standardized format. Doing this allows
-for follow-up plugins to consume and generate styles from them in a way that
-makes sense for that adapter.
+parses styles from a pre-defined prop and re-formats them into a standardized
+format. This allows for follow-up adapter babel plugins to consume and generate
+styles from them in a way that makes sense for that particular implementation.
 
 See below for an example of the output of just this plugin:
 
 ```jsx
 // input
 <div
-  color={['red', 'blue']}
-  colorHover="blue"
-  colorFocus="purple"
-  pScale="xl"
+  sx={{
+    color: ['red', 'blue'],
+    colorHover: 'blue',
+    colorFocus: 'purple',
+    pScale: 'xl'
+  }}
 />
 
 // Output
 <div
   __styleProps__={{
-    css: {
-      base: [
-        {
-          color: 'red',
-          margin: '-',
-        },
-        {
-          color: 'blue',
-        }
-      ],
-      hover: [
-        {
-          color: 'blue',
-        },
-      ],
-      focus: [
-        {
-          color: 'purple',
-        },
-      ],
-      active: [{}],
-    },
-    extensions: {
-      scales: {
+    base: [
+      {
+        color: 'red',
+      },
+      {
+        color: 'blue',
+      },
+    ],
+    hover: [
+      {
+        color: 'blue',
+      },
+    ],
+    focus: [
+      {
+        color: 'purple',
+      },
+    ],
+    active: [{}],
+    scales: [
+      {
         padding: ['xl'],
       },
-      variants: {},
-    },
+    ],
+    variants: [{}],
   }}
 />
 ```
 
 ### Currently released adapters
 
-If you are looking for a plugin for style-props that will generate styles, see
-the following list of currently available adapters:
+If you are looking for an adapter plugin for that will generate styles, see the
+following list of currently available adapters:
 
 - [babel-plugin-style-props-emotion](https://github.com/asyarb/babel-plugin-style-props-emotion)
 
@@ -109,84 +108,80 @@ module.exports = {
 }
 ```
 
-#### Removing style props
-
-If you would like to remove any style props from the resulting JSX or HTML,
-specify the `stripProps` option in your babel config.
-
-```js
-// babel.config.js
-module.exports = {
-  presets: [
-    '@babel/preset-env',
-    '@babel/preset-react',
-  ]
-  plugins: [['babel-plugin-style-props', { stripProps: true }]],
-}
-```
+#### Configuration Options
 
 ## Why?
 
 ### The performance problem
 
 Writing and generating styles in JS is a pattern that has been becoming
-increasingly common in React. A library named `styled-system` in conjunction
-with libraries like `styled-components` and `emotion` popularized the approach
-of generating styles based on props. Creating design systems utilizing the above
-libraries has been seeing increased adoption in many implementations.
+increasingly common in React. Popular libraries such as `styled-system` and
+`theme-ui` working in conjunction with CSS-in-JS libraries such as `emotion`
+have popularized the approach of generating styles based on props. Design system
+implementations utilizing the above libraries has been seeing increased adoption
+in many teams and applications.
 
-However, `styled-system` comes with the cost of a fairly non-trivial runtime. On
-every render for an element, it needs to iterate over every style prop,
-determine the appropriate theme keys and scales to utilize, access the theme
-context's scales and values in a safe manner (specifially using `dlv`, a
-relatively slow and recursive deep property accessor), generate style objects
-from those theme values or fallbacks, and _finally_ have those objects parsed by
-an underlying CSS-in-JS runtime to generate the final styles.
+However, these particular pairings of libraries come with the cost of a fairly
+non-trivial runtime. On every render for an element, they need to:
 
-In small isolated cases, this can be okay, but when sites or applications have
-hundreds of components, each using multiple style props, performance suffers.
-This is especially noticable in key scenarios such as rehydration or when
-rerenders are quickly occurring somewhere high in the React tree.
+1. Iterate over a list of every style
+2. Determine the appropriate theme keys or scales to utilizes
+3. Access the theme context's scales and values in a safe manner (usually with
+   an implementation like `lodash.get` or `dlv`, both relatively slow and
+   recursive deep property accessors)
+4. Generate style objects from those values or fallbacks
+5. _Finally_ parse those objects with the underlying CSS-in-JS runtime and
+   create the final styles for that element.
 
-### Enter babel
+In small isolated cases, this amount of runtime work can be okay, but when sites
+or applications have hundreds of components, each with large style declarations,
+performance suffers. These runtime costs are especially noticable in key
+scenarios such as rehydration or when rerenders are rapidly occurring.
 
-This plugin originated from the hope of achieving the same API that
-`styled-system` is able to achieve, but with a much lower or even eliminated
-runtime cost. By utilizing babel, we can statically analyze style props and do
-most of the work `styled-system` is doing at transpile time.
+### Enter Babel
+
+This plugin originated from the desire of utilizing the same API that high level
+abstractions like `styled-system` and `theme-ui` are able to achieve, but with a
+much lower or even eliminated runtime cost. By utilizing a build-time tool such
+as Babel, we can statically analyze style declarations and do most of the work
+these high level libraries are doing at transpile time.
 
 At transpile time, we can:
 
-- Iterate over every style prop
-- Determine the appropriate keys and scales to utilize
-- Reduce the cost of safe theme property access through documented conventions
-- Pre-generate style objects
+1. Iterate over every style rule
+2. Determine the appropriate keys and scales to utilize
+3. Reduce the cost of safe theme property access through via documented
+   conventions
+4. Pre-generate style objects
 
 By doing all the above, all that is left at runtime is to have the underlying
 CSS-in-JS library generate the final styles. This means that we are able to
-achieve a similar API to `styled-system` while having similar performance to
-using a library like `emotion` directly!
+achieve a high-level API while maintaining similar performance to using a
+library like `emotion` directly!
 
-### Going even further
+### Taking Things Further
 
-You may be wondering: the above justification doesn't explain why this plugin is
-architected in the way that it is. If we were just trying to achieve similar
-performance to just using `emotion`, why not bundle that into one plugin? Why
-split this plugin and have a second plugin that runs afterward?
+You may be wondering: the above doesn't explain why this plugin is architected
+in the way that it is. If we're trying to achieve similar performance to just
+using `emotion`, why not bundle that into one plugin? Why split this plugin and
+have a second adapter that runs afterward?
 
-The answer to that is extensibility and flexibility.
+The answer to that is extensibility.
 
 By using this approach, we aren't limited to just utilizing a CSS-in-JS solution
-such as `emotion` as a consumer of style props. By architecting our plugin in
-this manner, we open the door for any alternative implementation based on the
-values that come from style props.
+such as `emotion` as a consumer of style props. In fact, we aren't limited to
+CSS-in-JS at all!
 
-To just put ideas of what could be possible using this approach:
+With this approach, we open the door for future adapter implementations based on
+the values that come from style props.
 
-- We could map style props to existing functional CSS frameworks like Tailwind
-  CSS to reduce runtime even further.
-- We could map style props to a zero-runtime CSS-in-JS library like `linaria`.
-- We could generate class names at build time based on style props.
-- We could perform partial static extraction on known staic properties, and rely
-  on a runtime for dynamic expressions.
-- Generate React Native styles based on style props.
+To put ideas of what could be possible using this approach:
+
+- Styles can be mapped to existing functional CSS frameworks like TailwindCSS to
+  reduce or even eliminate runtime cost entirely.
+- Styles could be mapped to a zero-runtime CSS-in-JS libraries like `linaria`,
+  `treat` or `astroturf`.
+- Class names can be generated at build based on static styles.
+- Partial static extraction on known staic styles; rely on runtime for dynamic
+  expressions.
+- Unified React Native styling API at no additional performance cost.
