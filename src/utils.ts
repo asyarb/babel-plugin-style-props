@@ -53,6 +53,14 @@ export const extractInternalProps = (
   return scopedProp
 }
 
+interface BaseStyle {
+  name: string
+  type:
+    | keyof PluginOptions['psuedoClases']
+    | keyof PluginOptions['variants']
+    | 'base'
+}
+
 /**
  * Given a style's name, extracts the base name.
  *
@@ -63,16 +71,17 @@ export const extractInternalProps = (
  * @returns The base style name.
  */
 const extractBaseStyleInfo = (styleName: string, options: PluginOptions) => {
-  const { psuedoClases } = options
-
-  type BaseStyle = {
-    name: string
-    type: keyof PluginOptions['psuedoClases'] | 'base'
-  }
+  const { psuedoClases, variants } = options
 
   let baseStyle: BaseStyle = {
     name: styleName,
     type: 'base',
+  }
+
+  if (Object.keys(variants).includes(styleName)) {
+    baseStyle.type = 'variants'
+
+    return baseStyle
   }
 
   // A `for of` loop allows us to break early if we find a match.
@@ -99,20 +108,20 @@ export const normalizeStyleNames = (
   scopedProp: JSXAttribute,
   options: PluginOptions
 ) => {
-  const { psuedoClases } = options
+  const { psuedoClases, variants } = options
 
   const scopedPropValue = scopedProp.value as JSXExpressionContainer
   const scopedPropObj = scopedPropValue.expression as ObjectExpression
   const allStyleProperties = scopedPropObj.properties
 
-  // Initializes our collection.
+  // Initialize our collections.
   let groupedStyles = Object.keys(psuedoClases).reduce(
     (acc, key) => {
       acc[key] = {}
 
       return acc
     },
-    { base: {} } as GroupedStyles
+    { base: {}, variants: {} } as GroupedStyles
   )
 
   allStyleProperties.forEach(style => {
@@ -122,16 +131,16 @@ export const normalizeStyleNames = (
     const value = style.value
     const rawStyleName = key.name as string
 
-    const { name, type: styleType } = extractBaseStyleInfo(
-      rawStyleName,
-      options
+    const { name, type } = extractBaseStyleInfo(rawStyleName, options)
+    if (
+      !VALID_STYLE_NAMES.includes(name) &&
+      !Object.keys(variants).includes(name)
     )
-    if (!VALID_STYLE_NAMES.includes(name)) return
+      return
 
     const cssProperties = castArray(STYLE_ALIASES[name] ?? name)
-
     cssProperties.forEach(cssProperty => {
-      groupedStyles[styleType][cssProperty] = value
+      groupedStyles[type][cssProperty] = value
     })
   })
 
