@@ -114,22 +114,21 @@ module.exports = {
 
 ### The performance problem
 
-Writing and generating styles in JS is a pattern that has been becoming
-increasingly common in React. Popular libraries such as `styled-system` and
-`theme-ui` working in conjunction with CSS-in-JS libraries such as `emotion`
-have popularized the approach of generating styles based on props. Design system
-implementations utilizing the above libraries has been seeing increased adoption
-in many teams and applications.
+Writing and generating styles in JS is becoming increasingly common in React.
+Popular high-level libraries such as `styled-system` and `theme-ui` work in
+conjunction with CSS-in-JS tools like `emotion` to provide ergonomic APIs for
+styling components with props. Design systems utilizing the above libraries have
+been seeing increased adoption in many teams and applications.
 
-However, these particular pairings of libraries come with the cost of a fairly
-non-trivial runtime. On every render for an element, they need to:
+However, these sets of libraries come with the cost of a fairly non-trivial
+runtime. On every render for a component, they need to:
 
-1. Iterate over a list of every style
-2. Determine the appropriate theme keys or scales to utilizes
-3. Access the theme context's scales and values in a safe manner (usually with
+1. Iterate over a collection of every style rule.
+2. Determine the appropriate theme keys or scales to utilize.
+3. Access the theme context's scales and values in a safe manner. (Usually with
    an implementation like `lodash.get` or `dlv`, both relatively slow and
    recursive deep property accessors)
-4. Generate style objects from those values or fallbacks
+4. Generate style objects from those values or fallbacks.
 5. _Finally_ parse those objects with the underlying CSS-in-JS runtime and
    create the final styles for that element.
 
@@ -140,24 +139,26 @@ scenarios such as rehydration or when rerenders are rapidly occurring.
 
 ### Enter Babel
 
-This plugin originated from the desire of utilizing the same API that high level
-abstractions like `styled-system` and `theme-ui` are able to achieve, but with a
-much lower or even eliminated runtime cost. By utilizing a build-time tool such
-as Babel, we can statically analyze style declarations and do most of the work
-these high level libraries are doing at transpile time.
+In order to have access to the same ergonomic and high-level APIs that tools
+like `styled-system` and `theme-ui` are able to achieve without sacrificing
+performance, we need to think outside of the box. Instead of doing all that work
+at runtime, what if we could do most of what we need to do up-front?
 
-At transpile time, we can:
+By utilizing a build time tool such as Babel, we can statically analyze style
+declarations and do most of the work these high level libraries are doing at
+build time.
 
-1. Iterate over every style rule
-2. Determine the appropriate keys and scales to utilize
-3. Reduce the cost of safe theme property access through via documented
-   conventions
-4. Pre-generate style objects
+At build time, we can:
+
+1. Iterate over every style rule.
+2. Determine the appropriate keys and scales to utilize from our theme.
+3. Reduce the cost of safe property access via documented conventions.
+4. Pre-generate style objects.
 
 By doing all the above, all that is left at runtime is to have the underlying
-CSS-in-JS library generate the final styles. This means that we are able to
-achieve a high-level API while maintaining similar performance to using a
-library like `emotion` directly!
+CSS-in-JS library generate the final styles. With this, we are able to achieve a
+high-level API while maintaining similar performance to using a library like
+`emotion` directly!
 
 ### Taking Things Further
 
@@ -179,9 +180,9 @@ To put ideas of what could be possible using this approach:
 
 - Styles can be mapped to existing functional CSS frameworks like TailwindCSS to
   reduce or even eliminate runtime cost entirely.
-- Styles could be mapped to a zero-runtime CSS-in-JS libraries like `linaria`,
+- Styles could be mapped to zero-runtime CSS-in-JS libraries like `linaria`,
   `treat` or `astroturf`.
-- Class names can be generated at build based on static styles.
-- Partial static extraction on known staic styles; rely on runtime for dynamic
+- Class names can be generated at build time.
+- Partial static extraction on known styles; rely on runtime for dynamic
   expressions.
 - Unified React Native styling API at no additional performance cost.
