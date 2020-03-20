@@ -1,6 +1,5 @@
 import { NodePath, types as t } from '@babel/core'
-import * as BabelTypes from '@babel/types'
-import { JSXOpeningElement, Program } from '@babel/types'
+import { JSXOpeningElement, Program, Expression } from '@babel/types'
 
 import { DEFAULT_OPTIONS, INJECTED_PROP_NAME } from './constants'
 import {
@@ -10,10 +9,7 @@ import {
 } from './utils'
 import { buildInjectableProp } from './builders'
 
-export interface Babel {
-  types: typeof BabelTypes
-}
-export type StylePropExpression = BabelTypes.Expression | null
+export type StylePropExpression = Expression | null
 export interface PluginOptions {
   prop: string
   psuedoClases: { [key: string]: RegExp }
@@ -27,7 +23,7 @@ const jsxOpeningElementVisitor = {
     const allProps = path.node.attributes
     if (!allProps.length) return
 
-    const { scopedProp, existingProp } = extractInternalProps(allProps, options)
+    const scopedProp = extractInternalProps(allProps, options)
     if (!scopedProp) return
 
     const normalizedStyles = normalizeStyleNames(scopedProp, options)
@@ -39,15 +35,11 @@ const jsxOpeningElementVisitor = {
       t.jsxExpressionContainer(injectableExpression)
     )
 
-    if (existingProp) {
-      // TODO:
-    }
-
     path.node.attributes.push(styleProp)
   },
 }
 
-export default (_babel: Babel, opts: PluginOptions) => {
+export default (_babel: object, opts: PluginOptions) => {
   const options = { ...DEFAULT_OPTIONS, ...opts }
   options.psuedoClases.scales = /Scale$/
 

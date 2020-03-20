@@ -12,11 +12,7 @@ import {
 } from '@babel/types'
 
 import { PluginOptions } from './'
-import {
-  VALID_STYLE_NAMES,
-  INJECTED_PROP_NAME,
-  STYLE_ALIASES,
-} from './constants'
+import { VALID_STYLE_NAMES, STYLE_ALIASES } from './constants'
 import { buildObjectProperty } from './builders'
 import { castArray, tail } from './helpers'
 
@@ -44,7 +40,6 @@ export const extractInternalProps = (
   options: PluginOptions
 ) => {
   let scopedProp: JSXAttribute | undefined
-  let existingProp: JSXAttribute | undefined
 
   props.forEach(prop => {
     if (t.isJSXSpreadAttribute(prop)) return
@@ -53,13 +48,9 @@ export const extractInternalProps = (
       scopedProp = prop
       return
     }
-    if (prop.name.name === INJECTED_PROP_NAME) {
-      existingProp = prop
-      return
-    }
   })
 
-  return { scopedProp, existingProp }
+  return scopedProp
 }
 
 /**

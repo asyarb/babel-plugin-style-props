@@ -5,7 +5,7 @@ import { PluginOptions } from './'
 
 export const INJECTED_PROP_NAME = '__styleProps__'
 
-export const DEFAULT_OPTIONS = {
+export const DEFAULT_OPTIONS: PluginOptions = {
   prop: 'sx',
   psuedoClases: {
     hover: /Hover$/,
@@ -13,7 +13,7 @@ export const DEFAULT_OPTIONS = {
     active: /Active$/,
   },
   variants: {},
-} as PluginOptions
+}
 
 export const STYLE_ALIASES = {
   bg: 'backgroundColor',

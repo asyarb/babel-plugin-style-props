@@ -194,54 +194,6 @@ describe('style prop parsing', () => {
   })
 })
 
-//   it('merges parsed props with an existing __styleProps__ prop', () => {
-//     const example = `
-//       const Example = () => {
-//         return (
-//           <div
-//             p={['1rem', '2rem', '3rem', '4rem']}
-//             __styleProps__={{
-//               css: {
-//                 base: [
-//                   {
-//                     color: 'red',
-//                   },
-//                 ],
-//                 hover: [
-//                   {
-//                     color: 'blue',
-//                   },
-//                 ],
-//                 focus: [
-//                   {
-//                     color: 'purple',
-//                   },
-//                 ],
-//                 active: [
-//                   {
-//                     color: 'green',
-//                   },
-//                 ],
-//               },
-//               extensions: {
-//                 scales: {
-//                   margin: ['xl'],
-//                 },
-//                 variants: {
-//                   boxStyles: 'primary'
-//                 }
-//               },
-//             }}
-//           />
-//         )
-//       }
-//     `
-//     const code = parseCode(example)
-
-//     expect(code).toMatchSnapshot()
-//   })
-// })
-
 // describe('variants', () => {
 //   it('handles variants from plugin options', () => {
 //     const example = `
