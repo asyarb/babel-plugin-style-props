@@ -1,5 +1,5 @@
 import React from 'react'
 
 export const Example = () => {
-  return <div m="-large" boxStyle="med" />
+  return <div sx={{ m: '-large', boxStyle: 'med' }} />
 }

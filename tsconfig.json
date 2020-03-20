@@ -2,6 +2,7 @@
   "include": ["src"],
   "compilerOptions": {
     "target": "es5",
+    "outDir": "dist",
     "module": "esnext",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
