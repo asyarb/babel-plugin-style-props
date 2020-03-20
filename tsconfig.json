@@ -2,6 +2,7 @@
   "include": ["src"],
   "compilerOptions": {
     "target": "es5",
+    "outDir": "dist",
     "module": "esnext",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
@@ -9,8 +10,6 @@
     "sourceMap": true,
     "rootDir": "./",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",

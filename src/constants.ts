@@ -1,14 +1,19 @@
-import cssProps from 'known-css-properties'
+import css from 'known-css-properties'
 import camelCase from 'lodash.camelcase'
 
 import { PluginOptions } from './'
 
-export const STYLE_PROPS_ID = '__styleProps__'
+export const INJECTED_PROP_NAME = '__styleProps__'
 
-export const DEFAULT_OPTIONS = {
-  stripProps: false,
+export const DEFAULT_OPTIONS: PluginOptions = {
+  prop: 'sx',
+  psuedoClases: {
+    hover: /Hover$/,
+    focus: /Focus$/,
+    active: /Active$/,
+  },
   variants: {},
-} as PluginOptions
+}
 
 export const STYLE_ALIASES = {
   bg: 'backgroundColor',
@@ -34,10 +39,9 @@ export const STYLE_ALIASES = {
   py: ['paddingTop', 'paddingBottom'],
 } as { [key: string]: string | string[] }
 
-const cssBlacklist = (x: string) => !['src', 'x', 'y', 'alt'].includes(x)
-const cssProperties = cssProps.all.filter(cssBlacklist).map(camelCase)
+const cssProperties = css.all.map(camelCase)
 
-export const PROP_NAMES = [
+export const VALID_STYLE_NAMES = [
   ...cssProperties,
 
   // style specific props
@@ -60,16 +64,4 @@ export const PROP_NAMES = [
   'marginY',
   'paddingX',
   'paddingY',
-]
-
-export const HTML_TAG_BLACKLIST = [
-  'head',
-  'link',
-  'meta',
-  'style',
-  'title',
-  'base',
-  'script',
-  'noscript',
-  'source',
 ]

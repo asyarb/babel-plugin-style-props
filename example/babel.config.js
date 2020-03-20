@@ -4,7 +4,6 @@ module.exports = {
     [
       'babel-plugin-style-props',
       {
-        stripProps: true,
         variants: {
           boxStyle: 'boxStyles',
         },

@@ -3,369 +3,222 @@ import jsxSyntax from '@babel/plugin-syntax-jsx'
 
 import styleProps from '../src'
 
-const plugins = [jsxSyntax, styleProps]
-const pluginsWithPropRemoval = [
+const plugins = [
   jsxSyntax,
-  [styleProps, { stripProps: true, variants: { boxStyle: 'boxStyles' } }],
+  [styleProps, { variants: { boxStyle: 'boxStyles' } }],
 ]
 
 const parseCode = (example: string, plug?: PluginItem[]) =>
   transformSync(example, { plugins: plug || plugins })!.code
 
-describe('style prop parsing', () => {
-  it('handles style props and places them in a new prop', () => {
-    const example = `
-      const Example = () => {
-        return <div m='3rem' lineHeight={1.5} />
-      }
-    `
-    const code = parseCode(example)
+it('parses the styles', () => {
+  const example = `const Comp = () => <div sx={{ mb: '3rem', lineHeight: 4 }} />`
+  const code = parseCode(example)
 
-    expect(code).toMatchSnapshot()
-  })
-
-  it('handles responsive style props', () => {
-    const example = `
-      const Example = () => {
-        return <div m={['3rem', '4rem']} display='grid' pt={[null, '4rem', null, '6rem']} />
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('handles variable usage in style props', () => {
-    const example = `
-      const Example = ({ size }) => {
-        const variable = '3rem'
-        const myFunction = () => '4rem'
-        
-        return <div m={[variable, size, myFunction()]} />
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('handles expressions in style props', () => {
-    const example = `
-      const Example = ({ isTest }) => {
-        return <div m={isTest ? '3rem' : '4rem'} />
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('handles style props on multiple elements', () => {
-    const example = `
-      const Example = () => {
-        return (
-          <div m='1rem'>
-            <span p='2rem' />
-          </div>
-        )
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('strips style props if `shouldStrip` is set', () => {
-    const example = `
-      const Example = () => {
-        return (
-          <div
-            p={['1rem', '2rem', '3rem', '4rem']}
-          />
-        )
-      }
-    `
-    const code = parseCode(example, pluginsWithPropRemoval)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('does not strip non style props if `shouldStrip` is set', () => {
-    const example = `
-      const Example = () => {
-        return (
-          <div
-            p={['1rem', '2rem', '3rem', '4rem']}
-            shouldNotStrip={true}
-          />
-        )
-      }
-    `
-    const code = parseCode(example, pluginsWithPropRemoval)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('merges parsed props with an existing __styleProps__ prop', () => {
-    const example = `
-      const Example = () => {
-        return (
-          <div
-            p={['1rem', '2rem', '3rem', '4rem']}
-            __styleProps__={{
-              css: {
-                base: [
-                  {
-                    color: 'red',
-                  },
-                ],
-                hover: [
-                  {
-                    color: 'blue',
-                  },
-                ],
-                focus: [
-                  {
-                    color: 'purple',
-                  },
-                ],
-                active: [
-                  {
-                    color: 'green',
-                  },
-                ],
-              },
-              extensions: {
-                scales: {
-                  margin: ['xl'],
-                },
-                variants: {
-                  boxStyles: 'primary'
-                }
-              },
-            }}
-          />
-        )
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = () => <div sx={{
+      mb: '3rem',
+      lineHeight: 4
+    }} __styleProps__={{
+      base: [{
+        marginBottom: '3rem',
+        lineHeight: 4
+      }],
+      variants: [{}],
+      hover: [{}],
+      focus: [{}],
+      active: [{}],
+      scales: [{}]
+    }} />;"
+  `)
 })
 
-describe('scale prop parsing', () => {
-  it('handles scale props', () => {
-    const example = `
-      const Example = () => {
-        return <div mScale='l' />
-      }
-    `
-    const code = parseCode(example)
+it('parses scale styles', () => {
+  const example = `const Comp = () => <div sx={{ mtScale: 'l', mbScale: ['l', null, 'xl'] }} />`
+  const code = parseCode(example)
 
-    expect(code).toMatchSnapshot()
-  })
-
-  it('handles responsive scale props', () => {
-    const example = `
-      const Example = () => {
-        return <div mScale={['l', null, 'm']} />
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('handles variable arrays in scale props', () => {
-    const example = `
-      const Example = () => {
-        const array = ['l', 'l', 'm', 'm', 'xl']
-
-        return <div mScale={array} />
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('merges scale props with an existing __styleProps__ prop', () => {
-    const example = `
-      const Example = () => {
-        return (
-          <div
-            mScale='l'
-            __styleProps__={{
-              css: {
-                base: [
-                  {
-                    color: 'red',
-                  },
-                ],
-                hover: [
-                  {
-                    color: 'blue',
-                  },
-                ],
-                focus: [
-                  {
-                    color: 'purple',
-                  },
-                ],
-                active: [
-                  {
-                    color: 'green',
-                  },
-                ],
-              },
-              extensions: {
-                scales: {
-                  padding: ['xl'],
-                },
-                variants: {
-                  boxStyles: 'primary',
-                },
-              },
-            }} 
-          />
-        )
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = () => <div sx={{
+      mtScale: 'l',
+      mbScale: ['l', null, 'xl']
+    }} __styleProps__={{
+      base: [{}],
+      variants: [{}],
+      hover: [{}],
+      focus: [{}],
+      active: [{}],
+      scales: [{
+        marginTop: ['l'],
+        marginBottom: ['l', null, 'xl']
+      }]
+    }} />;"
+  `)
 })
 
-describe('modifiers', () => {
-  it('handles modifier props', () => {
-    const example = `
-      const Example = () => {
-        return <div color='red' colorHover='blue' colorFocus='green' colorActive='purple' />
-      }
-    `
-    const code = parseCode(example)
+it('parses psuedoClasses', () => {
+  const example = `const Comp = () => <div sx={{ colorHover: 'red' }} />`
+  const code = parseCode(example)
 
-    expect(code).toMatchSnapshot()
-  })
-
-  it('handles responsive modifier props', () => {
-    const example = `
-      const Example = () => {
-        return <div colorHover={['red', null, 'green']} />
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('supports variable usage in modifier props', () => {
-    const example = `
-      const Example = () => {
-        const color = 'red'
-
-        return <div colorHover={[color, null, 'green']} />
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
-
-  it('supports merging with an existing __styleProps__ with modifier props', () => {
-    const example = `
-      const Example = () => {
-        const color = 'red'
-
-        return (
-          <div
-            m='3rem'
-            mHover='4rem'
-            mFocus={['5rem', '6rem']}
-            mActive={['6rem', '7rem', null, '8rem']} 
-            __styleProps__={{
-              css: {
-                base: [
-                  {
-                    color: 'red',
-                  },
-                ],
-                hover: [
-                  {
-                    color: 'blue',
-                  },
-                ],
-                focus: [
-                  {
-                    color: 'purple',
-                  },
-                ],
-                active: [
-                  {
-                    color: 'green',
-                  },
-                ],
-              },
-              extensions: {
-                scales: {
-                  padding: ['xl'],
-                },
-                variants: {
-                  boxStyles: 'primary',
-                }
-              },
-            }}
-          />
-        )
-      }
-    `
-    const code = parseCode(example)
-
-    expect(code).toMatchSnapshot()
-  })
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = () => <div sx={{
+      colorHover: 'red'
+    }} __styleProps__={{
+      base: [{}],
+      variants: [{}],
+      hover: [{
+        color: 'red'
+      }],
+      focus: [{}],
+      active: [{}],
+      scales: [{}]
+    }} />;"
+  `)
 })
 
-describe('variants', () => {
-  it('handles variants from plugin options', () => {
-    const example = `
-      const Example = () => {
-        return <div boxStyle="primary" />
-      }
-    `
-    const code = parseCode(example)
+it('parses responsive arrays', () => {
+  const example = `const Comp = () => <div sx={{ color: ['red', 'blue', null, 'green'] }} />`
+  const code = parseCode(example)
 
-    expect(code).toMatchSnapshot()
-  })
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = () => <div sx={{
+      color: ['red', 'blue', null, 'green']
+    }} __styleProps__={{
+      base: [{
+        color: 'red'
+      }, {
+        color: 'blue'
+      }, {}, {
+        color: 'green'
+      }],
+      variants: [{}],
+      hover: [{}],
+      focus: [{}],
+      active: [{}],
+      scales: [{}]
+    }} />;"
+  `)
 })
 
-describe('kitchen sink', () => {
-  it('handles a large amount of scale and style props', () => {
-    const example = `
-      const Example = () => {
-        const array = ['l', 'l', 'm', 'm', 'xl']
-        const variable = 'huge'
+it('handles variable usage', () => {
+  const example = `
+    const Comp = ({ size }) => {
+      const variable = '3rem'
+      const myFunction = () => '4rem'
 
-        return (
-          <div 
-            display='flex'
-            mScale={array}
-            fontSize={['1rem', '2rem', null, '3rem']} 
-            color='green'
-            colorHover='red'
-            colorFocus={['red', 'green', 'blue']}
-            lineHeight={1.5} 
-            pyScale={['l', null, 'xxl']}
-            textTransform='uppercase'
-            fontFamily='system-ui'
-            maxWidth={variable}
-          />
-        )
-      }
-    `
-    const code = parseCode(example)
+      return <div sx={{ mb: [variable, size, myFunction()] }} />
+    } 
+  `
+  const code = parseCode(example)
 
-    expect(code).toMatchSnapshot()
-  })
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = ({
+      size
+    }) => {
+      const variable = '3rem';
+
+      const myFunction = () => '4rem';
+
+      return <div sx={{
+        mb: [variable, size, myFunction()]
+      }} __styleProps__={{
+        base: [{
+          marginBottom: variable
+        }, {
+          marginBottom: size
+        }, {
+          marginBottom: myFunction()
+        }],
+        variants: [{}],
+        hover: [{}],
+        focus: [{}],
+        active: [{}],
+        scales: [{}]
+      }} />;
+    };"
+  `)
+})
+
+it('parses expressions', () => {
+  const example = `const Comp = ({ isRed }) => <div sx={{ color: isRed ? 'red' : 'blue' }} />`
+  const code = parseCode(example)
+
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = ({
+      isRed
+    }) => <div sx={{
+      color: isRed ? 'red' : 'blue'
+    }} __styleProps__={{
+      base: [{
+        color: isRed ? 'red' : 'blue'
+      }],
+      variants: [{}],
+      hover: [{}],
+      focus: [{}],
+      active: [{}],
+      scales: [{}]
+    }} />;"
+  `)
+})
+
+it('parses multiple elements', () => {
+  const example = `
+    const Comp = () => {
+      return (
+        <div sx={{ mt: '1rem' }}>
+          <p sx={{ textAlign: 'left' }} />
+        </div>
+      )
+    } 
+  `
+  const code = parseCode(example)
+
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = () => {
+      return <div sx={{
+        mt: '1rem'
+      }} __styleProps__={{
+        base: [{
+          marginTop: '1rem'
+        }],
+        variants: [{}],
+        hover: [{}],
+        focus: [{}],
+        active: [{}],
+        scales: [{}]
+      }}>
+              <p sx={{
+          textAlign: 'left'
+        }} __styleProps__={{
+          base: [{
+            textAlign: 'left'
+          }],
+          variants: [{}],
+          hover: [{}],
+          focus: [{}],
+          active: [{}],
+          scales: [{}]
+        }} />
+            </div>;
+    };"
+  `)
+})
+
+it('parses variants', () => {
+  const example = `const Comp = () => <div sx={{ boxStyle: 'primary' }} />`
+  const code = parseCode(example)
+
+  expect(code).toMatchInlineSnapshot(`
+    "const Comp = () => <div sx={{
+      boxStyle: 'primary'
+    }} __styleProps__={{
+      base: [{}],
+      variants: [{
+        boxStyle: 'primary'
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}],
+      scales: [{}]
+    }} />;"
+  `)
 })
