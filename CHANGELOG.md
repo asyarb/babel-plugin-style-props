@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.3](https://github.com/asyarb/babel-plugin-style-props/compare/v0.3.2...v0.3.3) (2020-03-21)
+
+
+### Features
+
+* extract scoped prop ([9004f53](https://github.com/asyarb/babel-plugin-style-props/commit/9004f535c0b123218c20163934f50ff0930aa6a8))
+* move to scoped prop progress ([efbe574](https://github.com/asyarb/babel-plugin-style-props/commit/efbe5740843d0bdb9409029636af78508d0cedf7))
+* opt out of terser ([dc711e9](https://github.com/asyarb/babel-plugin-style-props/commit/dc711e9796f21be907c809692fe252547e8303cd))
+* scales and tests ([ccd1cb2](https://github.com/asyarb/babel-plugin-style-props/commit/ccd1cb2846f96f9840e20bc2648bf7e40876de75))
+* simplify types ([74f00dc](https://github.com/asyarb/babel-plugin-style-props/commit/74f00dc121d6a3bc209ba84e7203401427ee93bb))
+* variant handling ([c65b280](https://github.com/asyarb/babel-plugin-style-props/commit/c65b280c59d46ff23f9e93b6ed60e863c7914180))
+* working base func ([a62372e](https://github.com/asyarb/babel-plugin-style-props/commit/a62372ef9a2412fb68fe1321c809b440ac921142))
+
+
+### Bug Fixes
+
+* remove unneeded deps ([9e4675c](https://github.com/asyarb/babel-plugin-style-props/commit/9e4675cd548205837ecef7d7b4c05841f1053f8b))
+
 ### [0.3.2](https://github.com/asyarb/babel-plugin-style-props/compare/v0.3.1...v0.3.2) (2020-02-13)
 
 
