@@ -101,7 +101,7 @@ type NormalizedStyles = {
   [key: string]: ObjectProperty['value']
 }
 type GroupedStyles = {
-  [key: string]: NormalizedStyles
+  [key: string]: NormalizedStyles | SpreadElement[]
 }
 
 export const normalizeStyleNames = (
@@ -115,17 +115,21 @@ export const normalizeStyleNames = (
   const allStyleProperties = scopedPropObj.properties
 
   // Initialize our collections.
-  let groupedStyles = Object.keys(psuedoClases).reduce(
+  let groupedStyles: GroupedStyles = Object.keys(psuedoClases).reduce(
     (acc, key) => {
       acc[key] = {}
 
       return acc
     },
-    { base: {}, variants: {} } as GroupedStyles
+    { base: {}, variants: {}, spreads: [] } as any
   )
 
   allStyleProperties.forEach(style => {
-    if (!t.isObjectProperty(style)) return
+    if (t.isObjectMethod(style)) return
+    if (t.isSpreadElement(style)) {
+      ;(groupedStyles.spreads as SpreadElement[]).push(style)
+      return
+    }
 
     const key: Identifier = style.key
     const value = style.value
@@ -140,7 +144,7 @@ export const normalizeStyleNames = (
 
     const cssProperties = castArray(STYLE_ALIASES[name] ?? name)
     cssProperties.forEach(cssProperty => {
-      groupedStyles[type][cssProperty] = value
+      ;(groupedStyles[type] as NormalizedStyles)[cssProperty] = value
     })
   })
 
@@ -211,10 +215,15 @@ export const createKeyedResponsiveStyles = (
 ) => {
   const responsivePsuedoGroups = Object.entries(groupedStylesObj).reduce(
     (acc, [key, value]) => {
-      const styles = Object.entries(value)
-
       let mobile = [] as ObjectProperty[]
       let responsive = [] as ObjectProperty[][]
+
+      if (key === 'spreads') {
+        acc.spreads = [t.objectExpression(value as SpreadElement[])]
+        return acc
+      }
+
+      const styles = Object.entries(value)
 
       styles.forEach(([cssKey, cssValue]) => {
         if (key === 'scales') processScaleStyle(cssKey, cssValue, mobile)

@@ -222,3 +222,32 @@ it('parses variants', () => {
     }} />;"
   `)
 })
+
+it('copies spread elements', () => {
+  const example = `
+    const style = {
+      bg: 'red'
+    } 
+
+    const Comp = () => <div sx={{ ...style }} />
+  `
+  const code = parseCode(example)
+
+  expect(code).toMatchInlineSnapshot(`
+    "const style = {
+      bg: 'red'
+    };
+    
+    const Comp = () => <div sx={{ ...style
+    }} __styleProps__={{
+      base: [{}],
+      variants: [{}],
+      spreads: [{ ...style
+      }],
+      hover: [{}],
+      focus: [{}],
+      active: [{}],
+      scales: [{}]
+    }} />;"
+  `)
+})
