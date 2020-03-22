@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.4](https://github.com/asyarb/babel-plugin-style-props/compare/v0.3.3...v0.3.4) (2020-03-22)
+
+
+### Features
+
+* copy over spread elements in sx prop ([b109696](https://github.com/asyarb/babel-plugin-style-props/commit/b109696ae3374df2baa2ee18eb94940d3dcc1227))
+
 ### [0.3.3](https://github.com/asyarb/babel-plugin-style-props/compare/v0.3.2...v0.3.3) (2020-03-21)
 
 
