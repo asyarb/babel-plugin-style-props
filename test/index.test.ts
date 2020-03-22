@@ -25,6 +25,7 @@ it('parses the styles', () => {
         lineHeight: 4
       }],
       variants: [{}],
+      spreads: [{}],
       hover: [{}],
       focus: [{}],
       active: [{}],
@@ -44,6 +45,7 @@ it('parses scale styles', () => {
     }} __styleProps__={{
       base: [{}],
       variants: [{}],
+      spreads: [{}],
       hover: [{}],
       focus: [{}],
       active: [{}],
@@ -65,6 +67,7 @@ it('parses psuedoClasses', () => {
     }} __styleProps__={{
       base: [{}],
       variants: [{}],
+      spreads: [{}],
       hover: [{
         color: 'red'
       }],
@@ -91,6 +94,7 @@ it('parses responsive arrays', () => {
         color: 'green'
       }],
       variants: [{}],
+      spreads: [{}],
       hover: [{}],
       focus: [{}],
       active: [{}],
@@ -129,6 +133,7 @@ it('handles variable usage', () => {
           marginBottom: myFunction()
         }],
         variants: [{}],
+        spreads: [{}],
         hover: [{}],
         focus: [{}],
         active: [{}],
@@ -152,6 +157,7 @@ it('parses expressions', () => {
         color: isRed ? 'red' : 'blue'
       }],
       variants: [{}],
+      spreads: [{}],
       hover: [{}],
       focus: [{}],
       active: [{}],
@@ -181,6 +187,7 @@ it('parses multiple elements', () => {
           marginTop: '1rem'
         }],
         variants: [{}],
+        spreads: [{}],
         hover: [{}],
         focus: [{}],
         active: [{}],
@@ -193,6 +200,7 @@ it('parses multiple elements', () => {
             textAlign: 'left'
           }],
           variants: [{}],
+          spreads: [{}],
           hover: [{}],
           focus: [{}],
           active: [{}],
@@ -215,6 +223,7 @@ it('parses variants', () => {
       variants: [{
         boxStyle: 'primary'
       }],
+      spreads: [{}],
       hover: [{}],
       focus: [{}],
       active: [{}],
